@@ -1,0 +1,85 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <div class="container"> 
+    <h1>Hi, {{ current_user.username }}!</h1>
+
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Username</th>
+        <th>R1</th>
+        <th>R2</th>
+        <th>R3</th>
+        <th>R4</th>
+        <th>R5</th>
+        <th>R6</th>
+        <th>Score</th>
+        <th>Potential</th>
+        <th>Final Four</th>
+        <th>Semi Finals</th>
+        <th>Champion</th>
+      </tr>
+    </thead>
+
+    <!-- Scoring 
+    {% for user in users %}
+      {% if user.round1 is not none %}
+      {% set removeEnds = user.round1[1:-1] %}
+      {% set clean = removeEnds.split(',') %}
+      {% endif %}
+    {% endfor %}
+
+    {% set master = users[0] %} -->
+
+    <!-- Scoring  Output-->
+  
+    {% for user in users %}
+      <tbody>
+      <tr>
+        <td>{{user.username}}</td>
+        <td>{{score[loop.index-1][0]}}</td>
+        <td>{{score[loop.index-1][1]}}</td>
+        <td>{{score[loop.index-1][2]}}</td>
+        <td>{{score[loop.index-1][3]}}</td>
+        <td>{{score[loop.index-1][4]}}</td>
+        <td>{{score[loop.index-1][5]}}</td>
+        <td>{{score[loop.index-1][6]}}</td>
+        <td>{{potential[loop.index-1]}}</td>
+        <td style="position: relative; left: 0; top: 0;">
+          <img src="static/teams/{{ end_rounds[loop.index-1][0] | default('NCAA_logo.svg') }}"" class="images float-left" />
+          <img src="static/teams/{{ end_rounds[loop.index-1][1] | default('NCAA_logo.svg') }}"" class="images float-left" />
+          <img src="static/teams/{{ end_rounds[loop.index-1][2] | default('NCAA_logo.svg') }}"" class="images float-left" />
+          <img src="static/teams/{{ end_rounds[loop.index-1][3] | default('NCAA_logo.svg') }}"" class="images float-left" />
+          {% if (end_rounds[loop.index-1][0] | replace('.png', '')) is in elim %}
+            <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay1 float-left" />
+          {% endif %}{% if (end_rounds[loop.index-1][1] | replace('.png', '')) is in elim %}
+            <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay2 float-left" />
+          {% endif %}{% if (end_rounds[loop.index-1][2] | replace('.png', '')) is in elim %}
+            <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay3 float-left" />
+          {% endif %}{% if (end_rounds[loop.index-1][3] | replace('.png', '')) is in elim %}
+            <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay4 float-left" />
+          {% endif %}
+        </td>
+        <td style="position: relative; left: 0; top: 0;">
+          <img src="static/teams/{{ end_rounds[loop.index-1][4] | default('NCAA_logo.svg') }}"" class="images float-left" />
+          <img src="static/teams/{{ end_rounds[loop.index-1][5] | default('NCAA_logo.svg') }}"" class="images float-left" />
+          {% if (end_rounds[loop.index-1][4] | replace('.png', '')) is in elim %}
+          <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay1 float-left" />
+          {% endif %}{% if (end_rounds[loop.index-1][5] | replace('.png', '')) is in elim %}
+          <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay2 float-left" />
+          {% endif %}
+        </td>
+        <td style="position: relative; left: 0; top: 0;">
+          <img src="static/teams/{{ end_rounds[loop.index-1][6] | default('NCAA_logo.svg') }}"" class="images float-left" />
+          {% if (end_rounds[loop.index-1][6] | replace('.png', '')) is in elim %}
+          <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay1 float-left" />
+          {% endif %}
+        </td>
+
+      </tr>
+    </tbody>
+    {% endfor %}
+    </table>
+  </div>
+{% endblock %}
