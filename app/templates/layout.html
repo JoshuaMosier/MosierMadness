@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <meta description="NCAA March Madness 2018">
     <title>Mosier Madness</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
@@ -12,10 +13,19 @@
     <script src="{{ url_for('static',filename = 'scoring.js')}}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script type=text/javascript> $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-122580685-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-122580685-1');
+    </script>
   </head>
 
   <body id ="main">
-  	
+
     {% include 'includes/_navbar.html' %}
   	{% include 'includes/_messages.html' %}
   	{% block body %}
