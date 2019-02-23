@@ -1,5 +1,5 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, logging, request, redirect, jsonify
-from flask_wtf import FlaskForm
+from flask_wtf import Form
 from passlib.hash import sha256_crypt
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
@@ -30,16 +30,19 @@ login = LoginManager(app)
 def load_user(id):
     return User.query.get(int(id))
 
-#index 
-@app.route('/') 
-def index():     
+#index
+@app.route('/')
+def index():
     master = master_bracket.getMaster()
     elim = master_bracket.getElim()
     users = User.query.all()
     end_rounds = scoring.get_end_rounds(users)
     score = scoring.score(master,users)
-    potential = scoring.potential(elim,users)
-    return render_template('index.html', users=users, score=score, potential=potential, end_rounds=end_rounds, elim=elim)
+    order = scoring.order(score)
+    rank = scoring.rank(order,score)
+    potential = scoring.potential(elim,users,master)
+    return render_template('index.html',users=users, score=score, potential=potential, end_rounds=end_rounds, elim=elim, order=order, rank=rank, User=User, master=master)
+
 
 #bracket form
 @app.route('/bracketEntry', methods=['GET', 'POST'])
@@ -51,21 +54,38 @@ def bracketEntry():
 
 @app.route('/entries')
 def entries():
-    user_id = request.args.get('id', default = 1, type = int)
+    users = User.query.all()
+    if current_user.is_authenticated:
+        user_id = request.args.get('id', default = current_user.id, type = int)
+    else:
+        user_id = request.args.get('id', default = 1, type = int)
     master = master_bracket.getMaster()
     elim = master_bracket.getElim()
     if User.query.get(user_id).round1 is None:
         display = []
-    else:   
+    else:
         display = User.query.get(user_id).round1.replace('"','').replace('[','').replace(']','').split(',')
-    users = User.query.all()
-    return render_template('entries.html',users=users, display=display,master=master,elim=elim) 
+    return render_template('entries.html',users=users, display=display,master=master,elim=elim,user_id=user_id, User = User)
 
 #master
 @app.route('/master')
 def master():
     display = master_bracket.getMaster()
     return render_template('master.html',display=display)
+
+#stats
+@app.route('/stats')
+def stats():
+    return render_template('stats.html')
+
+#past_winners
+@app.route('/past_winners')
+def past_winners():
+    return render_template('past_winners.html')
+
+@app.route('/possibilities')
+def possibilities():
+    return render_template("possibilities.html")
 
 #login
 @app.route('/login', methods=['GET', 'POST'])
@@ -127,14 +147,14 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
 #Login validation
-class LoginForm(FlaskForm):
+class LoginForm(Form):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
 
 #Registration
-class RegistrationForm(FlaskForm):
+class RegistrationForm(Form):
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -154,10 +174,17 @@ class RegistrationForm(FlaskForm):
 
 @app.route('/background_process')
 def background_process():
+    submissionkey = request.args.get('submissionkey', 0, type=str)
     lang = request.args.get('proglang', 0, type=str)
-    current_user.set_bracket(lang)
-    db.session.commit()
-    return jsonify(result='Bracket Submitted!')
+    if scoring.isBracketEmpty(lang):
+        return jsonify(result='Bracket Is Not Filled Correctly')
+    elif submissionkey=='Mosier2018':
+        current_user.set_bracket(lang)
+        db.session.commit()
+        return jsonify(result='Bracket Submitted!')
+    else:
+        return jsonify(result='Incorrect Bracket Key')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
