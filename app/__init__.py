@@ -13,6 +13,7 @@ import scoring
 import json
 import os
 import master_bracket
+import score_scraper
 
 app = Flask(__name__)
 
@@ -41,7 +42,8 @@ def index():
     order = scoring.order(score)
     rank = scoring.rank(order,score)
     potential = scoring.potential(elim,users,master)
-    return render_template('index.html',users=users, score=score, potential=potential, end_rounds=end_rounds, elim=elim, order=order, rank=rank, User=User, master=master)
+    game_scores = score_scraper.get_scoreticker()
+    return render_template('index.html',users=users, score=score, potential=potential, end_rounds=end_rounds, elim=elim, order=order, rank=rank, User=User, master=master, score_table=game_scores)
 
 
 #bracket form
