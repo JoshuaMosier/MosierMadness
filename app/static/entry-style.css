@@ -1,0 +1,25 @@
+.correct{
+  background: rgb(0, 100, 0) !important;
+}
+.wrong{
+  background: rgb(100, 0, 0) !important;
+}
+
+#bracket #round6 .correct{
+  background: rgb(0, 100, 0) !important;
+}
+#bracket #round6 .wrong{
+  background: rgb(100, 0, 0) !important;
+}
+
+#bracket .match .slot1:hover{
+  background-color: rgb(50, 50, 50);
+}
+#bracket .match .slot2:hover{
+  background-color: rgb(50, 50, 50);
+}
+.nav-dark{
+	background-color:rgb(50, 50, 50);
+}
+
+
