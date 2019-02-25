@@ -189,7 +189,7 @@ body {
 	color:#666;
 }
 .score-opp, .score-at, .game-prog{float:right;}
-.game-prog{color:#f00000;}
+.game-prog{color:#ff0000;}
 .game-opp, .game-at{width:100%;}
 
 .top-fixed{
@@ -211,4 +211,13 @@ body {
 .score-ticker{
 	white-space: nowrap;
 	overflow-x:auto;
+}
+
+.winner{
+	font-weight:bold;
+}
+
+.rank{
+	font-size:10px;
+	vertical-align: middle;
 }

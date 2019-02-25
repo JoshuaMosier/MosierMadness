@@ -4,9 +4,17 @@
 		<!--  range(score_table[0]|length)  -->
 	  <div class="box">
 	      <div class="game-box">
-	      	<div class="game-date">2/23<span class="game-prog">Final</span></div>
-	      	<div class="game-opp">{{score_table[loop.index-1][0][0]}}<span class="score-opp">{{score_table[loop.index-1][0][1]}}</span></div>
-	      	<div class="game-at">{{score_table[loop.index-1][1][0]}}<span class="score-at">{{score_table[loop.index-1][1][1]}}</span></div>
+	      	<div class="game-date">{{score_table[loop.index-1][2]}}&zwnj;<span class="game-prog">{{score_table[loop.index-1][3]}}</span></div>
+	      	{% if winners[0][loop.index-1] == 1 %}
+	      		<div class="game-opp winner"><span class="rank">{{score_table[loop.index-1][0][2]}}</span>{{score_table[loop.index-1][0][2]}}{{score_table[loop.index-1][0][0]}}{{score_table[loop.index-1][0][0]}}<span class="score-opp">{{score_table[loop.index-1][0][1]}}</span></div>
+	      	{% else %}
+	      		<div class="game-opp"><span class="rank">{{score_table[loop.index-1][0][2]}}</span>{{score_table[loop.index-1][0][0]}}<span class="score-opp">{{score_table[loop.index-1][0][1]}}</span></div>
+	      	{% endif %}	
+					{% if winners[1][loop.index-1] == 1 %}
+						<div class="game-at winner"><span class="rank">{{score_table[loop.index-1][1][2]}}</span>{{score_table[loop.index-1][1][0]}}<span class="score-at">{{score_table[loop.index-1][1][1]}}</span></div>
+	      	{% else %}
+	      		<div class="game-at"><span class="rank">{{score_table[loop.index-1][1][2]}}</span>{{score_table[loop.index-1][1][0]}}<span class="score-at">{{score_table[loop.index-1][1][1]}}</span></div>
+	      	{% endif %}	
 	      </div>
 	  </div>
 	  {% endfor %}

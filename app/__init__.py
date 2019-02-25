@@ -42,8 +42,8 @@ def index():
     order = scoring.order(score)
     rank = scoring.rank(order,score)
     potential = scoring.potential(elim,users,master)
-    game_scores = score_scraper.get_scoreticker_espn()
-    return render_template('index.html',users=users, score=score, potential=potential, end_rounds=end_rounds, elim=elim, order=order, rank=rank, User=User, master=master, score_table=game_scores)
+    game_scores,winners = score_scraper.get_scoreticker_espn()
+    return render_template('index.html',users=users, score=score, potential=potential, end_rounds=end_rounds, elim=elim, order=order, rank=rank, User=User, master=master, score_table=game_scores, winners=winners)
 
 
 #bracket form
