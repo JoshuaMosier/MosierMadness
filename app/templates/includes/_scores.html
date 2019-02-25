@@ -1,14 +1,14 @@
-<link rel="stylesheet" href="{{url_for('static',filename='test-style.css')}}">
-
-<div class="score-ticker">
-	{% for game in range(12) %}
-	<!--  range(score_table[0]|length)  -->
-  <div class="box">
-      <div class="game-box">
-      	<div class="game-date">9/08<span class="game-prog">Final</span></div>
-      	<div class="game-opp">{{score_table[0][(loop.index-1)][0]}}<span class="score-opp">{{score_table[0][loop.index-1][1]}}</span></div>
-      	<div class="game-at">{{score_table[1][(loop.index-1)][0]}}<span class="score-at">{{score_table[1][loop.index-1][1]}}</span></div>
-      </div>
-  </div>
-  {% endfor %}
-</div>
+{% if score_table %}
+	<div class="score-ticker">
+		{% for game in range(score_table|length) %}
+		<!--  range(score_table[0]|length)  -->
+	  <div class="box">
+	      <div class="game-box">
+	      	<div class="game-date">2/23<span class="game-prog">Final</span></div>
+	      	<div class="game-opp">{{score_table[loop.index-1][0][0]}}<span class="score-opp">{{score_table[loop.index-1][0][1]}}</span></div>
+	      	<div class="game-at">{{score_table[loop.index-1][1][0]}}<span class="score-at">{{score_table[loop.index-1][1][1]}}</span></div>
+	      </div>
+	  </div>
+	  {% endfor %}
+	</div>
+{% endif %}

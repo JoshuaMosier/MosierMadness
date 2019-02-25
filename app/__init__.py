@@ -42,7 +42,7 @@ def index():
     order = scoring.order(score)
     rank = scoring.rank(order,score)
     potential = scoring.potential(elim,users,master)
-    game_scores = score_scraper.get_scoreticker()
+    game_scores = score_scraper.get_scoreticker_espn()
     return render_template('index.html',users=users, score=score, potential=potential, end_rounds=end_rounds, elim=elim, order=order, rank=rank, User=User, master=master, score_table=game_scores)
 
 
@@ -50,9 +50,9 @@ def index():
 @app.route('/bracketEntry', methods=['GET', 'POST'])
 def bracketEntry():
     if current_user.is_authenticated:
-         return render_template("bracketEntry.html")
+      return render_template("bracketEntry.html")
     else:
-         return login()
+      return login()
 
 @app.route('/entries')
 def entries():

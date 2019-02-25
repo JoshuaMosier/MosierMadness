@@ -1,6 +1,5 @@
 {% extends 'layout.html' %}
 {% block body %}
-{% include 'includes/_scores.html' %}
   <div class="container">
     <table class="table table-dark">
       <thead class = "thead-light">
@@ -63,7 +62,7 @@
 	          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay3 float-left" />
 	          {% endif %}
 
-	          {% if (end_rounds[item][3] | replace('.png', '')) == master[59] %}
+	          {% if (end_rounds[item][2] | replace('.png', '')) == master[58] %}
 	            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}"" class="overlay4 float-left" />
 	          {% else %}
 	          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay4 float-left" />
