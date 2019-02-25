@@ -86,7 +86,7 @@ WKU,Western Kentucky
 STET,Stetson
 CHAR,Charlotte
 IONA,Iona
-UNCO,Northern Colorado
+UNCO,Northern Colo.
 HAW,Hawaii
 DEP,DePaul
 YALE,Yale
@@ -121,7 +121,7 @@ ND,Notre Dame
 WAKE,Wake Forest
 MONM,Monmouth
 FSU,Florida State
-KSU,Kansas State
+KSU,Kansas St.
 DREX,Drexel
 KENN,Kennesaw State
 MRSH,Marshall
@@ -188,7 +188,7 @@ UVU,Utah Valley
 CAL,California
 COLG,Colgate
 DSU,Delaware State
-UAPB,Arkansas-Pine Bluff
+UAPB,Ark.-Pine Bluff
 CCSU,Central Connecticut
 ASU,Arizona St.
 HAMP,Hampton
@@ -205,8 +205,8 @@ SDSU,San Diego State
 VMI,VMI
 AMCC,Texas A&M-Corpus Christi
 SFU,Saint Francis (PA)
-SCST,South Carolina State
-SOU,Southern
+SCST,S. Carolina St.
+SOU,Southern Univ.
 SC,South Carolina
 COPP,Coppin State
 LAF,Lafayette
@@ -252,8 +252,8 @@ USU,Utah State
 ORE,Oregon
 ETSU,East Tenn. St.
 WASH,Washington
-NCCU,NC Central
-MVSU,Mississippi Valley State
+NCCU,N.C. Central
+MVSU,Mississippi Val.
 RMU,Robert Morris
 AFA,Air Force
 KENT,Kent State
@@ -315,7 +315,7 @@ FUR,Furman
 WYO,Wyoming
 LIU,LIU-Brooklyn
 MURR,Murray State
-PV,Prairie View
+PV,Prairie View A&M
 DRKE,Drake
 GONZ,Gonzaga
 SELA,Southeastern Louisiana
@@ -350,7 +350,7 @@ ULL,Louisiana
 WIU,Western Illinois
 SAM,Samford
 WICH,Wichita State
-NCAT,North Carolina A&T
+NCAT,N.C. A&T
 UNC,UNC
 TCU,TCU
 ALAB,Alabama-Birmingham

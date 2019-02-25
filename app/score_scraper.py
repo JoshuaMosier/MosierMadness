@@ -55,7 +55,4 @@ def get_scoreticker_espn():
 		home.append(ranks[1].getText())
 		status = matchup.findAll("div",{"class": "gamePod-status"})
 		matches.append([away,home,None,status])
-	print(matches)
 	return matches
-
-get_scoreticker_espn()
