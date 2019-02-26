@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import csv
 import json
-
+import datetime
 def get_scoreticker():
 	sauce = requests.get("https://www.sports-reference.com/cbb/")
 	soup = BeautifulSoup(sauce.content,'html.parser')
@@ -77,7 +77,7 @@ def get_scoreticker_espn():
 	return (matches,[away_winners,home_winners])
 
 def get_scoreticker_json():
-	sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2019/02/26/scoreboard.json")
+	sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.today().strftime('%Y/%m/%d')+"/scoreboard.json")
 	games = json.loads(sauce.content)
 	away = []
 	home = []
@@ -92,7 +92,4 @@ def get_scoreticker_json():
 		gm.append(game['game']['gameState'])
 		gm.append(game['game']['startTime'])
 		matches.append(gm)
-		print(gm)
-	return list(reversed(matches))
-
-get_scoreticker_json()
+	return matches
