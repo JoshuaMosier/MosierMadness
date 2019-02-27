@@ -1,2 +1,5 @@
 
 app/chromedriver.exe
+app/__pycache__/master_bracket.cpython-37.pyc
+app/__pycache__/score_scraper.cpython-37.pyc
+app/__pycache__/scoring.cpython-37.pyc
