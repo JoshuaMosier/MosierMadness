@@ -1,23 +1,23 @@
 {% extends 'layout.html' %}
 {% block body %}
-  <div class="container">
+  <div class="leaderboard center">
     <table class="table table-dark">
       <thead class = "thead-light">
        <tr>
-        <th>Rank</th>
-        <th>Score</th>
-        <th>Username</th>
-        <th>R1</th>
-        <th>R2</th>
-        <th>R3</th>
-        <th>R4</th>
-        <th>R5</th>
-        <th>R6</th>
-        <th>Potential</th>
+        <th class="cell">Rank</th>
+        <th class="cell">Score</th>
+        <th class="cell">Username</th>
+        <th class="lower-padding cell">R1</th>
+        <th class="lower-padding cell">R2</th>
+        <th class="lower-padding cell">R3</th>
+        <th class="lower-padding cell">R4</th>
+        <th class="lower-padding cell">R5</th>
+        <th class="lower-padding cell">R6</th>
+        <th class="lower-padding cell">Pot.</th>
         <th>Final Four</th>
         <th>Finals</th>
-        <th>Champion</th>
-        <th>Games</th>
+        <th>Champ</th>
+        <th class="cell">Games</th>
       </tr>
     </thead>
 
@@ -27,16 +27,16 @@
       <tbody>
       <tr>
         {% if users[item].round1 is not none %}
-        <td>{{rank[loop.index-1]}}</td>
-        <td>{{score[item][6]}}</td>
-        <td>{{users[item].username}}</td>
-        <td>{{score[item][0]}}</td>
-        <td>{{score[item][1]}}</td>
-        <td>{{score[item][2]}}</td>
-        <td>{{score[item][3]}}</td>
-        <td>{{score[item][4]}}</td>
-        <td>{{score[item][5]}}</td>
-        <td>{{potential[item]}}</td>
+        <td class="cell">{{rank[loop.index-1]}}</td>
+        <td class="cell">{{score[item][6]}}</td>
+        <td class="cell">{{users[item].username}}</td>
+        <td class="lower-padding cell">{{score[item][0]}}</td>
+        <td class="lower-padding cell">{{score[item][1]}}</td>
+        <td class="lower-padding cell">{{score[item][2]}}</td>
+        <td class="lower-padding cell">{{score[item][3]}}</td>
+        <td class="lower-padding cell">{{score[item][4]}}</td>
+        <td class="lower-padding cell">{{score[item][5]}}</td>
+        <td class="lower-padding cell">{{potential[item]}}</td>
         <td style="position: relative; left: 0; top: 0;">
           <img src="static/teams/{{ end_rounds[item][0] | default('NCAA_logo.svg') }}" class="images float-left" />
           <img src="static/teams/{{ end_rounds[item][1] | default('NCAA_logo.svg') }}" class="images float-left" />
@@ -94,7 +94,7 @@
           <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}"" class="overlay1 float-left" />
           {% endif %}
         </td>
-        <td>{{score[item][7]}}</td>
+        <td class="cell">{{score[item][7]}}</td>
         {% endif %}
       </tr>
     </tbody>
