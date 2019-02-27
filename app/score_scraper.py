@@ -3,6 +3,7 @@ import requests
 import csv
 import json
 import datetime
+from operator import itemgetter
 def get_scoreticker():
 	sauce = requests.get("https://www.sports-reference.com/cbb/")
 	soup = BeautifulSoup(sauce.content,'html.parser')
@@ -90,6 +91,18 @@ def get_scoreticker_json():
 		gm.append(away)
 		gm.append(home)
 		gm.append(game['game']['gameState'])
-		gm.append(game['game']['startTime'])
+		if game['game']['gameState'] == 'live':
+			period = game['game']['currentPeriod']
+			if period != "HALF":
+				period += " " +str(game['game']['contestClock'])
+			gm.append(period)
+		elif game['game']['gameState'] == 'live':
+			gm.append([])
+		else: 
+			gm.append(game['game']['startTime'])
 		matches.append(gm)
-	return matches
+	type_sorted = sorted(matches, key=itemgetter(3),reverse=True)
+
+	return type_sorted
+
+get_scoreticker_json()

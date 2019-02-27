@@ -186,7 +186,7 @@ body {
 }
 .game-date{
 	font-size:10px;
-	color:#666;
+	color:#999;
 }
 .score-opp, .score-at, .game-prog{float:right;}
 .game-prog{color:#ff0000;}
