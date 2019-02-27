@@ -6,7 +6,7 @@
        <tr>
         <th class="cell">Rank</th>
         <th class="cell">Score</th>
-        <th class="cell">Username</th>
+        <th>Username</th>
         <th class="lower-padding cell">R1</th>
         <th class="lower-padding cell">R2</th>
         <th class="lower-padding cell">R3</th>
@@ -29,7 +29,11 @@
         {% if users[item].round1 is not none %}
         <td class="cell">{{rank[loop.index-1]}}</td>
         <td class="cell">{{score[item][6]}}</td>
-        <td class="cell">{{users[item].username}}</td>
+        <td>
+        	<a href="{{ url_for('entries',id=users[item].id)}}">
+        		{{users[item].username}}
+        	</a>
+      	</td>
         <td class="lower-padding cell">{{score[item][0]}}</td>
         <td class="lower-padding cell">{{score[item][1]}}</td>
         <td class="lower-padding cell">{{score[item][2]}}</td>

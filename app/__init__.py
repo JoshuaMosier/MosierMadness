@@ -57,6 +57,10 @@ def bracketEntry():
 @app.route('/entries')
 def entries():
     users = User.query.all()
+    master = master_bracket.getMaster()
+    score = scoring.score(master,users)
+    order = scoring.order(score)
+    rank = scoring.rank(order,score)
     if current_user.is_authenticated:
         user_id = request.args.get('id', default = current_user.id, type = int)
     else:
@@ -67,7 +71,7 @@ def entries():
         display = []
     else:
         display = User.query.get(user_id).round1.replace('"','').replace('[','').replace(']','').split(',')
-    return render_template('entries.html',users=users, display=display,master=master,elim=elim,user_id=user_id, User = User)
+    return render_template('entries.html',users=users, display=display,master=master,elim=elim,user_id=user_id, User = User,order=order,Users=users,rank=rank)
 
 #master
 @app.route('/master')

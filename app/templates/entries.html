@@ -6,11 +6,11 @@
 <!-- Sidebar -->
   <div id="sidebar-wrapper">
       <ul class="sidebar-nav nav-dark">
-       	{% for user in users %}
-        {% if user.round1 is not none %}
+       	{% for item in order %}
+        {% if Users[item].round1 is not none %}
        	<li>
        		<form>
-              <a href="{{ url_for('entries',id=user.id)}}">{{user.id}} {{user.username}}</a>
+              <a class="cell" href="{{ url_for('entries',id=Users[item].id)}}">{{Users[item].username}}</a>
           	</form>
           </li>
           {% endif %}
@@ -18,9 +18,9 @@
       </ul>
   </div>
 
-<center><h1>{{User.query.get(user_id).username}}'s Bracket</h1></center>
   <!-- Bracket -->
 <body class="bracket standings light-blue">
+<center><h2>{{User.query.get(user_id).username}}'s Bracket</h2></center>
 <div id="content-wrapper">
  <div id="table">
 <!-- Table Dates -->
