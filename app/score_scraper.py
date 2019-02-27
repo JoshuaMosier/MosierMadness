@@ -4,6 +4,8 @@ import csv
 import json
 import datetime
 from operator import itemgetter
+from pytz import timezone
+
 def get_scoreticker():
 	sauce = requests.get("https://www.sports-reference.com/cbb/")
 	soup = BeautifulSoup(sauce.content,'html.parser')
@@ -78,11 +80,11 @@ def get_scoreticker_espn():
 	return (matches,[away_winners,home_winners])
 
 def get_scoreticker_json():
-	sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.today().strftime('%Y/%m/%d')+"/scoreboard.json")
-	games = json.loads(sauce.content)
+	tz = timezone('EST')
+	sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.now(tz).strftime('%Y/%m/%d')+"/scoreboard.json")
+	games = json.loads(sauce.content.decode('utf-8'))
 	away = []
 	home = []
-	gm = []
 	matches = []
 	for game in games['games']:
 		gm=[]
@@ -93,16 +95,18 @@ def get_scoreticker_json():
 		gm.append(game['game']['gameState'])
 		if game['game']['gameState'] == 'live':
 			period = game['game']['currentPeriod']
-			if period != "HALF":
+			if period != "HALF" and period != "END 2ND":
 				period += " " +str(game['game']['contestClock'])
 			gm.append(period)
 		elif game['game']['gameState'] == 'live':
 			gm.append([])
 		else: 
 			gm.append(game['game']['startTime'])
-		matches.append(gm)
+		if (away[2] != " ") or (home[2] !=" "):
+			matches.append(gm)
+		else:
+			game = []
 	type_sorted = sorted(matches, key=itemgetter(3),reverse=True)
-
 	return type_sorted
 
 get_scoreticker_json()
