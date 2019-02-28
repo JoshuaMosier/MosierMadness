@@ -98,14 +98,12 @@ def get_scoreticker_json():
 			if period != "HALF" and period != "END 2ND":
 				period += " " +str(game['game']['contestClock'])
 			gm.append(period)
-		elif game['game']['gameState'] == 'live':
-			gm.append([])
+		elif game['game']['gameState'] == 'final':
+			gm.append("")
 		else: 
 			gm.append(game['game']['startTime'])
 		if (away[2] != " ") or (home[2] !=" "):
 			matches.append(gm)
-		else:
-			game = []
 	type_sorted = sorted(matches, key=itemgetter(3),reverse=True)
 	return type_sorted
 

@@ -1,39 +1,56 @@
-<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-      <a class="navbar-brand" href="{{ url_for('index') }}">Mosier March Madness 2019</a>
-      <div>
-        <ul class="navbar-nav mr-auto nav-pills">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('index') }}">Leaderboard<span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('bracketEntry')}}">Submit Your Bracket</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('entries')}}">Entries</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('master') }}">Master Bracket</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('past_winners') }}">Past Winners</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('stats') }}">Stats</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('possibilities') }}">Possibilities</a>
-          </li>
-          {% if current_user.is_anonymous %}
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-          </li>
-          {% else %}
-          </li class="nav-item">
-            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-          </li>
-          {% endif %}
-        </ul>
-      </div>
-    </nav>
+<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4 banner">
+	<div class="center-navs">
+		<span>
+		  <ul class="navbar-nav">
+		    <li class="nav-item">
+		      <a class="nav-link" href="{{ url_for('index') }}">Leaderboard<span class="sr-only">(current)</span></a>
+		    </li>
+		    <li class="nav-item">
+		      <a class="nav-link" href="{{ url_for('bracketEntry')}}">Submit Bracket</a>
+		    </li>
+		    <li class="nav-item">
+		      <a class="nav-link" href="{{ url_for('entries')}}">Entries</a>
+		    </li>
+		    <li class="nav-item">
+		      <a class="nav-link" href="{{ url_for('master') }}">Master Bracket</a>
+		    </li>
+		  </ul>
+		</span>
+	</div>
+
+	<div class="center-navs">
+		<span>
+	  	<a id="site-logo" href="{{ url_for('index') }}">
+	    	<img src="{{ url_for('static', filename='MM_logo_small.png') }}"/>
+	  	</a>
+	  </span>
+	</div>
+
+	<div class="center-navs">
+		<span>
+		  <ul class="navbar-nav">
+		    </li>
+		      <li class="nav-item">
+		        <a class="nav-link" href="{{ url_for('past_winners') }}">Past Winners</a>
+		      </li>
+		      <li class="nav-item">
+		        <a class="nav-link" href="{{ url_for('stats') }}">Stats</a>
+		      </li>
+		      <li class="nav-item">
+		        <a class="nav-link" href="{{ url_for('possibilities') }}">Possibilities</a>
+		      </li>
+		      {% if current_user.is_anonymous %}
+		      <li class="nav-item">
+		        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+		      </li>
+		      {% else %}
+		      </li class="nav-item">
+		        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+		      </li>
+		    {% endif %}
+		  </ul>
+		</span>
+	</div>
+</nav>
 
 

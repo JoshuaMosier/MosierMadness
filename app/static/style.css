@@ -207,6 +207,8 @@ body {
 .score-ticker{
 	white-space: nowrap;
 	overflow-x:auto;
+	align-items:center;
+	justify-content: space-around;
 }
 
 .winner{
@@ -219,13 +221,16 @@ body {
 }
 
 .leaderboard{
-	margin-top:175px;
+	margin-top:300px;
 	max-width:65%;
 }
 
 @media only screen and (max-width: 1200px) {
   .leaderboard{
   	max-width:100%;
+  }
+  .banner{
+  	background-image: none !important;
   }
 }
 
@@ -243,20 +248,55 @@ body {
 	margin-right: auto;
 }
 
-.navbar{
-	display:flex;
-	align-items: center;
-	justify-content: center;
-}
-
 .navbar li{
-	text-align:center;
-	/*border: 1px #ddd;
-	box-shadow: 0 0 0 1px #fff;
-	margin-left:1rem;
-	margin-right:1rem;*/
+	display: flex;
+  align-items: center;
 }
 
 .bracket{
 	margin-top:75px;
+}
+
+.table tbody{
+	border:none !important;
+}
+
+.banner{
+    background-image: url('MM_banner.png');
+}
+
+.navbar{
+	display:flex;
+}
+
+.navbar ul{
+	display: inline-block;
+  vertical-align: middle;
+}
+
+.navbar li{
+	display: inline;
+}
+
+.navbar a{
+	display:inline;
+}
+
+.nav-container {
+  display: flex;
+}
+.center-navs{
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.center-navs:first-child > span { 
+	margin-right: auto;
+	padding-left: 200px;
+}
+
+.center-navs:last-child  > span { 
+	margin-left: auto;  
+	padding-right: 200px;
 }
