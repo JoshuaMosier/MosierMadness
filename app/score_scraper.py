@@ -102,8 +102,8 @@ def get_scoreticker_json():
 			gm.append("")
 		else: 
 			gm.append(game['game']['startTime'])
-		if (away[2] != "") or (home[2] !=""):
-			matches.append(gm)
+		# if (away[2] != "") or (home[2] !=""):
+		matches.append(gm)
 	type_sorted = sorted(matches, key=itemgetter(3),reverse=True)
 	return type_sorted
 
@@ -118,7 +118,7 @@ def get_game_data():
 		gm=[]
 		gm.append(game['game']['gameState'])
 		gm.append(game['game']['url'])
-		if (game['game']['away']['rank'] != "") or (game['game']['home']['rank'] !=""):
-			matches.append(gm)
+		# if (game['game']['away']['rank'] != "") or (game['game']['home']['rank'] !=""):
+		matches.append(gm)
 	type_sorted = sorted(matches, key=itemgetter(0),reverse=True)
 	return type_sorted
