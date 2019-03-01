@@ -1,5 +1,5 @@
 .game-scoreboard{
-	width:65%;
+	max-width:65%;
 	margin-left:auto;
 	margin-right:auto;
 	padding:300px 15px 0px;
@@ -25,4 +25,8 @@
 
 .score{
 	width:200px;
+}
+
+.match-rank{
+	font-size:22px;
 }

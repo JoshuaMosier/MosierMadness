@@ -345,6 +345,12 @@ body {
   padding:12px 0px;
 }
 
+.cell-left{
+	text-align:left;
+	padding-left:3px!important;
+	padding-right:0px!important;
+}
+
 .navbar{
 	background-color:black;
 }
@@ -356,14 +362,11 @@ body {
 }
 
 .stats td, th{
-	padding-top: 1px !important;
-	padding-bottom:1px !important;
+	padding-top: 1px;
+	padding-bottom:1px;
 	text-align:center;
 }
+
 /*.leaderboard thead{
 	background-color:#e47e26;
 }*/
-
-.alert{
-	display:block;
-}
