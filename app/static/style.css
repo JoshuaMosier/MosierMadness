@@ -181,7 +181,7 @@ body {
 	padding:15px;
 	border:2px solid #ccc;
 	border-radius:10%;
-	background-image: linear-gradient(black, #32383e,#32383e,#32383e,#32383e,#32383e, black);
+	background-image: linear-gradient(#202020,#454a4f,#454a4f,#454a4f,#202020);
 }
 
 .game-box a, a:hover{
@@ -228,6 +228,15 @@ body {
 	padding-bottom:15px;
 }
 
+.open{
+  display:none;
+}
+
+::-webkit-scrollbar {
+    width: 0px;  /* remove scrollbar space */
+    background: transparent;  /* optional: just make scrollbar invisible */
+}
+
 .winner{
 	font-weight:bold;
 }
@@ -241,9 +250,13 @@ body {
 	padding-top:200px;
 }
 
+.nav-spacer-scoreboard{
+	padding-top:320px;
+}
+
 .leaderboard{
 	max-width:65%;
-	padding-top:300px;
+	padding-top:320px;
 }
 
 @media only screen and (max-width: 1325px) {
@@ -293,6 +306,20 @@ body {
 
 .table tbody{
 	border:none !important;
+}
+
+.leaderboard thead, .leaderboard th {
+	position: sticky;
+  top: 0;
+  z-index:10;
+  border-top: none !important;
+}
+
+.stats thead, .stats-header{
+	position: sticky;
+  top: 0;
+  z-index:10;
+  border-top: none !important;
 }
 
 .navbar{
@@ -366,7 +393,3 @@ body {
 	padding-bottom:1px;
 	text-align:center;
 }
-
-/*.leaderboard thead{
-	background-color:#e47e26;
-}*/

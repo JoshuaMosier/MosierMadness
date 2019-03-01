@@ -1,4 +1,4 @@
-<img id="left-banner" src="../../../static/MM_Banner_left.png" width="157" height="167" style="position:absolute;z-index:2">
+<img id="left-banner" src="../../../static/MM_Banner_left.png" width="156" height="166" style="position:absolute;z-index:2">
 <nav class="navbar navbar-expand-md mb-4">
 	<div class="side-nav">
 		<span>
@@ -40,13 +40,11 @@
 		      <li class="nav-item">
 		        <a class="nav-link" href="{{ url_for('possibilities') }}">Possibilities</a>
 		      </li>
-		      {% if current_user.is_anonymous %}
 		      <li class="nav-item">
-		        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-		      </li>
-		      {% else %}
-		      </li class="nav-item">
-		        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+			      {% if current_user.is_anonymous %}
+			        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+			      {% else %}
+			        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
 		      </li>
 		    {% endif %}
 		  </ul>
@@ -54,5 +52,5 @@
 	</div>
 	<span class="right_banner"></span>
 </nav>
-<img id="right-banner" src="../../../static/MM_Banner_right.png" width="157" height="167" style="z-index:2">
+<img id="right-banner" src="../../../static/MM_Banner_right.png" width="156" height="166" style="z-index:2">
 

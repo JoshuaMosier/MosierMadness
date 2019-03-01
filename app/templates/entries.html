@@ -2,25 +2,38 @@
 
 {% block body %}
 <link rel="stylesheet" href="{{url_for('static',filename='entry-style.css')}}">
-<div class="nav-spacer">
-<!-- Sidebar -->
-  <div id="sidebar-wrapper">
-      <ul class="sidebar-nav nav-dark">
-       	{% for item in order %}
-        {% if Users[item].round1 is not none %}
-       	<li>
-       		<form>
-              <a class="cell" href="{{ url_for('entries',id=Users[item].id)}}">{{Users[item].username}}</a>
-          	</form>
-          </li>
-          {% endif %}
-       	{% endfor %}
-      </ul>
-  </div>
+<script src="{{ url_for('static',filename = 'entries.js')}}"></script>
+<div class="nav-spacer-scoreboard">
+
 
   <!-- Bracket -->
 <body class="bracket standings light-blue">
-<center><h2>{{User.query.get(user_id).username}}'s Bracket</h2></center>
+	<div class="entries-header">
+		<div class="entries-menu">
+		  <div class="ddown">
+			  <button class="dbtn" onclick="dropDown()">All Entries
+			  </button>
+			  <div class="ddown-content" id="entries_dropdown">
+			    {% for item in range(Users|length) %}
+		        {% if Users[item].round1 is not none %}
+		          <a class="cell" href="{{ url_for('entries',id=Users[item].id)}}">{{Users[item].username}}</a>
+		        {% endif %}
+		      {% endfor %}
+			  </div>
+		  </div> 
+		</div>
+		<h2>{{User.query.get(user_id).username}}'s Bracket</h2>
+		<div class="header-spacer">
+			<div class="entries-menu">
+		  <div class="ddown">
+			  <button class="dbtn" onclick="dropDown()">All Entries
+			  </button>
+			  <div class="ddown-content">
+			  </div>
+		  </div> 
+		</div>
+		</div>
+	</div>
 <div id="content-wrapper">
  <div id="table">
 <!-- Table Dates -->

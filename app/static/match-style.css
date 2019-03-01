@@ -8,6 +8,9 @@
 
 .scoreboard{
 	border: 2px solid #e47e26;
+	padding:15px;
+	background: rgba(69, 74, 79, .8);
+	/*Probably replace this w/ some super sick rgb value for each team*/
 }
 
 .scoreboard-item{

@@ -8,6 +8,7 @@ from flask_migrate import Migrate
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user, login_required
+from operator import itemgetter
 
 import scoring
 import json
@@ -49,14 +50,16 @@ def index():
 #bracket form
 @app.route('/bracketEntry', methods=['GET', 'POST'])
 def bracketEntry():
+    game_scores = score_scraper.get_scoreticker_json()
     if current_user.is_authenticated:
-      return render_template("bracketEntry.html")
+      return render_template("bracketEntry.html",matches=game_scores)
     else:
       return login()
 
 @app.route('/entries')
 def entries():
     users = User.query.all()
+    users.sort(key=lambda x: x.username, reverse=False)
     master = master_bracket.getMaster()
     score = scoring.score(master,users)
     order = scoring.order(score)
@@ -67,11 +70,12 @@ def entries():
         user_id = request.args.get('id', default = 1, type = int)
     master = master_bracket.getMaster()
     elim = master_bracket.getElim()
+    game_scores = score_scraper.get_scoreticker_json()
     if User.query.get(user_id).round1 is None:
         display = []
     else:
         display = User.query.get(user_id).round1.replace('"','').replace('[','').replace(']','').split(',')
-    return render_template('entries.html',users=users, display=display,master=master,elim=elim,user_id=user_id, User = User,order=order,Users=users,rank=rank)
+    return render_template('entries.html',users=users, display=display,master=master,elim=elim,user_id=user_id, User = User,order=order,Users=users,rank=rank,matches=game_scores)
 
 @app.route('/matches')
 def matches():
@@ -84,13 +88,15 @@ def matches():
 #master
 @app.route('/master')
 def master():
+    game_scores = score_scraper.get_scoreticker_json()
     display = master_bracket.getMaster()
-    return render_template('master.html',display=display)
+    return render_template('master.html',display=display,matches=game_scores)
 
 #stats
 @app.route('/stats')
 def stats():
-    return render_template('stats.html')
+    game_scores = score_scraper.get_scoreticker_json()
+    return render_template('stats.html',matches=game_scores)
 
 #past_winners
 @app.route('/past_winners')

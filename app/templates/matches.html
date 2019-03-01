@@ -14,12 +14,15 @@
   	<div class="scoreboard">
 			<div class="scoreboard-item">
 				<div class="team-header">
+					<img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[game_id][0][6]}}.svg">
 					<h1><span class="match-rank">{{matches[game_id][0][2]}}</span> {{matches[game_id][0][4]}}</h1>
 				</div>
 				<div>
 					<h1 class="score">({{matches[game_id][0][1]}}-{{matches[game_id][1][1]}})</h1>
+					<h5 class="game-link"><a href="https://www.ncaa.com/{{game_data[game_id][1]}}">NCAA Game Page</a></h5>
 				</div>
 				<div class="team-header">
+					<img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[game_id][1][6]}}.svg">
 					<h1><span class="match-rank">{{matches[game_id][1][2]}}</span> {{matches[game_id][1][4]}}</h1>
 				</div>
 			</div>
@@ -28,9 +31,6 @@
 				<h4 class="score"></h4>
 				<h4 class="team-header">{{matches[game_id][1][5]}}</h4>
 			</div>
-		</div>
-		<div class="game-link">
-			<h5><a href="https://www.ncaa.com/{{game_data[game_id][1]}}">NCAA Game Page</a></h5>
 		</div>
 	</div>
 {% endblock %}
