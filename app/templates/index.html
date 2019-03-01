@@ -41,7 +41,7 @@
         <td class="lower-padding cell">{{score[item][4]}}</td>
         <td class="lower-padding cell">{{score[item][5]}}</td>
         <td class="lower-padding cell">{{potential[item]}}</td>
-        <td style="position: relative; left: 0; top: 0;">
+        <td class="scoreboard-img" style="position: relative; left: 0; top: 0;">
           <img src="static/teams/{{ end_rounds[item][0] | default('NCAA_logo.svg') }}" class="images float-left" />
           <img src="static/teams/{{ end_rounds[item][1] | default('NCAA_logo.svg') }}" class="images float-left" />
           <img src="static/teams/{{ end_rounds[item][2] | default('NCAA_logo.svg') }}" class="images float-left" />
@@ -73,7 +73,7 @@
 	          {% endif %}
 
         </td>
-        <td style="position: relative; left: 0; top: 0;">
+        <td class="scoreboard-img" style="position: relative; left: 0; top: 0;">
           <img src="static/teams/{{ end_rounds[item][4] | default('NCAA_logo.svg') }}"" class="images float-left" />
           <img src="static/teams/{{ end_rounds[item][5] | default('NCAA_logo.svg') }}"" class="images float-left" />
 					<!-- Winner -->
@@ -87,7 +87,7 @@
           	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay2 float-left" />
           {% endif %}
         </td>
-        <td style="position: relative; left: 0; top: 0;">
+        <td class="scoreboard-img" style="position: relative; left: 0; top: 0;">
           <img src="static/teams/{{ end_rounds[item][6] | default('NCAA_logo.svg') }}"" class="images float-left" />
           <!-- Loser -->
           {% if (end_rounds[item][6] | replace('.png', '')) in elim %}

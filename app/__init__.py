@@ -73,6 +73,14 @@ def entries():
         display = User.query.get(user_id).round1.replace('"','').replace('[','').replace(']','').split(',')
     return render_template('entries.html',users=users, display=display,master=master,elim=elim,user_id=user_id, User = User,order=order,Users=users,rank=rank)
 
+@app.route('/matches')
+def matches():
+    users = User.query.all()
+    game_scores = score_scraper.get_scoreticker_json()
+    game_id = request.args.get('id', default = 1, type = int)
+    game_data = score_scraper.get_game_data()
+    return render_template('matches.html',users=users,matches=game_scores,game_id=game_id,game_data=game_data)
+
 #master
 @app.route('/master')
 def master():

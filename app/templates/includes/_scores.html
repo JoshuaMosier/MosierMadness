@@ -3,8 +3,17 @@
 		{% for game in range(matches|length) %}
 		<!--  range(matches[0]|length)  -->
 	  <div class="box">
-	      <div class="game-box">
-	      	<div class="game-date">{{matches[loop.index-1][3]}}&zwnj;<span class="game-prog">{{matches[loop.index-1][2]|upper}}</span></div>
+      <div class="game-box">
+      	<a href="{{ url_for('matches',id=loop.index-1)}}">
+	      	<div class="game-date">{{matches[loop.index-1][3]}}&zwnj;
+	      		{% if matches[loop.index-1][2]|upper == 'LIVE' %}
+	      			<span style="color:#FFFF33;" class="game-prog">{{matches[loop.index-1][2]|upper}}</span>
+	      		{% elif matches[loop.index-1][2]|upper == 'PRE' %}
+	      			<span style="color:#ccc;" class="game-prog">{{matches[loop.index-1][2]|upper}}</span>
+	      		{% else %}
+	      			<span class="game-prog">{{matches[loop.index-1][2]|upper}}</span>
+	      		{% endif %}
+	      	</div>
 	      	{% if matches[loop.index-1][0][3] %}
 	      		<div class="game-opp winner"><span class="rank">{{matches[loop.index-1][0][2]}}</span>{{matches[loop.index-1][0][0]}}<span class="score-opp">{{matches[loop.index-1][0][1]}}</span></div>
 	      	{% else %}
@@ -16,6 +25,7 @@
 	      		<div class="game-at"><span class="rank">{{matches[loop.index-1][1][2]}}</span>{{matches[loop.index-1][1][0]}}<span class="score-at">{{matches[loop.index-1][1][1]}}</span></div>
 	      	{% endif %}	
 	      </div>
+	    </a>
 	  </div>
 	  {% endfor %}
 	</div>

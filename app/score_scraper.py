@@ -88,8 +88,8 @@ def get_scoreticker_json():
 	matches = []
 	for game in games['games']:
 		gm=[]
-		away = [game['game']['away']['names']['char6'],game['game']['away']['score'],game['game']['away']['rank']+ " ",game['game']['away']['winner']]
-		home = [game['game']['home']['names']['char6'],game['game']['home']['score'],game['game']['home']['rank']+ " ",game['game']['home']['winner']]
+		away = [game['game']['away']['names']['char6'],game['game']['away']['score'],game['game']['away']['rank']+ " ",game['game']['away']['winner'],game['game']['away']['names']['short'],game['game']['away']['description']]
+		home = [game['game']['home']['names']['char6'],game['game']['home']['score'],game['game']['home']['rank']+ " ",game['game']['home']['winner'],game['game']['home']['names']['short'],game['game']['home']['description']]
 		gm.append(away)
 		gm.append(home)
 		gm.append(game['game']['gameState'])
@@ -107,4 +107,18 @@ def get_scoreticker_json():
 	type_sorted = sorted(matches, key=itemgetter(3),reverse=True)
 	return type_sorted
 
-get_scoreticker_json()
+def get_game_data():
+	tz = timezone('EST')
+	sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.now(tz).strftime('%Y/%m/%d')+"/scoreboard.json")
+	games = json.loads(sauce.content.decode('utf-8'))
+	away = []
+	home = []
+	matches = []
+	for game in games['games']:
+		gm=[]
+		gm.append(game['game']['gameState'])
+		gm.append(game['game']['url'])
+		if (game['game']['away']['rank'] != "") or (game['game']['home']['rank'] !=""):
+			matches.append(gm)
+	type_sorted = sorted(matches, key=itemgetter(0),reverse=True)
+	return type_sorted

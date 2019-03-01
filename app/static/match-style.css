@@ -1,0 +1,28 @@
+.game-scoreboard{
+	width:65%;
+	margin-left:auto;
+	margin-right:auto;
+	padding:300px 15px 0px;
+	text-align:center;
+}
+
+.scoreboard{
+	border: 2px solid #e47e26;
+}
+
+.scoreboard-item{
+	display:flex;
+	justify-content: space-between;
+}
+
+.team-header{
+	width:400px;
+}
+
+.game-link{
+	text-decoration: underline;
+}
+
+.score{
+	width:200px;
+}
