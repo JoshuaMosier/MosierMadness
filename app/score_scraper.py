@@ -81,7 +81,8 @@ def get_scoreticker_espn():
 
 def get_scoreticker_json():
 	tz = timezone('EST')
-	sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.now(tz).strftime('%Y/%m/%d')+"/scoreboard.json")
+	# sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.now(tz).strftime('%Y/%m/%d')+"/scoreboard.json")
+	sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/15/scoreboard.json")
 	games = json.loads(sauce.content.decode('utf-8'))
 	away = []
 	home = []
@@ -102,23 +103,37 @@ def get_scoreticker_json():
 			gm.append("")
 		else: 
 			gm.append(game['game']['startTime'])
-		# if (away[2] != "") or (home[2] !=""):
-		matches.append(gm)
+		if (game['game']['bracketId'] != ""):
+			matches.append(gm)
 	type_sorted = sorted(matches, key=itemgetter(3),reverse=True)
 	return type_sorted
 
 def get_game_data():
 	tz = timezone('EST')
-	sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.now(tz).strftime('%Y/%m/%d')+"/scoreboard.json")
+	# sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.now(tz).strftime('%Y/%m/%d')+"/scoreboard.json")
+	sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/15/scoreboard.json")
 	games = json.loads(sauce.content.decode('utf-8'))
-	away = []
-	home = []
 	matches = []
 	for game in games['games']:
 		gm=[]
 		gm.append(game['game']['gameState'])
 		gm.append(game['game']['url'])
-		# if (game['game']['away']['rank'] != "") or (game['game']['home']['rank'] !=""):
-		matches.append(gm)
+		if (game['game']['bracketId'] != ""):
+			matches.append(gm)
 	type_sorted = sorted(matches, key=itemgetter(0),reverse=True)
 	return type_sorted
+
+def get_bracket_winners(games):
+	matches = []
+	region = {"SOUTH":'1',"WEST":'2',"EAST":'3',"MIDWEST":'4'}
+	winners = {}
+	for game in games['games']:
+		if game['game']['away']['winner'] and game['game']['bracketRegion'] != "":
+			winners[game['game']['bracketId']] = region[game['game']['bracketRegion']] + game['game']['away']['seed'] 
+		if game['game']['home']['winner'] and game['game']['bracketRegion'] != "":
+			winners[game['game']['bracketId'][1:]] = region[game['game']['bracketRegion']] + game['game']['home']['seed']
+	return winners
+
+# sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/15/scoreboard.json")
+# games = json.loads(sauce.content.decode('utf-8'))
+# get_bracket_winners(games)

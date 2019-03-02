@@ -19,11 +19,12 @@
 		</span>
 	</div>
 
-	<div>
+	<div class="easter-egg">
 		<span>
-	  	<a id="site-logo" href="{{ url_for('index') }}">
+	  	<a id="site_logo" href="{{ url_for('index') }}">
 	    	<img src="{{ url_for('static', filename='MM_logo_small.png') }}"/>
 	  	</a>
+	  	<img id="easter_egg" src="../../../static/easter-egg.png" width="60" onclick="myFunc()" style="position:absolute;z-index:3">
 	  </span>
 	</div>
 

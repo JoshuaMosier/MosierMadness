@@ -388,8 +388,32 @@ body {
   right: 0px;
 }
 
-.stats td, th{
+.stats td, .stats th{
 	padding-top: 1px;
 	padding-bottom:1px;
 	text-align:center;
+}
+
+.easter-egg{
+	position: relative;
+}
+
+#easter_egg{
+	top:12px;
+	left:24px;
+  z-index:3;
+}
+
+.load_spin{
+	-webkit-animation-name: spin;
+  -webkit-animation-duration: 2000ms;
+}
+
+@keyframes spin {
+    from {
+        transform:rotate(0deg);
+    }
+    to {
+        transform:rotate(359deg);
+    }
 }
