@@ -409,11 +409,11 @@ body {
   -webkit-animation-duration: 2000ms;
 }
 
-@keyframes spin {
+@-webkit-keyframes spin {
     from {
-        transform:rotate(0deg);
+        -webkit-transform:rotate(0deg);
     }
     to {
-        transform:rotate(360deg);
+        -webkit-transform:rotate(360deg);
     }
 }
