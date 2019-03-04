@@ -80,10 +80,17 @@ def entries():
 @app.route('/matches')
 def matches():
     users = User.query.all()
+    rounds = []
+    for user in users:
+      display = []
+      if user.round1 is not None:
+        display = user.round1.replace('"','').replace('[','').replace(']','').split(',')
+      rounds.append(display)
     game_scores = score_scraper.get_scoreticker_json()
     game_id = request.args.get('id', default = 1, type = int)
     game_data = score_scraper.get_game_data()
-    return render_template('matches.html',users=users,matches=game_scores,game_id=game_id,game_data=game_data)
+    game_id_selection = score_scraper.convert_ncaa_to_master(game_data[game_id][3])
+    return render_template('matches.html',users=users,matches=game_scores,game_id=game_id,game_data=game_data,game_selected=game_id_selection,rounds=rounds)
 
 #master
 @app.route('/master')

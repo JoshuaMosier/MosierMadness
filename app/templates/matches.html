@@ -12,25 +12,42 @@
   		{% endif %}
   	</div>
   	<div class="scoreboard">
-			<div class="scoreboard-item">
-				<div class="team-header">
-					<img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[game_id][0][6]}}.svg">
-					<h1><span class="match-rank">{{matches[game_id][0][2]}}</span> {{matches[game_id][0][4]}}</h1>
-				</div>
-				<div>
-					<h1 class="score">({{matches[game_id][0][1]}}-{{matches[game_id][1][1]}})</h1>
-					<h5 class="game-link"><a href="https://www.ncaa.com/{{game_data[game_id][1]}}">NCAA Game Page</a></h5>
-				</div>
-				<div class="team-header">
-					<img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[game_id][1][6]}}.svg">
-					<h1><span class="match-rank">{{matches[game_id][1][2]}}</span> {{matches[game_id][1][4]}}</h1>
-				</div>
+			<div class="scoreboard-item team-header">
+				<img width="128px" src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[game_id][0][6]}}.svg">
+				<h1><span class="match-rank">{{matches[game_id][0][2]}}</span> {{matches[game_id][0][4]}}</h1>
+				<h4>{{matches[game_id][0][5]}}</h4>
 			</div>
-			<div class="scoreboard-item">
-				<h4 class="team-header">{{matches[game_id][0][5]}}</h4>
-				<h4 class="score"></h4>
-				<h4 class="team-header">{{matches[game_id][1][5]}}</h4>
+			<div class="score">
+				<h1 class="score">({{matches[game_id][0][1]}}-{{matches[game_id][1][1]}})</h1>
+				<h5 class="game-link"><a href="https://www.ncaa.com/{{game_data[game_id][1]}}">NCAA Game Page</a></h5>
 			</div>
+			<div class="scoreboard-item team-header">
+				<img width="128px" src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[game_id][1][6]}}.svg">
+				<h1><span class="match-rank">{{matches[game_id][1][2]}}</span> {{matches[game_id][1][4]}}</h1>
+				<h4>{{matches[game_id][1][5]}}</h4>
+			</div>	
+		</div>
+		<div class="picks">
+			<div class="selections">
+				{% for user in users %}
+					{% if rounds[loop.index-1] != [] %}
+						{% if rounds[loop.index-1][game_selected].split()[1:]|join(" ") == matches[game_id][0][4]%}
+							<a class="selection" href="{{ url_for('entries',id=user.id)}}">{{user.username}}</a>
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+			</div>
+			<div class="score">
+			</div>
+			<div class="selections">
+				{% for user in users %}
+					{% if rounds[loop.index-1] != [] %}
+						{% if rounds[loop.index-1][game_selected].split()[1:]|join(" ") == matches[game_id][1][4]%}
+							<a class="selection" href="{{ url_for('entries',id=user.id)}}">{{user.username}}</a>
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+			</tr>
 		</div>
 	</div>
 {% endblock %}

@@ -190,7 +190,7 @@ body {
 }
 
 .box{
-	width:160px;
+	width:165px;
 	padding:5px;
 	display:inline-block;
 }
@@ -414,6 +414,6 @@ body {
         transform:rotate(0deg);
     }
     to {
-        transform:rotate(359deg);
+        transform:rotate(360deg);
     }
 }

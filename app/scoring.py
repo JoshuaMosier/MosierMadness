@@ -12,22 +12,17 @@ def score(master,users):
                     if submission[index] == master[index]:
                         if index < 32:
                             score1 = score1 + 1
-                            games = games + 1
                         elif index < 48:
                             score2 = score2 + 2
-                            games = games + 1
                         elif index < 56:
                             score3 = score3 + 4
-                            games = games + 1
                         elif index < 60:
                             score4 = score4 + 8
-                            games = games + 1
                         elif index < 62:
                             score5 = score5 + 16
-                            games = games + 1
                         elif index == 62:
                             score6 = score6 + 32
-                            games = games + 1
+                        games = games + 1
             total = score1 + score2 + score3 + score4 + score5 + score6
             ret = [score1, score2, score3, score4, score5, score6, total, games]
             scores.append(ret)
@@ -117,3 +112,4 @@ def rank(order,scores):
             rank.append(count)
     rank.append(count)
     return rank
+
