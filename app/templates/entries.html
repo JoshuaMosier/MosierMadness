@@ -16,13 +16,13 @@
 			  <div class="ddown-content" id="entries_dropdown">
 			    {% for item in range(Users|length) %}
 		        {% if Users[item].round1 is not none %}
-		          <a class="cell" href="{{ url_for('entries',id=Users[item].id)}}">{{Users[item].username}}</a>
+		          <a class="cell" href="{{ url_for('entries',id=Users[item].id)}}">{{Users[item].firstname}} {{Users[item].lastname}}</a>
 		        {% endif %}
 		      {% endfor %}
 			  </div>
 		  </div> 
 		</div>
-		<h2>{{User.query.get(user_id).username}}'s Bracket</h2>
+		<h2>{{User.query.get(user_id).firstname}} {{User.query.get(user_id).lastname}}'s Bracket</h2>
 		<div class="header-spacer">
 			<div class="entries-menu">
 		  <div class="ddown">

@@ -59,7 +59,7 @@ def bracketEntry():
 @app.route('/entries')
 def entries():
     users = User.query.all()
-    users.sort(key=lambda x: x.username, reverse=False)
+    users.sort(key=lambda x: x.firstname, reverse=False)
     master = master_bracket.getMaster()
     score = scoring.score(master,users)
     order = scoring.order(score)
@@ -121,9 +121,9 @@ def login():
         return redirect(url_for('index'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        user = User.query.filter_by(email=form.email.data).first()
         if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password')
+            flash('Invalid name or password')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
@@ -145,7 +145,7 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
+        user = User(firstname=form.firstname.data, lastname= form.lastname.data, email=form.email.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -156,13 +156,14 @@ def register():
 #CLASSES
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), index=True, unique=True)
+    firstname = db.Column(db.String(64), index=True, unique=True)
+    lastname = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     round1 = db.Column(db.String(1000), index=True)
     password_hash = db.Column(db.String(128))
 
     def __repr__(self):
-        return '<User {}>'.format(self.username)
+        return '<User {}>'.format(self.firstname)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -175,24 +176,20 @@ class User(UserMixin, db.Model):
 
 #Login validation
 class LoginForm(Form):
-    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
 
 #Registration
 class RegistrationForm(Form):
-    username = StringField('Username', validators=[DataRequired()])
+    firstname = StringField('First Name', validators=[DataRequired()])
+    lastname = StringField('Last Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField(
         'Repeat Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Register')
-
-    def validate_username(self, username):
-        user = User.query.filter_by(username=username.data).first()
-        if user is not None:
-            raise ValidationError('Please use a different username.')
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
@@ -203,6 +200,7 @@ class RegistrationForm(Form):
 def background_process():
     submissionkey = request.args.get('submissionkey', 0, type=str)
     lang = request.args.get('proglang', 0, type=str)
+    submissionkey = 'Mosier2018'
     if scoring.isBracketEmpty(lang):
         return jsonify(result='Bracket Is Not Filled Correctly')
     elif submissionkey=='Mosier2018':

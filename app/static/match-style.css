@@ -6,7 +6,7 @@
 	padding:0px 15px 0px;
 	text-align:center;
 	border: 2px solid #e47e26;
-	background: rgba(69, 74, 79, .8);
+	background: rgba(0, 0, 0, .6);
 }
 
 @media only screen and (max-width: 1325px) {
@@ -54,7 +54,7 @@
 	display:flex;
 	flex-wrap:wrap;
 	justify-content:center;
-	background-color:rgb(69, 74, 79);
+	background-color:rgb(20, 20, 20);
 }
 
 .selection{
