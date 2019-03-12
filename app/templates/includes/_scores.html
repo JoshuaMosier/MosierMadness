@@ -1,5 +1,8 @@
 {% if matches %}
 	<div class="score-ticker">
+		{% if matches|length >= 11 %}
+			<a id="left" href="#right"><img class="nav-arrows" src="../../static/right-arrow.png"></a>
+		{% endif %}
 		{% for game in range(matches|length) %}
 		<!--  range(matches[0]|length)  -->
 		<a href="{{ url_for('matches',id=loop.index-1)}}">
@@ -44,5 +47,8 @@
 		  </div>
 	  <a>
 	  {% endfor %}
+	  {% if matches|length >= 11 %}
+	  	<a id="right" href="#left"><img class="nav-arrows" src="../../static/left-arrow.png"></a>
+	  {% endif %}
 	</div>
 {% endif %}

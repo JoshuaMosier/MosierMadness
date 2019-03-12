@@ -21,3 +21,12 @@ $(window).scroll(
     }
     this.previousTop = currentTop;
 });
+
+function horizAnim(event) {
+	event.preventDefault();
+  $('.box').animate({
+    scrollLeft: $(this.hash).offset().left
+  }, 'slow');
+}
+
+$("a").on("click", horizAnim);

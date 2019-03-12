@@ -26,7 +26,7 @@
     {% for item in order %}
       <tbody>
       <tr>
-        {% if users[item].round1 is not none %}
+        {% if users[item].round1[0] != "\"" %}
         <td class="cell">{{rank[loop.index-1]}}</td>
         <td class="cell">{{score[item][6]}}</td>
         <td>
@@ -42,61 +42,60 @@
         <td class="lower-padding cell">{{score[item][5]}}</td>
         <td class="lower-padding cell">{{potential[item]}}</td>
         <td class="scoreboard-img" style="position: relative; left: 0; top: 0;">
-          <img src="static/teams/{{ end_rounds[item][0] | default('NCAA_logo.svg') }}" class="images float-left" />
-          <img src="static/teams/{{ end_rounds[item][1] | default('NCAA_logo.svg') }}" class="images float-left" />
-          <img src="static/teams/{{ end_rounds[item][2] | default('NCAA_logo.svg') }}" class="images float-left" />
-          <img src="static/teams/{{ end_rounds[item][3] | default('NCAA_logo.svg') }}" class="images float-left" />
+          <img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{seo[end_rounds[item][0]| replace('.png', '')]}}.svg" class="images float-left">
+          <img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{seo[end_rounds[item][1]| replace('.png', '')]}}.svg" class="images float-left">
+          <img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{seo[end_rounds[item][2]| replace('.png', '')]}}.svg" class="images float-left">
+          <img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{seo[end_rounds[item][3]| replace('.png', '')]}}.svg" class="images float-left">
                     <!-- Winner -->
-
 	          {% if (end_rounds[item][0] | replace('.png', '')) == master[56] %}
-	            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}"" class="overlay1 float-left" />
-	          {% else %}
-	          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay1 float-left" />
+	            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left" />
+	          {% elif (end_rounds[item][0] | replace('.png', '')) in elim%}
+	          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left" />
 	          {% endif %}
 
 	          {% if (end_rounds[item][1] | replace('.png', '')) == master[57] %}
-	            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}"" class="overlay2 float-left" />
-	          {% else %}
-	          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay2 float-left" />
+	            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay2 float-left" />
+	          {% elif (end_rounds[item][1] | replace('.png', '')) in elim%}
+	          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay2 float-left" />
 	          {% endif %}
 
 	          {% if (end_rounds[item][2] | replace('.png', '')) == master[58] %}
-	            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}"" class="overlay3 float-left" />
-	          {% else %}
-	          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay3 float-left" />
+	            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay3 float-left" />
+	          {% elif (end_rounds[item][2] | replace('.png', '')) in elim%}
+	          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay3 float-left" />
 	          {% endif %}
 
-	          {% if (end_rounds[item][2] | replace('.png', '')) == master[58] %}
+	          {% if (end_rounds[item][3] | replace('.png', '')) == master[59] %}
 	            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}"" class="overlay4 float-left" />
-	          {% else %}
-	          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay4 float-left" />
+	          {% elif (end_rounds[item][3] | replace('.png', '')) in elim%}
+	          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay4 float-left" />
 	          {% endif %}
-
         </td>
         <td class="scoreboard-img" style="position: relative; left: 0; top: 0;">
-          <img src="static/teams/{{ end_rounds[item][4] | default('NCAA_logo.svg') }}"" class="images float-left" />
-          <img src="static/teams/{{ end_rounds[item][5] | default('NCAA_logo.svg') }}"" class="images float-left" />
+          <img width="32" src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{seo[end_rounds[item][4]| replace('.png', '')]}}.svg" class="images float-left">
+          <img width="32" src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{seo[end_rounds[item][5]| replace('.png', '')]}}.svg" class="images float-left">
 					<!-- Winner -->
           {% if (end_rounds[item][4] | replace('.png', '')) == master[60] %}
-            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}"" class="overlay1 float-left" />
-          {% else %}
-          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay1 float-left" />
-          {% endif %}{% if (end_rounds[item][5] | replace('.png', '')) == master[61] %}
-            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}"" class="overlay2 float-left" />
-          {% else %}
-          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay2 float-left" />
+            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left" />
+          {% elif (end_rounds[item][4] | replace('.png', ''))  in elim%}
+          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left" />
+          {% endif %}
+
+          {% if (end_rounds[item][5] | replace('.png', '')) == master[61] %}
+            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay2 float-left" />
+          {% elif (end_rounds[item][5] | replace('.png', ''))  in elim%}
+          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay2 float-left" />
           {% endif %}
         </td>
         <td class="scoreboard-img" style="position: relative; left: 0; top: 0;">
-          <img src="static/teams/{{ end_rounds[item][6] | default('NCAA_logo.svg') }}"" class="images float-left" />
-          <!-- Loser -->
-          {% if (end_rounds[item][6] | replace('.png', '')) in elim %}
-          <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}"" class="overlay1 float-left" />
-          {% endif %}
-          <!-- Winner -->
+          <img width="32" src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{seo[end_rounds[item][6]| replace('.png', '')]}}.svg" class="images float-left">
+
+					<!-- Winner -->
           {% if (end_rounds[item][6] | replace('.png', '')) == master[62] %}
-          <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}"" class="overlay1 float-left" />
-          {% endif %}
+          	<img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left" />
+          {% elif (end_rounds[item][6] | replace('.png', '')) in elim%}
+          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left" />
+          {% endif %}      
         </td>
         <td class="cell">{{score[item][7]}}</td>
         {% endif %}

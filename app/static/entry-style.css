@@ -28,12 +28,11 @@
 	margin-left:auto;
 	margin-right:auto;
 	justify-content: space-between;
-	
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
 
 .entries-menu {
   overflow: hidden;
-  background-color: #333;
   font-family: Arial, Helvetica, sans-serif;
   z-index: 11;
 }
@@ -41,20 +40,20 @@
 .ddown {
   float: left;
   overflow: hidden;
-  width:200px;
+  width:140px;
   text-align:center;
 }
 
 .ddown .dbtn {
   cursor: pointer;
   font-size: 16px;  
-  border: none;
-  outline: none;
+  border-radius:15px;
   color: white;
   padding: 14px 16px;
   background-color: inherit;
   font-family: inherit;
   margin: 0;
+  background-color: #333;
 }
 
 .ddown-content {
@@ -83,7 +82,8 @@
 }
 
 .dbtn{
-width:200px;
+	width:140px;
+	border-radius: 15%;
 }
 
 .header-spacer{

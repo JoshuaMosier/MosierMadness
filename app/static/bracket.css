@@ -96,7 +96,7 @@ table.gridtable td.title {
   color:white;
   border: 2px groove #E55300;
   padding: 0;
-  width: 114px;
+  width: 115px;
   position: absolute;
   font-size: 12px;
 }
@@ -270,7 +270,7 @@ table.gridtable td.title {
   position: absolute;
   left: 0;
   right: 0;
-  padding: 0 4px;
+  padding-left:2px;
 }
 #bracket .match .slot1:hover{
   background-color: gray

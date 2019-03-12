@@ -11,9 +11,8 @@
 	<div class="entries-header">
 		<div class="entries-menu">
 		  <div class="ddown">
-			  <button class="dbtn" onclick="dropDown()">All Entries
-			  </button>
-			  <div class="ddown-content" id="entries_dropdown">
+			  <button class="dbtn">All Entries</button>
+			  <div class="ddown-content" id="entries_dropdown" >
 			    {% for item in range(Users|length) %}
 		        {% if Users[item].round1 is not none %}
 		          <a class="cell" href="{{ url_for('entries',id=Users[item].id)}}">{{Users[item].firstname}} {{Users[item].lastname}}</a>
@@ -24,14 +23,9 @@
 		</div>
 		<h2>{{User.query.get(user_id).firstname}} {{User.query.get(user_id).lastname}}'s Bracket</h2>
 		<div class="header-spacer">
-			<div class="entries-menu">
 		  <div class="ddown">
-			  <button class="dbtn" onclick="dropDown()">All Entries
-			  </button>
-			  <div class="ddown-content">
-			  </div>
-		  </div> 
-		</div>
+			  <p class="dbtn">All Entries</p>
+			</div>
 		</div>
 	</div>
 <div id="content-wrapper">
@@ -75,86 +69,86 @@
 <!-- start region1 round1-->
       <div class="region region1">
         <h4 class="region1 first_region">
-          SOUTH
+          MIDWEST 
         </h4>
 
 <!-- /#match1 -->
         <div id="match1" class="match m1">
-          <p class="slot slot1" id = "1 UK" onclick = "setTeam(this.id, 'feeder0', 0)">
-            <span class="seed">1</span> <script>document.write(teams[0])</script>
+          <p class="slot slot1">
+            {{teams[0]}}
           </p>
-          <p class="slot slot2" id = "16 MVS" onclick = "setTeam(this.id, 'feeder0', 0)">
-            <span class="seed">16</span> <script>document.write(teams[1])</script>
+          <p class="slot slot2">
+            {{teams[1]}}
           </p>
         </div>
 
 <!-- /#match2 -->
         <div id="match2" class="match m2">
-          <p class="slot slot1" id = "8 IOWAST" onclick = "setTeam(this.id, 'feeder1', 1)">
-            <span class="seed">8</span> <script>document.write(teams[2])</script>
+          <p class="slot slot1">
+            {{teams[2]}}
           </p>
-          <p class="slot slot2" id = "9 UCONN" onclick = "setTeam(this.id, 'feeder1', 1)">
-            <span class="seed">9</span> <script>document.write(teams[3])</script>
+          <p class="slot slot2">
+            {{teams[3]}}
           </p>
         </div>
 
 <!-- /#match3 -->
         <div id="match3" class="match m3">
-          <p class="slot slot1" id = "5 WICHST" onclick = "setTeam(this.id, 'feeder2', 2)">
-            <span class="seed">5</span> <script>document.write(teams[4])</script>
+          <p class="slot slot1">
+            {{teams[4]}} 
           </p>
-          <p class="slot slot2" id = "12 VCU" onclick = "setTeam(this.id, 'feeder2', 2 )">
-            <span class="seed">12</span> <script>document.write(teams[5])</script>
+          <p class="slot slot2">
+            {{teams[5]}}
           </p>
         </div>
 
 <!-- /#match4 -->
         <div id="match4" class="match m4">
-          <p class="slot slot1" id = "4 IND" onclick = "setTeam(this.id, 'feeder3', 3)">
-            <span class="seed">4</span> <script>document.write(teams[6])</script>
+          <p class="slot slot1">
+            {{teams[6]}}  
           </p>
-          <p class="slot slot2" id = "13 NM ST" onclick = "setTeam(this.id, 'feeder3', 3)">
-            <span class="seed">13</span> <script>document.write(teams[7])</script>
+          <p class="slot slot2">
+            {{teams[7]}}  
           </p>
         </div>
 
 <!-- /#match5 -->
         <div id="match5" class="match m5">
-          <p class="slot slot1" id = "6 W. VA" onclick = "setTeam(this.id, 'feeder4', 4)">
-            <span class="seed">6</span> <script>document.write(teams[8])</script>
+          <p class="slot slot1">
+            {{teams[8]}}  
           </p>
-          <p class="slot slot2" id = "11 Dayton" onclick = "setTeam(this.id, 'feeder4', 4)">
-            <span class="seed">11</span> <script>document.write(teams[9])</script>
+          <p class="slot slot2">
+            {{teams[9]}} 
           </p>
         </div>
 
 <!-- /#match6 -->
         <div id="match6" class="match m6">
-          <p class="slot slot1" id = "3 KU" onclick = "setTeam(this.id, 'feeder5', 5)">
-            <span class="seed">3</span> <script>document.write(teams[10])</script>
+          <p class="slot slot1">
+            {{teams[10]}} 
           </p>
-          <p class="slot slot2" id = "14 NDSU" onclick = "setTeam(this.id, 'feeder5', 5)">
-            <span class="seed">14</span> <script>document.write(teams[11])</script>
+          <p class="slot slot2">
+            {{teams[11]}}  
           </p>
         </div>
 
 <!-- /#match7 -->
         <div id="match7" class="match m7">
-          <p class="slot slot1" id = "7 BC" onclick = "setTeam(this.id, 'feeder6', 6)">
-            <span class="seed">7</span> <script>document.write(teams[12])</script>
+          <p class="slot slot1">
+            {{teams[12]}}  
           </p>
-          <p class="slot slot2" id = "10 USC" onclick = "setTeam(this.id, 'feeder6', 6)">
-            <span class="seed">10</span> <script>document.write(teams[13])</script>
+          <p class="slot slot2">
+            {{teams[13]}} 
           </p>
         </div>
 
 <!-- /#match8 -->
         <div id="match8" class="match m8">
-          <p class="slot slot1" id = "2 Michigan St." onclick = "setTeam(this.id, 'feeder7', 7)">
-            <span class="seed">2</span> <script>document.write(teams[14])</script>
+          <p class="slot slot1">
+            {{teams[14]}}  
           </p>
-          <p class="slot slot2" id = "15 Rob. Morris" onclick = "setTeam(this.id, 'feeder7',7 )">
-            <span class="seed">15</span> <script>document.write(teams[15])</script>
+          <p class="slot slot2">
+            {{teams[15]}}
           </p>
         </div>
       </div>
@@ -163,86 +157,86 @@
 <!-- start region2 round1-->
       <div class="region region2">
         <h4 class="region2 first_region">
-          West
+          West 
         </h4>
 
-<!-- /#match9 -->
+<!-- /#match9 -->    
         <div id="match9" class="match m1">
-          <p class="slot slot1" id = "1 UConn" onclick = "setTeam(this.id, 'feeder8', 8)">
-            <span class="seed">1</span> <script>document.write(teams[16])</script>
+          <p class="slot slot1">
+            {{teams[16]}} 
           </p>
-          <p class="slot slot2" id = "16 Chatt." onclick = "setTeam(this.id, 'feeder8', 8)">
-            <span class="seed">16</span> <script>document.write(teams[17])</script>
+          <p class="slot slot2">
+            {{teams[17]}}   
           </p>
         </div>
 
 <!-- /#match10 -->
         <div id="match10" class="match m2">
-          <p class="slot slot1" id = "8 BYU" onclick = "setTeam(this.id, 'feeder9', 9)">
-            <span class="seed">8</span> <script>document.write(teams[18])</script>
+          <p class="slot slot1">
+            {{teams[18]}}  
           </p>
-          <p class="slot slot2" id = "9 Texas A&M" onclick = "setTeam(this.id, 'feeder9', 9)">
-            <span class="seed">9</span> <script>document.write(teams[19])</script>
+          <p class="slot slot2">
+            {{teams[19]}} 
           </p>
         </div>
 
 <!-- #/match11 -->
         <div id="match11" class="match m3">
-          <p class="slot slot1" id = "5 Purdue" onclick = "setTeam(this.id, 'feeder10', 10)">
-            <span class="seed">5</span> <script>document.write(teams[20])</script>
+          <p class="slot slot1">
+            {{teams[20]}} 
           </p>
-          <p class="slot slot2" id = "12 N. Iowa" onclick = "setTeam(this.id, 'feeder10', 10)">
-            <span class="seed">12</span> <script>document.write(teams[21])</script>
+          <p class="slot slot2">
+            {{teams[21]}}
           </p>
         </div>
 
 <!-- #/match12 -->
         <div id="match12" class="match m4">
-          <p class="slot slot1" id = "4 Washington" onclick = "setTeam(this.id, 'feeder11', 11)">
-            <span class="seed">4</span> <script>document.write(teams[22])</script>
+          <p class="slot slot1">
+            {{teams[22]}}  
           </p>
-          <p class="slot slot2" id = "13 Miss. St." onclick = "setTeam(this.id, 'feeder11', 11)">
-            <span class="seed">13</span> <script>document.write(teams[23])</script>
+          <p class="slot slot2">
+            {{teams[23]}} 
           </p>
         </div>
 
 <!-- #/match13 -->
         <div id="match13" class="match m5">
-          <p class="slot slot1" id = "6 Marquette" onclick = "setTeam(this.id, 'feeder12', 12)">
-            <span class="seed">6</span> <script>document.write(teams[24])</script>
+          <p class="slot slot1">
+            {{teams[24]}}  
           </p>
-          <p class="slot slot2" id = "11 Utah St." onclick = "setTeam(this.id, 'feeder12', 12)">
-            <span class="seed">11</span> <script>document.write(teams[25])</script>
+          <p class="slot slot2">
+            {{teams[25]}}  
           </p>
         </div>
 
 <!-- /#match14 -->
         <div id="match14" class="match m6">
-          <p class="slot slot1" id = "3 Missouri" onclick = "setTeam(this.id, 'feeder13', 13)">
-            <span class="seed">3</span> <script>document.write(teams[26])</script>
+          <p class="slot slot1">
+            {{teams[26]}} 
           </p>
-          <p class="slot slot2" id = "14 Cornell" onclick = "setTeam(this.id, 'feeder13', 13)">
-            <span class="seed">14</span> <script>document.write(teams[27])</script>
+          <p class="slot slot2">
+            {{teams[27]}} 
           </p>
         </div>
 
 <!--/#match15-->
         <div id="match15" class="match m7">
-          <p class="slot slot1" id = "7 Cal" onclick = "setTeam(this.id, 'feeder14', 14)">
-            <span class="seed">7</span> <script>document.write(teams[28])</script>
+          <p class="slot slot1">
+            {{teams[28]}} 
           </p>
-          <p class="slot slot2" id = "10 Maryland" onclick = "setTeam(this.id, 'feeder14', 14)">
-            <span class="seed">10</span> <script>document.write(teams[29])</script>
+          <p class="slot slot2">
+            {{teams[29]}}
           </p>
         </div>
 
 <!--/#match16-->
         <div id="match16" class="match m8">
-          <p class="slot slot1" id = "2 Memphis" onclick = "setTeam(this.id, 'feeder15', 15)">
-            <span class="seed">2</span> <script>document.write(teams[30])</script>
+          <p class="slot slot1">
+            {{teams[30]}}  
           </p>
-          <p class="slot slot2" id = "15 CS North" onclick = "setTeam(this.id, 'feeder15', 15)">
-            <span class="seed">15</span> <script>document.write(teams[31])</script>
+          <p class="slot slot2">
+            {{teams[31]}} 
           </p>
         </div>
       </div>
@@ -251,86 +245,86 @@
 <!-- start region3 round1-->
       <div class="region region3">
         <h4 class="region3 first_region">
-          EAST
+          EAST 
         </h4>
 
 <!-- /#match17 -->
         <div id="match17" class="match m1">
-          <p class="slot slot1" id = "1 Pitt" onclick = "setTeam(this.id, 'feeder16', 16)">
-            <span class="seed">1</span> <script>document.write(teams[32])</script>
+          <p class="slot slot1">
+            {{teams[32]}}   
           </p>
-          <p class="slot slot2" id = "16 E. Tenn. St." onclick = "setTeam(this.id, 'feeder16', 16)">
-            <span class="seed">16</span> <script>document.write(teams[33])</script>
+          <p class="slot slot2">
+            {{teams[33]}} 
           </p>
         </div>
 
 <!--#/match18-->
         <div id="match18" class="match m2">
-          <p class="slot slot1" id = "8 Okla. St." onclick = "setTeam(this.id, 'feeder17', 17)">
-            <span class="seed">8</span> <script>document.write(teams[34])</script>
+          <p class="slot slot1">
+            {{teams[34]}}   
           </p>
-          <p class="slot slot2" id = "9 Tennessee" onclick = "setTeam(this.id, 'feeder17', 17)">
-            <span class="seed">9</span> <script>document.write(teams[35])</script>
+          <p class="slot slot2">
+            {{teams[35]}}  
           </p>
         </div>
 
 <!-- #/match19 -->
         <div id="match19" class="match m3">
-          <p class="slot slot1" id = "5 FSU" onclick = "setTeam(this.id, 'feeder18', 18)">
-            <span class="seed">5</span> <script>document.write(teams[36])</script>
+          <p class="slot slot1">
+            {{teams[36]}}  
           </p>
-          <p class="slot slot2" id = "12 Wisconsin" onclick = "setTeam(this.id, 'feeder18', 18)">
-            <span class="seed">12</span> <script>document.write(teams[37])</script>
+          <p class="slot slot2">
+            {{teams[37]}}  
           </p>
         </div>
 
 <!--/#match20 -->
         <div id="match20" class="match m4">
-          <p class="slot slot1" id = "4 Xavier" onclick = "setTeam(this.id, 'feeder19', 19)">
-            <span class="seed">4</span> <script>document.write(teams[38])</script>
+          <p class="slot slot1">
+            {{teams[38]}}  
           </p>
-          <p class="slot slot2" id = "13 Portland St." onclick = "setTeam(this.id, 'feeder19', 19)">
-            <span class="seed">13</span> <script>document.write(teams[39])</script>
+          <p class="slot slot2">
+            {{teams[39]}}   
           </p>
         </div>
 
 <!-- /#match21 -->
         <div id="match21" class="match m5">
-          <p class="slot slot1" id = "6 UCLA" onclick = "setTeam(this.id, 'feeder20', 20)">
-            <span class="seed">6</span> <script>document.write(teams[40])</script>
+          <p class="slot slot1">
+            {{teams[40]}}  
           </p>
-          <p class="slot slot2" id = "11 Arizona" onclick = "setTeam(this.id, 'feeder20', 20)">
-            <span class="seed">11</span> <script>document.write(teams[41])</script>
+          <p class="slot slot2">
+            {{teams[41]}}  
           </p>
         </div>
 
 <!-- /#match22 -->
         <div id="match22" class="match m6">
-          <p class="slot slot1" id = "3 Villanova" onclick = "setTeam(this.id, 'feeder21', 21)">
-            <span class="seed">3</span> <script>document.write(teams[42])</script>
+          <p class="slot slot1">
+            {{teams[42]}}  
           </p>
-          <p class="slot slot2" id = "14 American" onclick = "setTeam(this.id, 'feeder21', 21)">
-            <span class="seed">14</span> <script>document.write(teams[43])</script>
+          <p class="slot slot2">
+            {{teams[43]}}   
           </p>
         </div>
 
 <!-- /#match23 -->
         <div id="match23" class="match m7">
-          <p class="slot slot1" id = "7 Texas" onclick = "setTeam(this.id, 'feeder22', 22)">
-            <span class="seed">7</span> <script>document.write(teams[44])</script>
+          <p class="slot slot1">
+            {{teams[44]}}   
           </p>
-          <p class="slot slot2" id = "10 Minnesota" onclick = "setTeam(this.id, 'feeder22', 22)">
-            <span class="seed">10</span> <script>document.write(teams[45])</script>
+          <p class="slot slot2">
+            {{teams[45]}}  
           </p>
         </div>
 
 <!-- /#match24 -->
         <div id="match24" class="match m8">
-          <p class="slot slot1" id = "2 Duke" onclick = "setTeam(this.id, 'feeder23', 23)">
-            <span class="seed">2</span> <script>document.write(teams[46])</script>
+          <p class="slot slot1">
+            {{teams[46]}}  
           </p>
-          <p class="slot slot2" id = "15 Binghamton" onclick = "setTeam(this.id, 'feeder23', 23)">
-            <span class="seed">15</span> <script>document.write(teams[47])</script>
+          <p class="slot slot2">
+            {{teams[47]}}   
           </p>
         </div>
       </div>
@@ -339,84 +333,84 @@
 <!-- start region4 round1-->
       <div class="region region4">
         <h4 class="region4 first_region">
-          MIDWEST
+          South 
         </h4>
         <div id="match25" class="match m1">
-          <p class="slot slot1" id = "1 UNC" onclick = "setTeam(this.id, 'feeder24', 24)">
-            <span class="seed">1</span> <script>document.write(teams[48])</script>
+          <p class="slot slot1">
+            {{teams[48]}}   
           </p>
-          <p class="slot slot2" id = "16 Radford" onclick = "setTeam(this.id, 'feeder24', 24)">
-            <span class="seed">16</span> <script>document.write(teams[49])</script>
+          <p class="slot slot2">
+            {{teams[49]}}  
           </p>
         </div>
 
 <!-- /#match26 -->
         <div id="match26" class="match m2">
-          <p class="slot slot1" id = "8 LSU" onclick = "setTeam(this.id, 'feeder25', 25)">
-            <span class="seed">8</span> <script>document.write(teams[50])</script>
+          <p class="slot slot1">
+            {{teams[50]}}   
           </p>
-          <p class="slot slot2" id = "9 Butler" onclick = "setTeam(this.id, 'feeder25', 25)">
-            <span class="seed">9</span> <script>document.write(teams[51])</script>
+          <p class="slot slot2">
+            {{teams[51]}}   
           </p>
         </div>
 
 <!-- /#match27 -->
         <div id="match27" class="match m3">
-          <p class="slot slot1" id = "5 Illinois" onclick = "setTeam(this.id, 'feeder26', 26)">
-            <span class="seed">5</span> <script>document.write(teams[52])</script>
+          <p class="slot slot1">
+            {{teams[52]}}  
           </p>
-          <p class="slot slot2" id = "12 W. Kentucky" onclick = "setTeam(this.id, 'feeder26', 26)">
-            <span class="seed">12</span> <script>document.write(teams[53])</script>
+          <p class="slot slot2">
+            {{teams[53]}}   
           </p>
         </div>
 
 <!-- /#match28 -->
         <div id="match28" class="match m4">
-          <p class="slot slot1" id = "4 Gonzaga" onclick = "setTeam(this.id, 'feeder27', 27)">
-            <span class="seed">4</span> <script>document.write(teams[54])</script>
+          <p class="slot slot1">
+            {{teams[54]}}   
           </p>
-          <p class="slot slot2" id = "13 Akron" onclick = "setTeam(this.id, 'feeder27', 27)">
-            <span class="seed">13</span> <script>document.write(teams[55])</script>
+          <p class="slot slot2">
+            {{teams[55]}}   
           </p>
         </div>
 
 <!-- /#match29 -->
         <div id="match29" class="match m5">
-          <p class="slot slot1" id = "6 Arizona St." onclick = "setTeam(this.id, 'feeder28', 28)">
-            <span class="seed">6</span> <script>document.write(teams[56])</script>
+          <p class="slot slot1">
+            {{teams[56]}}   
           </p>
-          <p class="slot slot2" id = "11 Temple" onclick = "setTeam(this.id, 'feeder28', 28)">
-            <span class="seed">11</span> <script>document.write(teams[57])</script>
+          <p class="slot slot2">
+            {{teams[57]}}   
           </p>
         </div>
 
 <!-- /#match30 -->
         <div id="match30" class="match m6">
-          <p class="slot slot1" id = "3 Syracuse" onclick = "setTeam(this.id, 'feeder29', 29)">
-            <span class="seed">3</span> <script>document.write(teams[58])</script>
+          <p class="slot slot1">
+            {{teams[58]}}  
           </p>
-          <p class="slot slot2" id = "14 S.F. Austin" onclick = "setTeam(this.id, 'feeder29', 29)">
-            <span class="seed">14</span> <script>document.write(teams[59])</script>
+          <p class="slot slot2">
+            {{teams[59]}}  
           </p>
         </div>
 
 <!-- /#match31 -->
         <div id="match31" class="match m7">
-          <p class="slot slot1" id = "7 Clemson" onclick = "setTeam(this.id, 'feeder30', 30)">
-            <span class="seed">7</span> <script>document.write(teams[60])</script>
+          <p class="slot slot1">
+            {{teams[60]}}   
           </p>
-          <p class="slot slot2" id = "10 Michigan" onclick = "setTeam(this.id, 'feeder30', 30)">
-            <span class="seed">10</span> <script>document.write(teams[61])</script>
+          <p class="slot slot2">
+            {{teams[61]}}  
           </p>
         </div>
 
 <!-- /#match32 -->
         <div id="match32" class="match m8">
-          <p class="slot slot1" id = "2 Oklahoma" onclick = "setTeam(this.id, 'feeder31', 31)">
-            <span class="seed">2</span> <script>document.write(teams[62])</script>
+          <p class="slot slot1">
+            {{teams[62]}}   
           </p>
-          <p class="slot slot2" id = " 15 Morgan State" onclick = "setTeam(this.id, 'feeder31', 31)">
-            <span class="seed">15</span> <script>document.write(teams[63])</script>
+          <p class="slot slot2">
+            {{teams[63]}}   
           </p>
         </div>
       </div>
@@ -435,7 +429,7 @@
 
 <!-- /#match33 -->
         <div id="match33" class="match m1">
-          {% if master[0] == " " %}
+          {% if master[0] == ""%}
           <p class="slot slot1">{{display[0]}}</p>
           {% elif display[0] == master[0] %}
           <p class="slot slot1 correct">{{display[0]}}</p>
@@ -443,7 +437,7 @@
           <p class="slot slot1 wrong">{{display[0]}}</p>
           {% endif %}
 
-          {% if master[1] == " " %}
+          {% if master[1] == ""%}
           <p class="slot slot2">{{display[1]}}</p>
           {% elif display[1] == master[1] %}
           <p class="slot slot2 correct">{{display[1]}}</p>
@@ -454,7 +448,7 @@
 
 <!-- /#match34 -->
         <div id="match34" class="match m2">
-          {% if master[2] == " " %}
+          {% if master[2] == ""%}
           <p class="slot slot1">{{display[2]}}</p>
           {% elif display[2] == master[2] %}
           <p class="slot slot1 correct">{{display[2]}}</p>
@@ -462,7 +456,7 @@
           <p class="slot slot1 wrong">{{display[2]}}</p>
           {% endif %}
 
-          {% if master[3] == " " %}
+          {% if master[3] == ""%}
           <p class="slot slot2">{{display[3]}}</p>
           {% elif display[3] == master[3] %}
           <p class="slot slot2 correct">{{display[3]}}</p>
@@ -473,7 +467,7 @@
 
 <!-- /#match35 -->
         <div id="match35" class="match m3">
-          {% if master[4] == " " %}
+          {% if master[4] == ""%}
           <p class="slot slot3">{{display[4]}}</p>
           {% elif display[4] == master[4] %}
           <p class="slot slot3 correct">{{display[4]}}</p>
@@ -481,7 +475,7 @@
           <p class="slot slot3 wrong">{{display[4]}}</p>
           {% endif %}
 
-          {% if master[5] == " " %}
+          {% if master[5] == ""%}
           <p class="slot slot2">{{display[5]}}</p>
           {% elif display[5] == master[5] %}
           <p class="slot slot2 correct">{{display[5]}}</p>
@@ -492,7 +486,7 @@
 
 <!-- /#match36 -->
         <div id="match36" class="match m4">
-           {% if master[6] == " " %}
+           {% if master[6] == ""%}
           <p class="slot slot1">{{display[6]}}</p>
           {% elif display[6] == master[6] %}
           <p class="slot slot1 correct">{{display[6]}}</p>
@@ -500,7 +494,7 @@
           <p class="slot slot1 wrong">{{display[6]}}</p>
           {% endif %}
 
-          {% if master[7] == " " %}
+          {% if master[7] == ""%}
           <p class="slot slot2">{{display[7]}}</p>
           {% elif display[7] == master[7] %}
           <p class="slot slot2 correct">{{display[7]}}</p>
@@ -518,7 +512,7 @@
 
 <!-- /#match37 -->
         <div id="match37" class="match m1">
-          {% if master[8] == " " %}
+          {% if master[8] == ""%}
           <p class="slot slot1">{{display[8]}}</p>
           {% elif display[8] == master[8] %}
           <p class="slot slot1 correct">{{display[8]}}</p>
@@ -526,7 +520,7 @@
           <p class="slot slot1 wrong">{{display[8]}}</p>
           {% endif %}
 
-          {% if master[9] == " " %}
+          {% if master[9] == ""%}
           <p class="slot slot2">{{display[9]}}</p>
           {% elif display[9] == master[9] %}
           <p class="slot slot2 correct">{{display[9]}}</p>
@@ -537,7 +531,7 @@
 
 <!-- /#match38 -->
         <div id="match38" class="match m2">
-          {% if master[10] == " " %}
+          {% if master[10] == ""%}
           <p class="slot slot1">{{display[10]}}</p>
           {% elif display[10] == master[10] %}
           <p class="slot slot1 correct">{{display[10]}}</p>
@@ -545,7 +539,7 @@
           <p class="slot slot1 wrong">{{display[10]}}</p>
           {% endif %}
 
-          {% if master[11] == " " %}
+          {% if master[11] == ""%}
           <p class="slot slot2">{{display[11]}}</p>
           {% elif display[11] == master[11] %}
           <p class="slot slot2 correct">{{display[11]}}</p>
@@ -556,7 +550,7 @@
 
 <!-- /#match39 -->
         <div id="match39" class="match m3">
-          {% if master[12] == " " %}
+          {% if master[12] == ""%}
           <p class="slot slot1">{{display[12]}}</p>
           {% elif display[12] == master[12] %}
           <p class="slot slot1 correct">{{display[12]}}</p>
@@ -564,7 +558,7 @@
           <p class="slot slot1 wrong">{{display[12]}}</p>
           {% endif %}
 
-          {% if master[13] == " " %}
+          {% if master[13] == ""%}
           <p class="slot slot2">{{display[13]}}</p>
           {% elif display[13] == master[13] %}
           <p class="slot slot2 correct">{{display[13]}}</p>
@@ -575,7 +569,7 @@
 
 <!-- /#match40 -->
         <div id="match40" class="match m4">
-           {% if master[14] == " " %}
+           {% if master[14] == ""%}
           <p class="slot slot1">{{display[14]}}</p>
           {% elif display[14] == master[14] %}
           <p class="slot slot1 correct">{{display[14]}}</p>
@@ -583,7 +577,7 @@
           <p class="slot slot1 wrong">{{display[14]}}</p>
           {% endif %}
 
-          {% if master[15] == " " %}
+          {% if master[15] == ""%}
           <p class="slot slot2">{{display[15]}}</p>
           {% elif display[15] == master[15] %}
           <p class="slot slot2 correct">{{display[15]}}</p>
@@ -601,7 +595,7 @@
 
 <!-- /#match41 -->
         <div id="match41" class="match m1">
-          {% if master[16] == " " %}
+          {% if master[16] == ""%}
           <p class="slot slot1">{{display[16]}}</p>
           {% elif display[16] == master[16] %}
           <p class="slot slot1 correct">{{display[16]}}</p>
@@ -609,7 +603,7 @@
           <p class="slot slot1 wrong">{{display[16]}}</p>
           {% endif %}
 
-          {% if master[17] == " " %}
+          {% if master[17] == ""%}
           <p class="slot slot2">{{display[17]}}</p>
           {% elif display[17] == master[17] %}
           <p class="slot slot2 correct">{{display[17]}}</p>
@@ -620,7 +614,7 @@
 
 <!--/match42-->
         <div id="match42" class="match m2">
-          {% if master[18] == " " %}
+          {% if master[18] == ""%}
           <p class="slot slot1">{{display[18]}}</p>
           {% elif display[18] == master[18] %}
           <p class="slot slot1 correct">{{display[18]}}</p>
@@ -628,7 +622,7 @@
           <p class="slot slot1 wrong">{{display[18]}}</p>
           {% endif %}
 
-          {% if master[19] == " " %}
+          {% if master[19] == ""%}
           <p class="slot slot2">{{display[19]}}</p>
           {% elif display[19] == master[19] %}
           <p class="slot slot2 correct">{{display[19]}}</p>
@@ -639,7 +633,7 @@
 
 <!-- #/match43 -->
         <div id="match43" class="match m3">
-          {% if master[20] == " " %}
+          {% if master[20] == ""%}
           <p class="slot slot1">{{display[20]}}</p>
           {% elif display[20] == master[20] %}
           <p class="slot slot1 correct">{{display[20]}}</p>
@@ -647,7 +641,7 @@
           <p class="slot slot1 wrong">{{display[20]}}</p>
           {% endif %}
 
-          {% if master[21] == " " %}
+          {% if master[21] == ""%}
           <p class="slot slot2">{{display[21]}}</p>
           {% elif display[21] == master[21] %}
           <p class="slot slot2 correct">{{display[21]}}</p>
@@ -658,7 +652,7 @@
 
 <!-- #/match44 -->
         <div id="match44" class="match m4">
-           {% if master[22] == " " %}
+           {% if master[22] == ""%}
           <p class="slot slot1">{{display[22]}}</p>
           {% elif display[22] == master[22] %}
           <p class="slot slot1 correct">{{display[22]}}</p>
@@ -666,7 +660,7 @@
           <p class="slot slot1 wrong">{{display[22]}}</p>
           {% endif %}
 
-          {% if master[23] == " " %}
+          {% if master[23] == ""%}
           <p class="slot slot2">{{display[23]}}</p>
           {% elif display[23] == master[23] %}
           <p class="slot slot2 correct">{{display[23]}}</p>
@@ -684,7 +678,7 @@
 
 <!--/#match45-->
         <div id="match45" class="match m1">
-           {% if master[24] == " " %}
+           {% if master[24] == ""%}
           <p class="slot slot1">{{display[24]}}</p>
           {% elif display[24] == master[24] %}
           <p class="slot slot1 correct">{{display[24]}}</p>
@@ -692,7 +686,7 @@
           <p class="slot slot1 wrong">{{display[24]}}</p>
           {% endif %}
 
-          {% if master[25] == " " %}
+          {% if master[25] == ""%}
           <p class="slot slot2">{{display[25]}}</p>
           {% elif display[25] == master[25] %}
           <p class="slot slot2 correct">{{display[25]}}</p>
@@ -703,7 +697,7 @@
 
 <!--/#match46-->
         <div id="match46" class="match m2">
-           {% if master[26] == " " %}
+           {% if master[26] == ""%}
           <p class="slot slot1">{{display[26]}}</p>
           {% elif display[26] == master[26] %}
           <p class="slot slot1 correct">{{display[26]}}</p>
@@ -711,7 +705,7 @@
           <p class="slot slot1 wrong">{{display[26]}}</p>
           {% endif %}
 
-          {% if master[27] == " " %}
+          {% if master[27] == ""%}
           <p class="slot slot2">{{display[27]}}</p>
           {% elif display[27] == master[27] %}
           <p class="slot slot2 correct">{{display[27]}}</p>
@@ -722,7 +716,7 @@
 
 <!--/#match47-->
         <div id="match47" class="match m3">
-          {% if master[28] == " " %}
+          {% if master[28] == ""%}
           <p class="slot slot1">{{display[28]}}</p>
           {% elif display[28] == master[28] %}
           <p class="slot slot1 correct">{{display[28]}}</p>
@@ -730,7 +724,7 @@
           <p class="slot slot1 wrong">{{display[28]}}</p>
           {% endif %}
 
-          {% if master[29] == " " %}
+          {% if master[29] == ""%}
           <p class="slot slot2">{{display[29]}}</p>
           {% elif display[29] == master[29] %}
           <p class="slot slot2 correct">{{display[29]}}</p>
@@ -741,7 +735,7 @@
 
 <!--/#match48-->
         <div id="match48" class="match m4">
-           {% if master[30] == " " %}
+           {% if master[30] == ""%}
           <p class="slot slot1">{{display[30]}}</p>
           {% elif display[30] == master[30] %}
           <p class="slot slot1 correct">{{display[30]}}</p>
@@ -749,7 +743,7 @@
           <p class="slot slot1 wrong">{{display[30]}}</p>
           {% endif %}
 
-          {% if master[31] == " " %}
+          {% if master[31] == ""%}
           <p class="slot slot2">{{display[31]}}</p>
           {% elif display[31] == master[31] %}
           <p class="slot slot2 correct">{{display[31]}}</p>
@@ -772,7 +766,7 @@
 
 <!--/#match49-->
         <div id="match49" class="match m1">
-          {% if master[32] == " " %}
+          {% if master[32] == ""%}
           <p class="slot slot1">{{display[32]}}</p>
           {% elif display[32] == master[32] %}
           <p class="slot slot1 correct">{{display[32]}}</p>
@@ -780,7 +774,7 @@
           <p class="slot slot1 wrong">{{display[32]}}</p>
           {% endif %}
 
-          {% if master[33] == " " %}
+          {% if master[33] == ""%}
           <p class="slot slot2">{{display[33]}}</p>
           {% elif display[33] == master[33] %}
           <p class="slot slot2 correct">{{display[33]}}</p>
@@ -791,7 +785,7 @@
 
 <!--/#match50-->
         <div id="match50" class="match m2">
-           {% if master[34] == " " %}
+           {% if master[34] == ""%}
           <p class="slot slot1">{{display[34]}}</p>
           {% elif display[34] == master[34] %}
           <p class="slot slot1 correct">{{display[34]}}</p>
@@ -799,7 +793,7 @@
           <p class="slot slot1 wrong">{{display[34]}}</p>
           {% endif %}
 
-          {% if master[35] == " " %}
+          {% if master[35] == ""%}
           <p class="slot slot2">{{display[35]}}</p>
           {% elif display[35] == master[35] %}
           <p class="slot slot2 correct">{{display[35]}}</p>
@@ -817,7 +811,7 @@
 
 <!--/#match51-->
         <div id="match51" class="match m1">
-           {% if master[36] == " " %}
+           {% if master[36] == ""%}
           <p class="slot slot1">{{display[36]}}</p>
           {% elif display[36] == master[36] %}
           <p class="slot slot1 correct">{{display[36]}}</p>
@@ -825,7 +819,7 @@
           <p class="slot slot1 wrong">{{display[36]}}</p>
           {% endif %}
 
-          {% if master[37] == " " %}
+          {% if master[37] == ""%}
           <p class="slot slot2">{{display[37]}}</p>
           {% elif display[37] == master[37] %}
           <p class="slot slot2 correct">{{display[37]}}</p>
@@ -836,7 +830,7 @@
 
 <!--/#match52-->
         <div id="match52" class="match m2">
-           {% if master[38] == " " %}
+           {% if master[38] == ""%}
           <p class="slot slot1">{{display[38]}}</p>
           {% elif display[38] == master[38] %}
           <p class="slot slot1 correct">{{display[38]}}</p>
@@ -844,7 +838,7 @@
           <p class="slot slot1 wrong">{{display[38]}}</p>
           {% endif %}
 
-          {% if master[39] == " " %}
+          {% if master[39] == ""%}
           <p class="slot slot2">{{display[39]}}</p>
           {% elif display[39] == master[39] %}
           <p class="slot slot2 correct">{{display[39]}}</p>
@@ -862,7 +856,7 @@
 
 <!--/#match53-->
         <div id="match53" class="match m1">
-           {% if master[40] == " " %}
+           {% if master[40] == ""%}
           <p class="slot slot1">{{display[40]}}</p>
           {% elif display[40] == master[40] %}
           <p class="slot slot1 correct">{{display[40]}}</p>
@@ -870,7 +864,7 @@
           <p class="slot slot1 wrong">{{display[40]}}</p>
           {% endif %}
 
-          {% if master[41] == " " %}
+          {% if master[41] == ""%}
           <p class="slot slot2">{{display[41]}}</p>
           {% elif display[41] == master[41] %}
           <p class="slot slot2 correct">{{display[41]}}</p>
@@ -881,7 +875,7 @@
 
 <!--/#match54-->
         <div id="match54" class="match m2">
-           {% if master[42] == " " %}
+           {% if master[42] == ""%}
           <p class="slot slot1">{{display[42]}}</p>
           {% elif display[42] == master[42] %}
           <p class="slot slot1 correct">{{display[42]}}</p>
@@ -889,7 +883,7 @@
           <p class="slot slot1 wrong">{{display[42]}}</p>
           {% endif %}
 
-          {% if master[43] == " " %}
+          {% if master[43] == ""%}
           <p class="slot slot2">{{display[43]}}</p>
           {% elif display[43] == master[43] %}
           <p class="slot slot2 correct">{{display[43]}}</p>
@@ -907,7 +901,7 @@
 
 <!--/#match55-->
         <div id="match55" class="match m1">
-           {% if master[44] == " " %}
+           {% if master[44] == ""%}
           <p class="slot slot1">{{display[44]}}</p>
           {% elif display[44] == master[44] %}
           <p class="slot slot1 correct">{{display[44]}}</p>
@@ -915,7 +909,7 @@
           <p class="slot slot1 wrong">{{display[44]}}</p>
           {% endif %}
 
-          {% if master[45] == " " %}
+          {% if master[45] == ""%}
           <p class="slot slot2">{{display[45]}}</p>
           {% elif display[45] == master[45] %}
           <p class="slot slot2 correct">{{display[45]}}</p>
@@ -926,7 +920,7 @@
 
 <!--/#match56-->
         <div id="match56" class="match m2">
-           {% if master[46] == " " %}
+           {% if master[46] == ""%}
           <p class="slot slot1">{{display[46]}}</p>
           {% elif display[46] == master[46] %}
           <p class="slot slot1 correct">{{display[46]}}</p>
@@ -934,7 +928,7 @@
           <p class="slot slot1 wrong">{{display[46]}}</p>
           {% endif %}
 
-          {% if master[47] == " " %}
+          {% if master[47] == ""%}
           <p class="slot slot2">{{display[47]}}</p>
           {% elif display[47] == master[47] %}
           <p class="slot slot2 correct">{{display[47]}}</p>
@@ -957,7 +951,7 @@
 
 <!-- /#match57 -->
         <div id="match57" class="match m1">
-           {% if master[48] == " " %}
+           {% if master[48] == ""%}
           <p class="slot slot1">{{display[48]}}</p>
           {% elif display[48] == master[48] %}
           <p class="slot slot1 correct">{{display[48]}}</p>
@@ -965,7 +959,7 @@
           <p class="slot slot1 wrong">{{display[48]}}</p>
           {% endif %}
 
-          {% if master[49] == " " %}
+          {% if master[49] == ""%}
           <p class="slot slot2">{{display[49]}}</p>
           {% elif display[49] == master[49] %}
           <p class="slot slot2 correct">{{display[49]}}</p>
@@ -983,7 +977,7 @@
 
 <!-- /#match58 -->
         <div id="match58" class="match m1">
-           {% if master[50] == " " %}
+           {% if master[50] == ""%}
           <p class="slot slot1">{{display[50]}}</p>
           {% elif display[50] == master[50] %}
           <p class="slot slot1 correct">{{display[50]}}</p>
@@ -991,7 +985,7 @@
           <p class="slot slot1 wrong">{{display[50]}}</p>
           {% endif %}
 
-          {% if master[51] == " " %}
+          {% if master[51] == ""%}
           <p class="slot slot2">{{display[51]}}</p>
           {% elif display[51] == master[51] %}
           <p class="slot slot2 correct">{{display[51]}}</p>
@@ -1009,7 +1003,7 @@
 
 <!-- /#match59 -->
         <div id="match59" class="match m1">
-           {% if master[52] == " " %}
+           {% if master[52] == ""%}
           <p class="slot slot1">{{display[52]}}</p>
           {% elif display[52] == master[52] %}
           <p class="slot slot1 correct">{{display[52]}}</p>
@@ -1017,7 +1011,7 @@
           <p class="slot slot1 wrong">{{display[52]}}</p>
           {% endif %}
 
-          {% if master[53] == " " %}
+          {% if master[53] == ""%}
           <p class="slot slot2">{{display[53]}}</p>
           {% elif display[53] == master[53] %}
           <p class="slot slot2 correct">{{display[53]}}</p>
@@ -1035,7 +1029,7 @@
 
 <!-- /#match60 -->
         <div id="match60" class="match m1">
-           {% if master[54] == " " %}
+           {% if master[54] == ""%}
           <p class="slot slot1">{{display[54]}}</p>
           {% elif display[54] == master[54] %}
           <p class="slot slot1 correct">{{display[54]}}</p>
@@ -1043,7 +1037,7 @@
           <p class="slot slot1 wrong">{{display[54]}}</p>
           {% endif %}
 
-          {% if master[55] == " " %}
+          {% if master[55] == ""%}
           <p class="slot slot2">{{display[55]}}</p>
           {% elif display[55] == master[55] %}
           <p class="slot slot2 correct">{{display[55]}}</p>
@@ -1063,7 +1057,7 @@
 
 <!-- /#match61 -->
         <div id="match61" class="match m1">
-           {% if master[56] == " " %}
+           {% if master[56] == ""%}
           <p class="slot slot1">{{display[56]}}</p>
           {% elif display[56] == master[56] %}
           <p class="slot slot1 correct">{{display[56]}}</p>
@@ -1071,7 +1065,7 @@
           <p class="slot slot1 wrong">{{display[56]}}</p>
           {% endif %}
 
-          {% if master[57] == " " %}
+          {% if master[57] == ""%}
           <p class="slot slot2">{{display[57]}}</p>
           {% elif display[57] == master[57] %}
           <p class="slot slot2 correct">{{display[57]}}</p>
@@ -1082,7 +1076,7 @@
 
 <!-- /#match62 -->
         <div id="match62" class="match m2">
-           {% if master[58] == " " %}
+           {% if master[58] == ""%}
           <p class="slot slot1">{{display[58]}}</p>
           {% elif display[58] == master[58] %}
           <p class="slot slot1 correct">{{display[58]}}</p>
@@ -1090,7 +1084,7 @@
           <p class="slot slot1 wrong">{{display[58]}}</p>
           {% endif %}
 
-          {% if master[59] == " " %}
+          {% if master[59] == ""%}
           <p class="slot slot2">{{display[59]}}</p>
           {% elif display[59] == master[59] %}
           <p class="slot slot2 correct">{{display[59]}}</p>
@@ -1110,7 +1104,7 @@
 
 <!-- /#match63 -->
         <div id="match63" class="match m1">
-          {% if master[60] == " " %}
+          {% if master[60] == "" %}
           <p class="slot slot1">{{display[60]}}</p>
           {% elif display[60] == master[60] %}
           <p class="slot slot1 correct">{{display[60]}}</p>
@@ -1118,7 +1112,7 @@
           <p class="slot slot1 wrong">{{display[60]}}</p>
           {% endif %}
 
-          {% if master[61] == " " %}
+          {% if master[61] == "" %}
           <p class="slot slot2">{{display[61]}}</p>
           {% elif display[61] == master[61] %}
           <p class="slot slot2 correct">{{display[61]}}</p>
@@ -1126,7 +1120,7 @@
           <p class="slot slot2 wrong">{{display[61]}}</p>
           {% endif %}
 
-          {% if master[62] == " " %}
+          {% if master[62] == "" %}
           <p class="slot champion">Champion: {{display[62]}}</p>
           {% elif display[62] == master[62] %}
           <p class="slot champion correct">Champion: {{display[62]}}</p>
