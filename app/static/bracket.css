@@ -333,3 +333,7 @@ table.gridtable td.title {
   margin-left: 34% !important;
   margin-right: 35% !important;
 }
+
+.slot{
+	white-space: nowrap;
+}

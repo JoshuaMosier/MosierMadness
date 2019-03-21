@@ -169,7 +169,7 @@ def get_team_region_dict(games):
 	return team_region_dict
 
 def convert_names(games):
-	region1 = {"SOUTH":'1',"WEST":'2',"EAST":'3',"MIDWEST":'4'}
+	region1 = {"South":'1',"West":'2',"East":'3',"Midwest":'4'}
 	team_name_dict = {}
 	for game in games['games']:
 		if game['game']['bracketRegion'] != "":
@@ -245,9 +245,9 @@ def get_elim():
 		elim[index] = name_conversion[elim_dict11[value[0]]]
 	return elim
 
-region1 = {"SOUTH":'1',"WEST":'2',"EAST":'3',"MIDWEST":'4'}
-round11 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/15/scoreboard.json")
-round12 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/16/scoreboard.json")
+region1 = {"SOUTH":'3',"WEST":'2',"EAST":'1',"MIDWEST":'4'}
+round11 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2019/03/21/scoreboard.json")
+round12 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2019/03/22/scoreboard.json")
 # round21 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/17/scoreboard.json")
 # round22 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/18/scoreboard.json")
 # round31 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/22/scoreboard.json")

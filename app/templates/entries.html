@@ -6,27 +6,11 @@
 <div class="nav-spacer-scoreboard">
 
 
+{% if user_id != -1 %}
   <!-- Bracket -->
 <body class="bracket standings light-blue">
-	<div class="entries-header">
-		<div class="entries-menu">
-		  <div class="ddown">
-			  <button class="dbtn">All Entries</button>
-			  <div class="ddown-content" id="entries_dropdown" >
-			    {% for item in range(Users|length) %}
-		        {% if Users[item].round1 is not none %}
-		          <a class="cell" href="{{ url_for('entries',id=Users[item].id)}}">{{Users[item].firstname}} {{Users[item].lastname}}</a>
-		        {% endif %}
-		      {% endfor %}
-			  </div>
-		  </div> 
-		</div>
-		<h2>{{User.query.get(user_id).firstname}} {{User.query.get(user_id).lastname}}'s Bracket</h2>
-		<div class="header-spacer">
-		  <div class="ddown">
-			  <p class="dbtn">All Entries</p>
-			</div>
-		</div>
+	<div>
+		<h2 style="text-align:center">{{User.query.get(user_id).firstname}} {{User.query.get(user_id).lastname}}'s Bracket</h2>
 	</div>
 <div id="content-wrapper">
  <div id="table">
@@ -1134,5 +1118,9 @@
   </div>
 </div>
 </body>
+{% else %}
+	<h1 style="text-align:center;">Please log in to view your entry.</h1>
+{% endif %}
 </div>
+
 {% endblock %}

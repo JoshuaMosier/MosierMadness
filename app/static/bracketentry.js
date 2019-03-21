@@ -3,17 +3,17 @@ var teams = ['Virginia','UMBC','Creighton','Kansas St','Kentucky','Davidson','Ar
 			 'Villanova','LIUB/Radford','Virginia Tech','Alabama','West Virginia','Murray St','Wichita St','Marshall','Florida','St Bon/UCLA','Texas Tech','SF Austin','Arkansas','Butler','Purdue','CSU Fullerton',
 			 'Kansas','Penn','Seton Hall','NC State','Clemson','New Mexico St','Auburn','Charleston','TCU','ASU/Syracuse','Michigan St','Bucknell','Rhode Island','Oklahoma','Duke','Iona']
 
-var round1 =['-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-']
+var round1 =['*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*']
 
-var round2 =['-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-']
+var round2 =['*','*','*','*','*','*','*','*','*','*','*','*','*','*','*','*']
 
-var round3 =['-','-','-','-','-','-','-','-']
+var round3 =['*','*','*','*','*','*','*','*']
 
-var round4 =['-','-','-','-']
+var round4 =['*','*','*','*']
 
-var round5 =['-','-']
+var round5 =['*','*']
 
-var round6 =['-']
+var round6 =['*']
 
 var rounds_string = ""
 

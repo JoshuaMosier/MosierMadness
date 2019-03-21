@@ -69,10 +69,10 @@ def entries():
     if current_user.is_authenticated:
         user_id = request.args.get('id', default = current_user.id, type = int)
     else:
-        user_id = request.args.get('id', default = 1, type = int)
+        user_id = request.args.get('id', default = -1, type = int)
     elim = score_scraper.get_elim()
     game_scores = score_scraper.get_scoreticker_json()
-    if User.query.get(user_id).round1 is None:
+    if user_id == -1 or User.query.get(user_id).round1 is None:
         display = []
     else:
         display = User.query.get(user_id).round1.replace('"','').replace('[','').replace(']','').split(',')
@@ -91,8 +91,7 @@ def matches():
     game_id = request.args.get('id', default = 1, type = int)
     game_data = score_scraper.get_game_data()
     game_id_selection = score_scraper.convert_ncaa_to_master(game_data[game_id][3])
-    print(game_data[game_id][3])
-    return render_template('matches.html',users=users,matches=game_scores,game_id=game_id,game_data=game_data,game_selected=game_id_selection,rounds=rounds)
+    return render_template('matches.html',users=users,matches=game_scores,game_id=game_id,game_data=game_data, game_selected=game_id_selection,rounds=rounds)
 
 #master
 @app.route('/master')
@@ -111,11 +110,13 @@ def stats():
 #past_winners
 @app.route('/past_winners')
 def past_winners():
-    return render_template('past_winners.html')
+    game_scores = score_scraper.get_scoreticker_json()
+    return render_template('past_winners.html',matches=game_scores)
 
 @app.route('/possibilities')
 def possibilities():
-    return render_template("possibilities.html")
+    game_scores = score_scraper.get_scoreticker_json()
+    return render_template("possibilities.html",matches=game_scores)
 
 #login
 @app.route('/login', methods=['GET', 'POST'])
@@ -203,11 +204,11 @@ class RegistrationForm(Form):
 def background_process():
     submissionkey = request.args.get('submissionkey', 0, type=str)
     lang = request.args.get('proglang', 0, type=str)
-    submissionkey = 'Mosier2018'
-    print(lang)
-    if scoring.isBracketEmpty(lang) or lang == "\"\"":
+    submissionkey='Mosier2019'
+    print
+    if scoring.isBracketEmpty(lang) or lang =="\"\"":
         return jsonify(result='Bracket Is Not Filled Correctly')
-    elif submissionkey=='Mosier2018':
+    elif submissionkey=='Mosier2019':
         current_user.set_bracket(lang)
         db.session.commit()
         return jsonify(result='Bracket Submitted!')

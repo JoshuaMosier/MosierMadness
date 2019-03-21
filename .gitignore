@@ -12,3 +12,4 @@ app/migrations/script.py.mako
 app/migrations/versions/391f666a7215_users_table.py
 app/migrations/versions/__pycache__/391f666a7215_users_table.cpython-37.pyc
 *.db
+.vscode/settings.json

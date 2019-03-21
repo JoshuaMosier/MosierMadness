@@ -96,7 +96,7 @@ def order(scores):
     return [row[0] for row in matrix]
 
 def isBracketEmpty(checkBracket):
-    if "-" in checkBracket:
+    if "*" in checkBracket:
         return True
     else:
         return False

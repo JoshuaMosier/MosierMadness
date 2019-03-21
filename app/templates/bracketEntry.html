@@ -52,10 +52,11 @@
   
   <body>
       <form>
-        <input type=text size=5 name=proglang>
         <a href=# id=process_input><button class='btn btn-default'>Submit</button></a>
       </form>
-    <p id=result></p>
+      <center>
+    		<p id=result></p>
+    	</center>
   </body>
 
 <!-- Bracket -->
@@ -773,9 +774,12 @@
 
 <!-- /#match63 -->
         <div id="match63" class="match m1">
-          <p class="slot slot1" id = "feeder60" onclick = "updateRound6(this.id, 0, 0)">
+          <p class="slot slot1" id = "feeder60" onclick = "updateRound6('champ', 0, 0)">
           </p>
-          <p class="slot slot2" id = "feeder61" onclick = "updateRound6(this.id, 1 ,0)">
+          <p class="slot slot2" id = "feeder61" onclick = "updateRound6('champ', 1 ,0)">
+          </p>
+          <p id="champ" class="slot champion" >
+            Champion:
           </p>
         </div>
       </div>
