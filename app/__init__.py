@@ -35,9 +35,11 @@ def load_user(id):
 #index
 @app.route('/')
 def index():
+    inv_map = score_scraper.ncaa_to_id()
     master = score_scraper.get_master_bracket()
     elim = score_scraper.get_elim()
     users = User.query.all()
+    scoring.convert_brackets_to_id(inv_map,users,master)
     end_rounds = scoring.get_end_rounds(users)
     score = scoring.score(master,users)
     order = scoring.order(score)
@@ -69,7 +71,7 @@ def entries():
     if current_user.is_authenticated:
         user_id = request.args.get('id', default = current_user.id, type = int)
     else:
-        user_id = request.args.get('id', default = -1, type = int)
+        user_id = request.args.get('id', default = 1, type = int)
     elim = score_scraper.get_elim()
     game_scores = score_scraper.get_scoreticker_json()
     if user_id == -1 or User.query.get(user_id).round1 is None:
@@ -205,7 +207,6 @@ def background_process():
     submissionkey = request.args.get('submissionkey', 0, type=str)
     lang = request.args.get('proglang', 0, type=str)
     submissionkey='Mosier2019'
-    print
     if scoring.isBracketEmpty(lang) or lang =="\"\"":
         return jsonify(result='Bracket Is Not Filled Correctly')
     elif submissionkey=='Mosier2019':

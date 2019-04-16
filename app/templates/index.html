@@ -26,7 +26,7 @@
     {% for item in order %}
       <tbody>
       <tr>
-        {% if users[item].round1[0] != "\"" %}
+        {% if users[item].round1 != "\"" %}
         <td class="cell">{{rank[loop.index-1]}}</td>
         <td class="cell">{{score[item][6]}}</td>
         <td>
@@ -66,7 +66,7 @@
 	          {% endif %}
 
 	          {% if (end_rounds[item][3] | replace('.png', '')) == master[59] %}
-	            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}"" class="overlay4 float-left" />
+	            <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay4 float-left" />
 	          {% elif (end_rounds[item][3] | replace('.png', '')) in elim%}
 	          	<img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay4 float-left" />
 	          {% endif %}

@@ -32,7 +32,7 @@
 			<h5 class="picked-header">Picked {{matches[game_id][0][4]}} :</h5>
 			{% for user in users %}
 				{% if rounds[loop.index-1][0] != '' %}
-					{% if rounds[loop.index-1][game_selected].split()[1:]|join(" ") == matches[game_id][0][4] %}
+					{% if rounds[loop.index-1][game_selected].split()[1:]|join(" ")|trim == matches[game_id][0][4]|trim %}
 						<a class="selection" href="{{ url_for('entries',id=user.id)}}">{{user.firstname}} {{user.lastname}}</a>
 					{% endif %}
 				{% endif %}
@@ -42,7 +42,7 @@
 			<h5 class="picked-header">Picked Other:</h5>
 			{% for user in users %}
 				{% if rounds[loop.index-1][0] != '' %}
-					{% if rounds[loop.index-1][game_selected].split()[1:]|join(" ") != matches[game_id][0][4] and rounds[loop.index-1][game_selected].split()[1:]|join(" ") != matches[game_id][1][4]%}
+					{% if rounds[loop.index-1][game_selected].split()[1:]|join(" ")|trim != matches[game_id][0][4]|trim and rounds[loop.index-1][game_selected].split()[1:]|join(" ")|trim != matches[game_id][1][4]|trim %}
 						<a class="selection" href="{{ url_for('entries',id=user.id)}}">{{user.firstname}} {{user.lastname}} - {{rounds[loop.index-1][game_selected].split()[1:]|join(" ")}}</a>
 					{% endif %}
 				{% endif %}
@@ -52,7 +52,7 @@
 			<h5 class="picked-header">Picked {{matches[game_id][1][4]}}:</h5>
 			{% for user in users %}
 				{% if rounds[loop.index-1][0] != '' %}
-					{% if rounds[loop.index-1][game_selected].split()[1:]|join(" ") == matches[game_id][1][4] %}
+					{% if rounds[loop.index-1][game_selected].split()[1:]|join(" ")|trim == matches[game_id][1][4]|trim %}
 						<a class="selection" href="{{ url_for('entries',id=user.id)}}">{{user.firstname}} {{user.lastname}}</a>
 					{% endif %}
 				{% endif %}

@@ -81,8 +81,8 @@ def get_scoreticker_espn():
 
 def get_scoreticker_json():
 	tz = timezone('EST')
-	# sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.now(tz).strftime('%Y/%m/%d')+"/scoreboard.json")
-	games = games11
+	sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.now(tz).strftime('%Y/%m/%d')+"/scoreboard.json")
+	games = json.loads(sauce.content.decode('utf-8'))
 	away = []
 	home = []
 	matches = []
@@ -109,8 +109,8 @@ def get_scoreticker_json():
 
 def get_game_data():
 	tz = timezone('EST')
-	# sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.now(tz).strftime('%Y/%m/%d')+"/scoreboard.json")
-	games = games11
+	sauce = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/"+datetime.datetime.now(tz).strftime('%Y/%m/%d')+"/scoreboard.json")
+	games = json.loads(sauce.content.decode('utf-8'))
 	matches = []
 	for game in games['games']:
 		gm=[]
@@ -139,6 +139,7 @@ def get_bracket_winners(games,region):
 			winners[game['game']['bracketId']] = region[game['game']['bracketRegion']] + game['game']['away']['seed'] 
 		if game['game']['home']['winner'] and (game['game']['bracketRegion'] != ""):
 			winners[game['game']['bracketId']] = region[game['game']['bracketRegion']] + game['game']['home']['seed']
+	print(winners)
 	return winners
 
 def get_winners_f4(games,region,region_dict):
@@ -169,7 +170,7 @@ def get_team_region_dict(games):
 	return team_region_dict
 
 def convert_names(games):
-	region1 = {"South":'1',"West":'2',"East":'3',"Midwest":'4'}
+	region1 = {"South":'3',"West":'2',"East":'1',"Midwest":'4'}
 	team_name_dict = {}
 	for game in games['games']:
 		if game['game']['bracketRegion'] != "":
@@ -204,8 +205,16 @@ def convert_ncaa_to_master(game_id):
 
 def get_master_bracket():
 	master = ['']*63
-	for index,value in enumerate(sorted(dict11.items())):
-		master[index] = name_conversion[dict11[value[0]]]
+	dict11 = get_vars()[0]
+	offset = 0
+	for value in sorted(dict11.items()):
+		if int(value[0][0]) == 3:
+			offset = 32
+		elif int(value[0][0]) == 4:
+			offset = 48
+		elif int(value[0][0]) == 5:
+			offset = 56
+		master[int(value[0][1:])-1 + offset] = name_conversion[dict11[value[0]]]
 	return master
 
 def get_bracket_teams():
@@ -241,70 +250,83 @@ def get_bracket_losers(games,region):
 
 def get_elim():
 	elim = ['']*63
+	elim_dict11 = get_vars()[1]
 	for index,value in enumerate(sorted(elim_dict11.items())):
 		elim[index] = name_conversion[elim_dict11[value[0]]]
 	return elim
 
-region1 = {"SOUTH":'3',"WEST":'2',"EAST":'1',"MIDWEST":'4'}
+def get_vars():
+	region1 = {"South":'3',"West":'2',"East":'1',"Midwest":'4'}
+	round11 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2019/03/21/scoreboard.json")
+	round12 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2019/03/22/scoreboard.json")
+	round21 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2019/03/23/scoreboard.json")
+	round22 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2019/03/24/scoreboard.json")
+	round31 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2019/03/28/scoreboard.json")
+	round32 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2019/03/29/scoreboard.json")
+	# round41 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/24/scoreboard.json")
+	# round42 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/25/scoreboard.json")
+	# round51 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/31/scoreboard.json")
+	# round61 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/04/02/scoreboard.json")
+	games11 = json.loads(round11.content.decode('utf-8'))
+	games12 = json.loads(round12.content.decode('utf-8'))
+	games21 = json.loads(round21.content.decode('utf-8'))
+	games22 = json.loads(round22.content.decode('utf-8'))
+	games31 = json.loads(round31.content.decode('utf-8'))
+	games32 = json.loads(round32.content.decode('utf-8'))
+	# games41 = json.loads(round41.content.decode('utf-8'))
+	# games42 = json.loads(round42.content.decode('utf-8'))
+	# games51 = json.loads(round51.content.decode('utf-8'))
+	# games61 = json.loads(round61.content.decode('utf-8'))
+	dict11 = get_bracket_winners(games11,region1)
+	dict12 = get_bracket_winners(games12,region1)
+	dict21 = get_bracket_winners(games21,region1)
+	dict22 = get_bracket_winners(games22,region1)
+	dict31 = get_bracket_winners(games31,region1)
+	dict32 = get_bracket_winners(games32,region1)
+	# dict41 = get_bracket_winners(games41,region1)
+	# dict42 = get_bracket_winners(games42,region1)
+	# dict51 = get_winners_f4(games51,region1,name_region)
+	# dict61 = get_winners_f4(games61,region1,name_region)
+	dict11.update(dict12)
+	dict11.update(dict21)
+	dict11.update(dict22)
+	dict11.update(dict31)
+	dict11.update(dict32)
+	# dict11.update(dict41)
+	# dict11.update(dict42)
+	# dict11.update(dict51)
+	# dict11.update(dict61)
+	elim_dict11 = get_bracket_losers(games11,region1)
+	elim_dict12 = get_bracket_losers(games12,region1)
+	elim_dict21 = get_bracket_losers(games21,region1)
+	elim_dict22 = get_bracket_losers(games22,region1)
+	elim_dict31 = get_bracket_losers(games31,region1)
+	elim_dict32 = get_bracket_losers(games32,region1)
+	# elim_dict41 = get_bracket_losers(games41,region1)
+	# elim_dict42 = get_bracket_losers(games42,region1)
+	# elim_dict51 = get_losers_f4(games51,region1,name_region)
+	# elim_dict61 = get_losers_f4(games61,region1,name_region)
+	elim_dict11.update(elim_dict12)
+	elim_dict11.update(elim_dict21)
+	elim_dict11.update(elim_dict22)
+	elim_dict11.update(elim_dict31)
+	elim_dict11.update(elim_dict32)
+	# elim_dict11.update(elim_dict41)
+	# elim_dict11.update(elim_dict42)
+	# elim_dict11.update(elim_dict51)
+	# elim_dict11.update(elim_dict61)
+	return (dict11,elim_dict11)
+
+region1 = {"South":'3',"West":'2',"East":'1',"Midwest":'4'}
 round11 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2019/03/21/scoreboard.json")
 round12 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2019/03/22/scoreboard.json")
-# round21 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/17/scoreboard.json")
-# round22 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/18/scoreboard.json")
-# round31 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/22/scoreboard.json")
-# round32 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/23/scoreboard.json")
-# round41 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/24/scoreboard.json")
-# round42 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/25/scoreboard.json")
-# round51 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/03/31/scoreboard.json")
-# round61 = requests.get("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/04/02/scoreboard.json")
 games11 = json.loads(round11.content.decode('utf-8'))
 games12 = json.loads(round12.content.decode('utf-8'))
-# games21 = json.loads(round21.content.decode('utf-8'))
-# games22 = json.loads(round22.content.decode('utf-8'))
-# games31 = json.loads(round31.content.decode('utf-8'))
-# games32 = json.loads(round32.content.decode('utf-8'))
-# games41 = json.loads(round41.content.decode('utf-8'))
-# games42 = json.loads(round42.content.decode('utf-8'))
-# games51 = json.loads(round51.content.decode('utf-8'))
-# games61 = json.loads(round61.content.decode('utf-8'))
 name_region = get_team_region_dict(games11)
 name_region.update(get_team_region_dict(games12))
 name_conversion = convert_names(games11)
 name_conversion.update(convert_names(games12))
-dict11 = get_bracket_winners(games11,region1)
-dict12 = get_bracket_winners(games12,region1)
-# dict21 = get_bracket_winners(games21,region1)
-# dict22 = get_bracket_winners(games22,region1)
-# dict31 = get_bracket_winners(games31,region1)
-# dict32 = get_bracket_winners(games32,region1)
-# dict41 = get_bracket_winners(games41,region1)
-# dict42 = get_bracket_winners(games42,region1)
-# dict51 = get_winners_f4(games51,region1,name_region)
-# dict61 = get_winners_f4(games61,region1,name_region)
-dict11.update(dict12)
-# dict11.update(dict21)
-# dict11.update(dict22)
-# dict11.update(dict31)
-# dict11.update(dict32)
-# dict11.update(dict41)
-# dict11.update(dict42)
-# dict11.update(dict51)
-# dict11.update(dict61)
-elim_dict11 = get_bracket_losers(games11,region1)
-elim_dict12 = get_bracket_losers(games12,region1)
-# elim_dict21 = get_bracket_losers(games21,region1)
-# elim_dict22 = get_bracket_losers(games22,region1)
-# elim_dict31 = get_bracket_losers(games31,region1)
-# elim_dict32 = get_bracket_losers(games32,region1)
-# elim_dict41 = get_bracket_losers(games41,region1)
-# elim_dict42 = get_bracket_losers(games42,region1)
-# elim_dict51 = get_losers_f4(games51,region1,name_region)
-# elim_dict61 = get_losers_f4(games61,region1,name_region)
-elim_dict11.update(elim_dict12)
-# elim_dict11.update(elim_dict21)
-# elim_dict11.update(elim_dict22)
-# elim_dict11.update(elim_dict31)
-# elim_dict11.update(elim_dict32)
-# elim_dict11.update(elim_dict41)
-# elim_dict11.update(elim_dict42)
-# elim_dict11.update(elim_dict51)
-# elim_dict11.update(elim_dict61)
+
+def ncaa_to_id():
+	inv_map = {v: k for k, v in name_conversion.items()}
+	return inv_map

@@ -3,7 +3,7 @@ def score(master,users):
     ret = ['','','','','','','']
     score1 = score2 = score3 = score4 = score5 = score6 = total = games = 0
     for user in users:
-        if user.round1 is None:
+        if user.round1 is "\"":
             scores.append(ret)
         else:
             temp = user.round1.replace('"','').replace('[','').replace(']','')
@@ -24,6 +24,7 @@ def score(master,users):
                             score6 = score6 + 32
                         games = games + 1
             total = score1 + score2 + score3 + score4 + score5 + score6
+            # print(user.firstname + " " + user.lastname + "," + str(score1+score2))
             ret = [score1, score2, score3, score4, score5, score6, total, games]
             scores.append(ret)
             score1 = score2 = score3 = score4 = score5= score6 = total = games = 0
@@ -33,7 +34,7 @@ def potential(elim,users,master):
     potentials = []
     ptn = 192
     for user in users:
-        if user.round1 is None or "-" in user.round1:
+        if user.round1 is "\"" or "*" in user.round1:
             potentials.append('None')
         else:
             temp = user.round1.replace('"','').replace('[','').replace(']','')
@@ -76,8 +77,7 @@ def get_end_rounds(users):
     ret = []
     index = 0
     for user in users:
-        if user.round1 is None or "-" in user.round1:
-            rounds.append(ret)
+        if user.round1 == "\"":
             ret = []
         else:
             temp = user.round1.replace('"','').replace('[','').replace(']','')
@@ -113,3 +113,26 @@ def rank(order,scores):
     rank.append(count)
     return rank
 
+def convert_brackets_to_id(name_map,users,master):
+    scores = []
+    ret = ['','','','','','','']
+    score1 = score2 = score3 = score4 = score5 = score6 = total = games = 0
+    ret2 = []
+    for user in users:
+        temp = user.round1.replace('"','').replace('[','').replace(']','')
+        submission = temp.split(',')
+        ret1 = []
+        for entry in submission:
+            if entry in name_map:
+                ret1.append(name_map[entry])
+            else:
+                ret1.append(entry)
+        ret2.append(ret1)
+    ret3 = []
+    for entry in master:
+        if entry in name_map:
+            ret3.append(name_map[entry])
+        else:
+            ret3.append(entry)
+    print(ret3)
+    return ret2

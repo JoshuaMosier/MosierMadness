@@ -447,3 +447,9 @@ body {
 	justify-content: center;
 	text-align:center;
 }
+
+.possibilities{
+  display:flex;
+  margin:auto;
+  width:80%;
+}
