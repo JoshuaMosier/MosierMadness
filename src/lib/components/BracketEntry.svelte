@@ -146,18 +146,22 @@
               <div class="bracket-column px-2">
                 {#each Array(8) as _, i}
                   <div class="mb-2 game-pair">
-                    <div 
-                      class={`p-2 border cursor-pointer hover:bg-blue-50 ${selections[i*2] === teams[i*2] ? 'bg-blue-100 font-bold' : ''}`}
+                    <button 
+                      type="button"
+                      class={`w-full text-left p-2 border cursor-pointer hover:bg-blue-50 ${selections[i*2] === teams[i*2] ? 'bg-blue-100 font-bold' : ''}`}
                       on:click={() => selectTeam(i*2, teams[i*2])}
+                      on:keydown={(e) => e.key === 'Enter' && selectTeam(i*2, teams[i*2])}
                     >
                       {teams[i*2]}
-                    </div>
-                    <div 
-                      class={`p-2 border border-t-0 cursor-pointer hover:bg-blue-50 ${selections[i*2+1] === teams[i*2+1] ? 'bg-blue-100 font-bold' : ''}`}
+                    </button>
+                    <button 
+                      type="button"
+                      class={`w-full text-left p-2 border border-t-0 cursor-pointer hover:bg-blue-50 ${selections[i*2+1] === teams[i*2+1] ? 'bg-blue-100 font-bold' : ''}`}
                       on:click={() => selectTeam(i*2+1, teams[i*2+1])}
+                      on:keydown={(e) => e.key === 'Enter' && selectTeam(i*2+1, teams[i*2+1])}
                     >
                       {teams[i*2+1]}
-                    </div>
+                    </button>
                   </div>
                 {/each}
               </div>

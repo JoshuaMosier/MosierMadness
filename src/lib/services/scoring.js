@@ -79,62 +79,51 @@ export function calculatePotential(masterBracket, userBracket, eliminatedTeams) 
 // Get leaderboard data
 export async function getLeaderboard() {
   try {
-    // Get all brackets
-    const { data: brackets, error: bracketsError } = await getAllBrackets();
-    
-    if (bracketsError) {
-      console.error('Error fetching brackets for leaderboard:', bracketsError);
-      return [];
+    const response = await fetch('/api/leaderboard');
+    if (!response.ok) {
+      throw new Error('Failed to fetch leaderboard data');
     }
     
-    // Get master bracket and eliminated teams
-    const masterBracket = await getMasterBracket();
-    const eliminatedTeams = await getEliminatedTeams();
+    const data = await response.json();
     
-    // Calculate scores and potentials for each bracket
-    const leaderboardData = brackets.map(bracket => {
-      const score = calculateScore(masterBracket, bracket.selections);
-      const potential = calculatePotential(masterBracket, bracket.selections, eliminatedTeams);
-      
-      return {
-        userId: bracket.user_id,
-        firstName: bracket.users.firstname,
-        lastName: bracket.users.lastname,
-        totalScore: score.total,
-        r64Score: score.r64,
-        r32Score: score.r32,
-        s16Score: score.s16,
-        e8Score: score.e8,
-        f4Score: score.f4,
-        ncgScore: score.ncg,
-        correctGames: score.correctGames,
-        potential: potential,
-        // Add Final Four, Finals, and Champion picks for display
-        finalFour: bracket.selections.slice(56, 60),
-        finals: bracket.selections.slice(60, 62),
-        champion: bracket.selections[62]
-      };
-    });
-    
-    // Sort by total score (descending)
-    leaderboardData.sort((a, b) => b.totalScore - a.totalScore);
-    
-    // Add rank
-    let currentRank = 1;
-    let currentScore = leaderboardData.length > 0 ? leaderboardData[0].totalScore : 0;
-    
-    leaderboardData.forEach((entry, index) => {
-      if (entry.totalScore < currentScore) {
-        currentRank = index + 1;
-        currentScore = entry.totalScore;
+    // Transform the data to match the component's expected structure
+    return data.map((entry, index) => ({
+      rank: index + 1,
+      userId: entry.id,
+      firstName: entry.firstname,
+      lastName: entry.lastname,
+      totalScore: entry.score[6], // Total score
+      r64Score: entry.score[0],   // Round of 64 score
+      r32Score: entry.score[1],   // Round of 32 score
+      s16Score: entry.score[2],   // Sweet 16 score
+      e8Score: entry.score[3],    // Elite 8 score
+      f4Score: entry.score[4],    // Final Four score
+      ncgScore: entry.score[5],   // National Championship Game score
+      potential: entry.potential,  // Potential remaining score
+      correctGames: entry.score[7], // Total correct games
+      finalFour: entry.end_rounds.slice(0, 4).map(team => ({
+        name: team.replace('.png', ''),
+        isWinner: team.replace('.png', '') === entry.master[56] || 
+                 team.replace('.png', '') === entry.master[57] || 
+                 team.replace('.png', '') === entry.master[58] || 
+                 team.replace('.png', '') === entry.master[59],
+        isEliminated: entry.elim.includes(team.replace('.png', ''))
+      })),
+      finals: entry.end_rounds.slice(4, 6).map(team => ({
+        name: team.replace('.png', ''),
+        isWinner: team.replace('.png', '') === entry.master[60] || 
+                 team.replace('.png', '') === entry.master[61],
+        isEliminated: entry.elim.includes(team.replace('.png', ''))
+      })),
+      champion: {
+        name: entry.end_rounds[6].replace('.png', ''),
+        isWinner: entry.end_rounds[6].replace('.png', '') === entry.master[62],
+        isEliminated: entry.elim.includes(entry.end_rounds[6].replace('.png', ''))
       }
-      entry.rank = currentRank;
-    });
-    
-    return leaderboardData;
+    }));
   } catch (error) {
-    console.error('Error generating leaderboard:', error);
-    return [];
+    console.error('Error fetching leaderboard:', error);
+    throw error;
   }
 }
 

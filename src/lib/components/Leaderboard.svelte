@@ -3,8 +3,6 @@
   import { getLeaderboard } from '$lib/services/scoring';
   import { user } from '$lib/stores/user';
   
-  export let highlightUserId = null;
-  
   let leaderboard = [];
   let isLoading = true;
   let error = null;
@@ -18,19 +16,6 @@
       isLoading = false;
     }
   });
-  
-  // Function to determine if a row should be highlighted
-  function shouldHighlight(entry) {
-    if (highlightUserId) {
-      return entry.userId === highlightUserId;
-    }
-    
-    if ($user) {
-      return entry.userId === $user.id;
-    }
-    
-    return false;
-  }
 </script>
 
 <div class="leaderboard">
@@ -51,63 +36,125 @@
       <strong class="font-bold">Error!</strong>
       <span class="block sm:inline"> {error}</span>
     </div>
-  {:else if leaderboard.length === 0}
-    <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative" role="alert">
-      <span class="block sm:inline">No brackets have been submitted yet.</span>
-    </div>
   {:else}
     <div class="overflow-x-auto">
-      <table class="min-w-full bg-white">
-        <thead class="bg-gray-100 border-b">
-          <tr>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">R64</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">R32</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S16</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E8</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">F4</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NCG</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Potential</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Champion</th>
+      <table class="min-w-full table-auto bg-gray-900 text-white">
+        <thead>
+          <tr class="bg-gray-800">
+            <th class="px-4 py-2 text-center">Rank</th>
+            <th class="px-4 py-2 text-center">Score</th>
+            <th class="px-4 py-2 text-center">Username</th>
+            <th title="Round of 64" class="px-4 py-2 text-center">R64</th>
+            <th title="Round of 32" class="px-4 py-2 text-center">R32</th>
+            <th title="Sweet Sixteen" class="px-4 py-2 text-center">S16</th>
+            <th title="Elite Eight" class="px-4 py-2 text-center">E8</th>
+            <th title="Final Four" class="px-4 py-2 text-center">F4</th>
+            <th title="National Championship Game" class="px-4 py-2 text-center">NCG</th>
+            <th title="Potential Remaining Score" class="px-4 py-2 text-center">Pot.</th>
+            <th class="px-4 py-2 text-center">Final Four</th>
+            <th class="px-4 py-2 text-center">Finals</th>
+            <th class="px-4 py-2 text-center">Champ</th>
+            <th title="Total Correct Games" class="px-4 py-2 text-center">Games</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-200">
-          {#each leaderboard as entry}
-            <tr class={shouldHighlight(entry) ? 'bg-yellow-100' : ''}>
-              <td class="px-4 py-2 whitespace-nowrap">{entry.rank}</td>
-              <td class="px-4 py-2 whitespace-nowrap">
-                <a href="/entries/{entry.userId}" class="text-mm-blue hover:underline">
+        <tbody>
+          {#each leaderboard as entry, i}
+            <tr class={$user && entry.userId === $user.id ? 'bg-yellow-700' : 'hover:bg-gray-800'}>
+              <td class="px-4 py-2 text-center">{entry.rank}</td>
+              <td class="px-4 py-2 text-center font-bold">{entry.totalScore}</td>
+              <td class="px-4 py-2">
+                <a 
+                  href="/entries/{entry.userId}" 
+                  class="button -regular nav-center entries-btn-hover color-8 block text-center"
+                >
                   {entry.firstName} {entry.lastName}
                 </a>
               </td>
-              <td class="px-4 py-2 whitespace-nowrap font-bold">{entry.totalScore}</td>
-              <td class="px-4 py-2 whitespace-nowrap">{entry.r64Score}</td>
-              <td class="px-4 py-2 whitespace-nowrap">{entry.r32Score}</td>
-              <td class="px-4 py-2 whitespace-nowrap">{entry.s16Score}</td>
-              <td class="px-4 py-2 whitespace-nowrap">{entry.e8Score}</td>
-              <td class="px-4 py-2 whitespace-nowrap">{entry.f4Score}</td>
-              <td class="px-4 py-2 whitespace-nowrap">{entry.ncgScore}</td>
-              <td class="px-4 py-2 whitespace-nowrap">{entry.potential}</td>
-              <td class="px-4 py-2 whitespace-nowrap">
-                {#if entry.champion}
-                  <div class="flex items-center">
-                    <img 
-                      src="/images/team-logos/{entry.champion.split(' ').slice(1).join('-').toLowerCase()}.png" 
-                      alt={entry.champion} 
-                      class="h-6 w-6 mr-2"
-                    />
-                    <span>{entry.champion}</span>
-                  </div>
-                {:else}
-                  -
-                {/if}
+              <td class="px-4 py-2 text-center">{entry.r64Score}</td>
+              <td class="px-4 py-2 text-center">{entry.r32Score}</td>
+              <td class="px-4 py-2 text-center">{entry.s16Score}</td>
+              <td class="px-4 py-2 text-center">{entry.e8Score}</td>
+              <td class="px-4 py-2 text-center">{entry.f4Score}</td>
+              <td class="px-4 py-2 text-center">{entry.ncgScore}</td>
+              <td class="px-4 py-2 text-center">{entry.potential}</td>
+              <td class="px-4 py-2">
+                <div class="flex justify-center items-center space-x-1">
+                  {#each entry.finalFour as team}
+                    <div class="relative">
+                      <img 
+                        src="/static/team_images/2024/pngs/{team.name}.png" 
+                        alt={team.name}
+                        class="h-8 w-8 object-contain"
+                        title={team.name}
+                      />
+                      {#if team.isWinner}
+                        <img src="/static/winner.png" class="absolute top-0 left-0 h-full w-full" alt="Winner" />
+                      {:else if team.isEliminated}
+                        <img src="/static/loser.png" class="absolute top-0 left-0 h-full w-full" alt="Eliminated" />
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
               </td>
+              <td class="px-4 py-2">
+                <div class="flex justify-center items-center space-x-1">
+                  {#each entry.finals as team}
+                    <div class="relative">
+                      <img 
+                        src="/static/team_images/2024/pngs/{team.name}.png" 
+                        alt={team.name}
+                        class="h-8 w-8 object-contain"
+                        title={team.name}
+                      />
+                      {#if team.isWinner}
+                        <img src="/static/winner.png" class="absolute top-0 left-0 h-full w-full" alt="Winner" />
+                      {:else if team.isEliminated}
+                        <img src="/static/loser.png" class="absolute top-0 left-0 h-full w-full" alt="Eliminated" />
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              </td>
+              <td class="px-4 py-2">
+                <div class="flex justify-center items-center">
+                  <div class="relative">
+                    <img 
+                      src="/static/team_images/2024/pngs/{entry.champion.name}.png" 
+                      alt={entry.champion.name}
+                      class="h-8 w-8 object-contain champ-center"
+                      title={entry.champion.name}
+                    />
+                    {#if entry.champion.isWinner}
+                      <img src="/static/winner.png" class="absolute top-0 left-0 h-full w-full" alt="Winner" />
+                    {:else if entry.champion.isEliminated}
+                      <img src="/static/loser.png" class="absolute top-0 left-0 h-full w-full" alt="Eliminated" />
+                    {/if}
+                  </div>
+                </div>
+              </td>
+              <td class="px-4 py-2 text-center">{entry.correctGames}</td>
             </tr>
           {/each}
         </tbody>
       </table>
     </div>
   {/if}
-</div> 
+</div>
+
+<style>
+  .entries-btn-hover {
+    @apply hover:bg-gray-700 transition-colors duration-200 py-1 px-2 rounded;
+  }
+  
+  .champ-center {
+    margin: 0 auto;
+  }
+  
+  :global(.color-8) {
+    @apply text-white;
+  }
+  
+  :global(.color-9) {
+    @apply text-yellow-300;
+  }
+</style> 
