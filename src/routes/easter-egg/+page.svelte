@@ -35,7 +35,11 @@
     const ballSize = 40;
     const netWidth = 5; // Width of net sides
     const netHeight = 80; // Height of net sides
-    const netAngle = 15; // Angle of net sides in degrees
+    const netAngle = 10; // Angle of net sides in degrees
+    const minBounceVelocity = 0.5; // Minimum velocity after bounce
+    const collisionOffset = 4; // Pixels to offset after collision
+    const scoreCooldown = 100; // Milliseconds before another score can be counted
+    const scoreZoneOffset = 10; // Pixels below net bottom to check for scoring
 
     const isMobile = () => {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -96,6 +100,38 @@
         // Apply bounce factor
         vel.x *= bounce;
         vel.y *= bounce;
+
+        // Ensure minimum velocity after bounce to prevent sticking
+        const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y);
+        if (speed < minBounceVelocity) {
+            const scale = minBounceVelocity / speed;
+            vel.x *= scale;
+            vel.y *= scale;
+        }
+
+        // Add a small offset in the direction of the bounce to prevent sticking
+        pos.x += nx * collisionOffset;
+        pos.y += ny * collisionOffset;
+    }
+
+    // Helper function to check if ball is between two x coordinates
+    function isBallBetween(x1: number, x2: number, ballX: number): boolean {
+        const minX = Math.min(x1, x2);
+        const maxX = Math.max(x1, x2);
+        return ballX >= minX && ballX <= maxX;
+    }
+
+    // Helper function to check if a point has crossed a line segment
+    function hasPointCrossedLine(prevX: number, prevY: number, currX: number, currY: number, 
+                               lineX1: number, lineY1: number, lineX2: number, lineY2: number): boolean {
+        // Check if the line segments intersect
+        const denominator = ((currX - prevX) * (lineY2 - lineY1) - (currY - prevY) * (lineX2 - lineX1));
+        if (denominator === 0) return false;
+        
+        const ua = ((lineX2 - lineX1) * (prevY - lineY1) - (lineY2 - lineY1) * (prevX - lineX1)) / denominator;
+        const ub = ((currX - prevX) * (prevY - lineY1) - (currY - prevY) * (prevX - lineX1)) / denominator;
+        
+        return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
     }
 
     function animate(currentTime = performance.now()) {
@@ -105,6 +141,10 @@
             lastTime = currentTime - (deltaTime % frameTime);
             
             if (isShooting) {
+                // Store previous position for collision resolution
+                const prevX = pos.x + ballRadius;
+                const prevY = pos.y + ballRadius;
+
                 // Physics simulation
                 vel.y += gravity;
                 pos.x += vel.x;
@@ -131,17 +171,52 @@
                 const ballCenterX = pos.x + ballRadius;
                 const ballCenterY = pos.y + ballRadius;
 
+                // Check for scoring
+                if (currentTime - lastScoreTime > scoreCooldown) {
+                    // Define scoring line (just below the bottom of the net)
+                    const scoreY = Math.max(leftNetY2, rightNetY2) + scoreZoneOffset;
+                    const scoreX1 = leftNetX2;
+                    const scoreX2 = rightNetX2;
+
+                    // Check if ball has crossed the scoring line from above
+                    if (prevY < scoreY && ballCenterY >= scoreY && 
+                        isBallBetween(scoreX1, scoreX2, ballCenterX) && 
+                        vel.y > 0) { // Only count if ball is moving downward
+                        score+=2;
+                        lastScoreTime = currentTime;
+                        scoreElement.textContent = `Score: ${score}`;
+                        
+                        // Add score animation
+                        scoreElement.style.transform = 'scale(1.2)';
+                        setTimeout(() => {
+                            scoreElement.style.transform = 'scale(1)';
+                        }, 200);
+                    }
+                }
+
                 // Check for collisions with net sides
                 const leftCollision = checkLineCollision(ballCenterX, ballCenterY, leftNetX1, leftNetY1, leftNetX2, leftNetY2);
                 const rightCollision = checkLineCollision(ballCenterX, ballCenterY, rightNetX1, rightNetY1, rightNetX2, rightNetY2);
 
-                if (leftCollision) {
-                    console.log('Left net collision detected');
-                    handleNetCollision(leftNetX1, leftNetY1, leftNetX2, leftNetY2);
-                }
-                if (rightCollision) {
-                    console.log('Right net collision detected');
-                    handleNetCollision(rightNetX1, rightNetY1, rightNetX2, rightNetY2);
+                // Handle only one collision per frame, prioritize the one with higher velocity impact
+                if (leftCollision || rightCollision) {
+                    // Calculate line vectors for both nets
+                    const leftDx = leftNetX2 - leftNetX1;
+                    const leftDy = leftNetY2 - leftNetY1;
+                    const rightDx = rightNetX2 - rightNetX1;
+                    const rightDy = rightNetY2 - rightNetY1;
+                    
+                    const leftLength = Math.sqrt(leftDx * leftDx + leftDy * leftDy);
+                    const rightLength = Math.sqrt(rightDx * rightDx + rightDy * rightDy);
+                    
+                    const leftDot = leftCollision ? Math.abs(vel.x * (-leftDy / leftLength) + vel.y * (leftDx / leftLength)) : 0;
+                    const rightDot = rightCollision ? Math.abs(vel.x * (-rightDy / rightLength) + vel.y * (rightDx / rightLength)) : 0;
+
+                    if (leftCollision && (!rightCollision || leftDot > rightDot)) {
+                        handleNetCollision(leftNetX1, leftNetY1, leftNetX2, leftNetY2);
+                    } else if (rightCollision) {
+                        handleNetCollision(rightNetX1, rightNetY1, rightNetX2, rightNetY2);
+                    }
                 }
 
                 // Container boundaries
@@ -493,13 +568,13 @@
 
     .net-left {
         left: 0;
-        transform: rotate(-15deg);
+        transform: rotate(-10deg);
         transform-origin: top left;
     }
 
     .net-right {
         right: 0;
-        transform: rotate(15deg);
+        transform: rotate(10deg);
         transform-origin: top right;
     }
 
