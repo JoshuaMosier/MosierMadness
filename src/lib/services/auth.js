@@ -1,11 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-
-// Supabase configuration
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '$lib/config';
 
 // Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Authentication functions
 export async function signUp(email, password, firstname, lastname) {
