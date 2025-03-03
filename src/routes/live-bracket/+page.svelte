@@ -7,7 +7,7 @@
     <table class="gridtable">
         <tbody>
       <tr>
-        <th class="round_1 current"> 1st ROUND </th>
+        <th class="round_1"> 1st ROUND </th>
         <th class="round_2"> 2nd ROUND </th>
         <th class="round_3"> SWEET 16</th>
         <th class="round_4"> ELITE EIGHT </th>
@@ -17,10 +17,10 @@
         <th class="round_4"> ELITE EIGHT </th>
         <th class="round_3"> SWEET 16</th>
         <th class="round_2"> 2nd ROUND </th>
-        <th class="round_1 current"> 1st ROUND </th>
+        <th class="round_1"> 1st ROUND </th>
       </tr>
       <tr>
-        <td class="current"> March 16-17</td>
+        <td> March 16-17</td>
         <td> March 18-19 </td>
         <td> March 23-24 </td>
         <td> March 25-26 </td>
@@ -30,7 +30,7 @@
         <td> March 25-26 </td>
         <td> March 23-24 </td>
         <td> March 18-19 </td>
-        <td class="current"> March 16-17</td>
+        <td> March 16-17</td>
       </tr>
       </tbody>
     </table>
@@ -773,22 +773,33 @@ body.bracket #content-wrapper {
   padding-top: 60px;
   margin: 0 auto;
   margin-top: -50px;
-  padding-left:9px;
-  background-color:rgb(0,0,0);
+  padding-left: 0;
+  background-color: rgb(0,0,0);
   background-origin: border-box;
+  text-align: center;
 }
+
 body h4 {
   color: white;
-  text-shadow:black;
+  text-shadow: black;
   text-transform: uppercase;
 }
+
+#table {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
 table.gridtable {
   font-size: 12px;
   color: #333333;
   border-width: 1px;
   border-color: black;
   border-collapse: collapse;
+  margin: 0 auto;
 }
+
 table.gridtable th {
   font-size:12px;
   color:white;
@@ -813,7 +824,13 @@ table.gridtable td {
   margin-top: 15px;
   height: 1000px;
   position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 950px;
+  left: 0;
+  right: 0;
 }
+
 #bracket .round {
   position: absolute;
   top: 0;
