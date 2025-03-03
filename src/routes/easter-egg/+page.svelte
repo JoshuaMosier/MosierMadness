@@ -27,12 +27,15 @@
     const FPS = 60;
     const frameTime = 1000 / FPS;
     const gravity = 0.5;
-    const bounce = 0.7;
+    const bounce = 0.8;
     const friction = 0.99;
-    const powerFactor = 0.15;
-    const maxPower = 20;
+    const powerFactor = 0.2;
+    const maxPower = 30;
     const ballRadius = 20; // Half the ball size
     const ballSize = 40;
+    const netWidth = 5; // Width of net sides
+    const netHeight = 80; // Height of net sides
+    const netAngle = 15; // Angle of net sides in degrees
 
     const isMobile = () => {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -48,6 +51,52 @@
         vel = { x: 0, y: 0 };
     }
 
+    // Helper function to check collision between ball and line segment
+    function checkLineCollision(ballX: number, ballY: number, x1: number, y1: number, x2: number, y2: number): boolean {
+        // Vector from line start to ball
+        const v1x = ballX - x1;
+        const v1y = ballY - y1;
+        // Vector from line start to line end
+        const v2x = x2 - x1;
+        const v2y = y2 - y1;
+        // Length of line segment squared
+        const lengthSq = v2x * v2x + v2y * v2y;
+        
+        // Calculate dot product and clamp to [0,1]
+        const t = Math.max(0, Math.min(1, (v1x * v2x + v1y * v2y) / lengthSq));
+        
+        // Find closest point on line segment
+        const closestX = x1 + t * v2x;
+        const closestY = y1 + t * v2y;
+        
+        // Check if distance is less than ball radius
+        const dx = ballX - closestX;
+        const dy = ballY - closestY;
+        const distanceSq = dx * dx + dy * dy;
+        
+        return distanceSq < ballRadius * ballRadius;
+    }
+
+    // Helper function to handle collision response
+    function handleNetCollision(netX1: number, netY1: number, netX2: number, netY2: number) {
+        // Calculate normal vector of the net line
+        const dx = netX2 - netX1;
+        const dy = netY2 - netY1;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        const nx = -dy / length; // Normal x component
+        const ny = dx / length;  // Normal y component
+        
+        // Calculate dot product of velocity and normal
+        const dotProduct = vel.x * nx + vel.y * ny;
+        
+        // Calculate reflection vector
+        vel.x = vel.x - 2 * dotProduct * nx;
+        vel.y = vel.y - 2 * dotProduct * ny;
+        
+        // Apply bounce factor
+        vel.x *= bounce;
+        vel.y *= bounce;
+    }
 
     function animate(currentTime = performance.now()) {
         const deltaTime = currentTime - lastTime;
@@ -60,6 +109,40 @@
                 vel.y += gravity;
                 pos.x += vel.x;
                 pos.y += vel.y;
+
+                // Get net positions
+                const containerRect = gameContainer.getBoundingClientRect();
+                const hoopRect = hoop.getBoundingClientRect();
+                const netLeftRect = netLeft.getBoundingClientRect();
+                const netRightRect = netRight.getBoundingClientRect();
+                
+                // Calculate net line segments relative to container
+                const leftNetX1 = netLeftRect.left - containerRect.left;
+                const leftNetY1 = netLeftRect.top - containerRect.top;
+                const leftNetX2 = leftNetX1 + Math.sin(netAngle * Math.PI / 180) * netHeight;
+                const leftNetY2 = leftNetY1 + Math.cos(netAngle * Math.PI / 180) * netHeight;
+                
+                const rightNetX1 = netRightRect.left - containerRect.left;
+                const rightNetY1 = netRightRect.top - containerRect.top;
+                const rightNetX2 = rightNetX1 - Math.sin(netAngle * Math.PI / 180) * netHeight;
+                const rightNetY2 = rightNetY1 + Math.cos(netAngle * Math.PI / 180) * netHeight;
+
+                // Ball center position
+                const ballCenterX = pos.x + ballRadius;
+                const ballCenterY = pos.y + ballRadius;
+
+                // Check for collisions with net sides
+                const leftCollision = checkLineCollision(ballCenterX, ballCenterY, leftNetX1, leftNetY1, leftNetX2, leftNetY2);
+                const rightCollision = checkLineCollision(ballCenterX, ballCenterY, rightNetX1, rightNetY1, rightNetX2, rightNetY2);
+
+                if (leftCollision) {
+                    console.log('Left net collision detected');
+                    handleNetCollision(leftNetX1, leftNetY1, leftNetX2, leftNetY2);
+                }
+                if (rightCollision) {
+                    console.log('Right net collision detected');
+                    handleNetCollision(rightNetX1, rightNetY1, rightNetX2, rightNetY2);
+                }
 
                 // Container boundaries
                 if (pos.y > containerHeight - ballSize) {
