@@ -17,6 +17,26 @@
     { id: 6, name: "CHAMPION", dates: "April 3" }
   ];
   
+  // Sample teams data - replace with actual data in your implementation
+  const teams = [
+    { id: 1, name: "UConn", seed: 1, score: 85 },
+    { id: 2, name: "Purdue", seed: 2, score: 75 },
+    { id: 3, name: "Houston", seed: 1, score: 82 },
+    { id: 4, name: "Tennessee", seed: 2, score: 68 },
+    { id: 5, name: "Arizona", seed: 1, score: 88 },
+    { id: 6, name: "San Diego State", seed: 2, score: 72 },
+    { id: 7, name: "Creighton", seed: 1, score: 80 },
+    { id: 8, name: "Kansas", seed: 2, score: 70 },
+    { id: 9, name: "Michigan", seed: 1, score: 83 },
+    { id: 10, name: "Tennessee", seed: 2, score: 68 },
+    { id: 11, name: "Texas", seed: 1, score: 86 },
+    { id: 12, name: "Arkansas", seed: 2, score: 74 },
+    { id: 13, name: "UCLA", seed: 1, score: 84 },
+    { id: 14, name: "Alabama", seed: 2, score: 71 },
+    { id: 15, name: "Virginia", seed: 1, score: 81 },
+    { id: 16, name: "Texas A&M", seed: 2, score: 69 }
+  ];
+  
   // Helper function to generate match IDs
   function getMatchId(round, region, matchNum) {
     if (round === 1) {
@@ -92,10 +112,28 @@
     // Round 6 positions
     return 425;
   }
+  
+  // Helper function to get a random team for demo purposes
+  function getTeam(seed = 1) {
+    const team = teams[Math.floor(Math.random() * teams.length)];
+    return { ...team, seed };
+  }
+  
+  // Helper to determine if a team won (for styling)
+  function isWinner(teamA, teamB) {
+    return teamA.score > teamB.score;
+  }
+  
+  // Championship teams
+  const champion = getTeam(1);
+  const runnerUp = getTeam(1);
+  const championWon = true;
 </script>
 
 <!-- Bracket -->
-<div class="bg-neutral-900 text-center w-[1000px] mx-auto mt-[50px] pl-0 rounded-lg shadow-2xl">
+<div class="bg-gradient-to-b from-neutral-900 to-neutral-800 text-center w-full max-w-[1200px] mx-auto mt-[30px] pl-0 rounded-lg shadow-2xl p-4 overflow-x-auto">
+  <h1 class="text-2xl font-bold text-amber-400 mb-4">NCAA Tournament Bracket</h1>
+  
   <div class="flex justify-center w-full">
     <!-- Table Dates -->
     <table class="text-xs border-collapse mx-auto w-[950px] rounded-lg overflow-hidden shadow-lg">
@@ -119,6 +157,40 @@
   </div>
   
   <div class="mt-[15px] h-[1000px] relative mx-auto max-w-[950px] left-0 right-0" id="bracket">
+    <!-- Connecting Lines (Add these before the rounds) -->
+    <div class="absolute inset-0 pointer-events-none">
+      <!-- Round 1 to 2 connectors -->
+      {#each regions as region}
+        {#each Array(getMatchesPerRound(2)) as _, matchIndex}
+          <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/30 rounded-r-md
+                      ${region.id === 1 || region.id === 2 ? 'left-[115px]' : 'right-[115px] transform rotate-180'}`}
+               style="top: {getMatchTopPosition(2, region.id, matchIndex) + 10}px; 
+                      height: 80px; width: 15px;"></div>
+        {/each}
+      {/each}
+      
+      <!-- Round 2 to 3 connectors -->
+      {#each regions as region}
+        {#each Array(getMatchesPerRound(3)) as _, matchIndex}
+          <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/30 rounded-r-md
+                      ${region.id === 1 || region.id === 2 ? 'left-[230px]' : 'right-[230px] transform rotate-180'}`}
+               style="top: {getMatchTopPosition(3, region.id, matchIndex) + 20}px; 
+                      height: 160px; width: 15px;"></div>
+        {/each}
+      {/each}
+      
+      <!-- Round 3 to 4 connectors -->
+      {#each regions as region}
+        <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/30 rounded-r-md
+                    ${region.id === 1 || region.id === 2 ? 'left-[345px]' : 'right-[345px] transform rotate-180'}`}
+             style="top: {getMatchTopPosition(4, region.id, 0) + 40}px; 
+                    height: 320px; width: 15px;"></div>
+      {/each}
+      
+      <!-- Final Four connectors -->
+      <div class="absolute left-[395px] top-[425px]" style="width: 150px; height: 1px;"></div>
+    </div>
+    
     <!-- Round 1 -->
     <div class="absolute top-0 w-[950px]">
       <h3 class="pt-[15px] hidden">Round One (NCAA Men's Basketball Tournament)</h3>
@@ -133,17 +205,30 @@
           </h4>
           
           {#each Array(getMatchesPerRound(1)) as _, matchIndex}
-            <div id="match{getMatchId(1, region.id, matchIndex)}" 
-                 class={`absolute text-white border border-yellow-700 p-0 w-[115px] text-xs cursor-pointer h-[40px] flex flex-col rounded-sm transition-all duration-200 hover:shadow-md
-                        ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
-                 style="top: {getMatchTopPosition(1, region.id, matchIndex)}px">
-              <p class="h-[20px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 flex items-center transition-colors duration-200 rounded-tr-sm">
-                1 UConn
-              </p>
-              <p class="h-[20px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 flex items-center transition-colors duration-200">
-                1 UConn
-              </p>
-            </div>
+            {#if true}
+              {@const teamA = getTeam(matchIndex + 1)}
+              {@const teamB = getTeam(16 - matchIndex)}
+              {@const teamAWon = isWinner(teamA, teamB)}
+              {@const teamBWon = isWinner(teamB, teamA)}
+              
+              <div id="match{getMatchId(1, region.id, matchIndex)}" 
+                   class={`absolute text-white p-0 w-[115px] text-xs cursor-pointer h-[40px] flex flex-col rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500
+                          ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
+                   style="top: {getMatchTopPosition(1, region.id, matchIndex)}px">
+                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
+                          ${teamAWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+                  <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{teamA.seed}</span>
+                  <span class="truncate">{teamA.name}</span>
+                  <span class="ml-auto mr-1 text-amber-300">{teamA.score}</span>
+                </p>
+                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
+                          ${teamBWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+                  <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{teamB.seed}</span>
+                  <span class="truncate">{teamB.name}</span>
+                  <span class="ml-auto mr-1 text-amber-300">{teamB.score}</span>
+                </p>
+              </div>
+            {/if}
           {/each}
         </div>
       {/each}
@@ -158,17 +243,30 @@
           <h4 class="uppercase text-white pt-[15px] hidden">{region.name}</h4>
           
           {#each Array(getMatchesPerRound(2)) as _, matchIndex}
-            <div id="match{getMatchId(2, region.id, matchIndex)}" 
-                 class={`absolute text-white border border-yellow-700 p-0 w-[115px] text-xs cursor-pointer h-[40px] mt-[24px] flex flex-col rounded-sm transition-all duration-200 hover:shadow-md
-                        ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
-                 style="top: {getMatchTopPosition(2, region.id, matchIndex)}px">
-              <p class="h-[20px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 flex items-center transition-colors duration-200 rounded-tr-sm">
-                1 UConn
-              </p>
-              <p class="h-[20px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 flex items-center transition-colors duration-200">
-                1 UConn
-              </p>
-            </div>
+            {#if true}
+              {@const teamA = getTeam(matchIndex + 1)}
+              {@const teamB = getTeam(8 - matchIndex)}
+              {@const teamAWon = isWinner(teamA, teamB)}
+              {@const teamBWon = isWinner(teamB, teamA)}
+              
+              <div id="match{getMatchId(2, region.id, matchIndex)}" 
+                   class={`absolute text-white p-0 w-[115px] text-xs cursor-pointer h-[40px] mt-[24px] flex flex-col rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500
+                          ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
+                   style="top: {getMatchTopPosition(2, region.id, matchIndex)}px">
+                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
+                          ${teamAWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+                  <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{teamA.seed}</span>
+                  <span class="truncate">{teamA.name}</span>
+                  <span class="ml-auto mr-1 text-amber-300">{teamA.score}</span>
+                </p>
+                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
+                          ${teamBWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+                  <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{teamB.seed}</span>
+                  <span class="truncate">{teamB.name}</span>
+                  <span class="ml-auto mr-1 text-amber-300">{teamB.score}</span>
+                </p>
+              </div>
+            {/if}
           {/each}
         </div>
       {/each}
@@ -183,17 +281,30 @@
           <h4 class="uppercase text-white pt-[15px] hidden">{region.name}</h4>
           
           {#each Array(getMatchesPerRound(3)) as _, matchIndex}
-            <div id="match{getMatchId(3, region.id, matchIndex)}" 
-                 class={`absolute text-white border border-yellow-700 p-0 w-[115px] text-xs cursor-pointer h-[90px] mt-[50px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md
-                        ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
-                 style="top: {getMatchTopPosition(3, region.id, matchIndex)}px">
-              <p class="h-[20px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 flex items-center transition-colors duration-200 rounded-tr-sm">
-                1 UConn
-              </p>
-              <p class="h-[20px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 flex items-center transition-colors duration-200">
-                1 UConn
-              </p>
-            </div>
+            {#if true}
+              {@const teamA = getTeam(matchIndex + 1)}
+              {@const teamB = getTeam(4 - matchIndex)}
+              {@const teamAWon = isWinner(teamA, teamB)}
+              {@const teamBWon = isWinner(teamB, teamA)}
+              
+              <div id="match{getMatchId(3, region.id, matchIndex)}" 
+                   class={`absolute text-white p-0 w-[115px] text-xs cursor-pointer h-[90px] mt-[50px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500
+                          ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
+                   style="top: {getMatchTopPosition(3, region.id, matchIndex)}px">
+                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
+                          ${teamAWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+                  <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{teamA.seed}</span>
+                  <span class="truncate">{teamA.name}</span>
+                  <span class="ml-auto mr-1 text-amber-300">{teamA.score}</span>
+                </p>
+                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
+                          ${teamBWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+                  <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{teamB.seed}</span>
+                  <span class="truncate">{teamB.name}</span>
+                  <span class="ml-auto mr-1 text-amber-300">{teamB.score}</span>
+                </p>
+              </div>
+            {/if}
           {/each}
         </div>
       {/each}
@@ -207,17 +318,30 @@
         <div class="region{region.id}">
           <h4 class="uppercase text-white pt-[15px] hidden">{region.name}</h4>
           
-          <div id="match{getMatchId(4, region.id, 0)}" 
-               class={`absolute text-white border border-yellow-700 p-0 w-[115px] text-xs cursor-pointer h-[190px] mt-[100px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md
-                      ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
-               style="top: {getMatchTopPosition(4, region.id, 0)}px">
-            <p class="h-[20px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 flex items-center transition-colors duration-200 rounded-tr-sm">
-              1 UConn
-            </p>
-            <p class="h-[20px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 flex items-center transition-colors duration-200">
-              1 UConn
-            </p>
-          </div>
+          {#if true}
+            {@const teamA = getTeam(1)}
+            {@const teamB = getTeam(2)}
+            {@const teamAWon = isWinner(teamA, teamB)}
+            {@const teamBWon = isWinner(teamB, teamA)}
+            
+            <div id="match{getMatchId(4, region.id, 0)}" 
+                 class={`absolute text-white p-0 w-[115px] text-xs cursor-pointer h-[190px] mt-[100px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500
+                        ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
+                 style="top: {getMatchTopPosition(4, region.id, 0)}px">
+              <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
+                        ${teamAWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+                <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{teamA.seed}</span>
+                <span class="truncate">{teamA.name}</span>
+                <span class="ml-auto mr-1 text-amber-300">{teamA.score}</span>
+              </p>
+              <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
+                        ${teamBWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+                <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{teamB.seed}</span>
+                <span class="truncate">{teamB.name}</span>
+                <span class="ml-auto mr-1 text-amber-300">{teamB.score}</span>
+              </p>
+            </div>
+          {/if}
         </div>
       {/each}
     </div>
@@ -227,16 +351,29 @@
       <h3 class="pt-[15px] hidden">Round Five (NCAA Men's Basketball Tournament)</h3>
       <div>
         {#each Array(2) as _, matchIndex}
-          <div id="match{getMatchId(5, 1, matchIndex)}" 
-               class={`absolute text-white border border-yellow-700 p-0 w-[115px] text-xs cursor-pointer h-[90px] top-[425px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md
-                      ${matchIndex === 0 ? 'left-0 border-l-0' : 'right-0 border-r-0'}`}>
-            <p class="h-[20px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 flex items-center transition-colors duration-200 rounded-tr-sm">
-              1 UConn
-            </p>
-            <p class="h-[20px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 flex items-center transition-colors duration-200">
-              1 UConn
-            </p>
-          </div>
+          {#if true}
+            {@const teamA = getTeam(1)}
+            {@const teamB = getTeam(1)}
+            {@const teamAWon = isWinner(teamA, teamB)}
+            {@const teamBWon = isWinner(teamB, teamA)}
+            
+            <div id="match{getMatchId(5, 1, matchIndex)}" 
+                 class={`absolute text-white p-0 w-[115px] text-xs cursor-pointer h-[90px] top-[425px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500
+                        ${matchIndex === 0 ? 'left-0 border-l-0' : 'right-0 border-r-0'}`}>
+              <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
+                        ${teamAWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+                <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{teamA.seed}</span>
+                <span class="truncate">{teamA.name}</span>
+                <span class="ml-auto mr-1 text-amber-300">{teamA.score}</span>
+              </p>
+              <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
+                        ${teamBWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+                <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{teamB.seed}</span>
+                <span class="truncate">{teamB.name}</span>
+                <span class="ml-auto mr-1 text-amber-300">{teamB.score}</span>
+              </p>
+            </div>
+          {/if}
         {/each}
       </div>
     </div>
@@ -246,17 +383,30 @@
       <h3 class="pt-[15px] hidden">Round Six (NCAA Men's Basketball Tournament)</h3>
       <div>
         <div id="match63" class="absolute text-white p-0 w-[150px] text-xs cursor-pointer h-[90px] top-[425px] flex flex-col">
-          <p class="h-[25px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 text-[13px] leading-[25px] px-[6px] pr-[10px] border-b border-yellow-700 mt-[22px] transition-colors duration-200 rounded-t-sm">
-            1 UConn
+          <p class={`h-[25px] m-0 pl-[5px] whitespace-nowrap text-[13px] leading-[25px] px-[6px] pr-[10px] border-b border-yellow-700 mt-[22px] transition-colors duration-200 rounded-t-sm flex items-center
+                    ${championWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+            <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{champion.seed}</span>
+            <span class="truncate">{champion.name}</span>
+            <span class="ml-auto text-amber-300">{champion.score}</span>
           </p>
-          <p class="h-[25px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 text-[13px] leading-[25px] px-[6px] pr-[10px] transition-colors duration-200 rounded-b-sm">
-            1 UConn
+          <p class={`h-[25px] m-0 pl-[5px] whitespace-nowrap text-[13px] leading-[25px] px-[6px] pr-[10px] transition-colors duration-200 rounded-b-sm flex items-center
+                    ${!championWon ? 'bg-amber-900 font-medium' : 'bg-zinc-800 hover:bg-amber-900/70'}`}>
+            <span class="inline-block w-[16px] text-center bg-amber-700 mr-1 text-[10px] font-bold">{runnerUp.seed}</span>
+            <span class="truncate">{runnerUp.name}</span>
+            <span class="ml-auto text-amber-300">{runnerUp.score}</span>
           </p>
-          <p class="relative whitespace-nowrap top-[-150px] border-2 border-yellow-700 text-white text-center mt-[10px] bg-amber-700 py-3 px-4 rounded-md font-semibold shadow-md w-[150px]">
-            Champion: 1 UConn
-          </p>
+          <div class="relative whitespace-nowrap top-[-160px] mt-[10px] w-[150px]">
+            <div class="text-white text-center bg-gradient-to-r from-amber-700 to-amber-600 py-3 px-4 rounded-md font-semibold shadow-md">
+              <div class="text-xs uppercase tracking-wider mb-1">Champion</div>
+              <div class="flex items-center justify-center">
+                <span class="inline-block w-[20px] h-[20px] text-center bg-amber-900 mr-1 text-[11px] font-bold rounded-full flex items-center justify-center">{champion.seed}</span>
+                <span>{champion.name}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
 </div>
