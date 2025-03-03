@@ -49,8 +49,8 @@
             <a href="/entries" class="nav-link">
               <div class="nav-button">Entries</div>
             </a>
-            <a href="/master" class="nav-link">
-              <div class="nav-button">Master Bracket</div>
+            <a href="/live-bracket" class="nav-link">
+              <div class="nav-button">Live Bracket</div>
             </a>
           </div>
         </div>
@@ -71,8 +71,8 @@
             <a href="/stats" class="nav-link">
               <div class="nav-button">Statistics</div>
             </a>
-            <a href="/possibilities" class="nav-link">
-              <div class="nav-button">Possibilities</div>
+            <a href="/scenarios" class="nav-link">
+              <div class="nav-button">Scenarios</div>
             </a>
             {#if $user}
               <a href="/logout" class="nav-link">
@@ -102,10 +102,10 @@
           <a href="/" class="mobile-nav-button" on:click={closeMenu}>Leaderboard</a>
           <a href="/bracket" class="mobile-nav-button" on:click={closeMenu}>Submit Bracket</a>
           <a href="/entries" class="mobile-nav-button" on:click={closeMenu}>Entries</a>
-          <a href="/master" class="mobile-nav-button" on:click={closeMenu}>Master Bracket</a>
+          <a href="/live-bracket" class="mobile-nav-button" on:click={closeMenu}>Live Bracket</a>
           <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a>
           <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a>
-          <a href="/possibilities" class="mobile-nav-button" on:click={closeMenu}>Possibilities</a>
+          <a href="/scenarios" class="mobile-nav-button" on:click={closeMenu}>Scenarios</a>
           {#if $user}
             <a href="/logout" class="mobile-nav-button" on:click={closeMenu}>Logout</a>
           {:else}
