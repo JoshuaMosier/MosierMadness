@@ -198,19 +198,19 @@
               {@const teamBWon = isWinner(teamB, teamA)}
               
               <div id="match{getMatchId(1, region.id, matchIndex)}" 
-                   class={`absolute text-white border border-zinc-700/80 p-0 w-[115px] text-xs cursor-pointer h-[40px] flex flex-col rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
+                   class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs cursor-pointer h-[40px] flex flex-col rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
                           ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
                    style="top: {getMatchTopPosition(1, region.id, matchIndex)}px">
                 <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
                           ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-                  <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
-                  <span class="truncate">{teamA.name}</span>
+                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
+                  <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
                   <span class="ml-auto mr-1 ${teamAWon ? 'text-red-700/90' : 'text-gray-400'}">{teamA.score}</span>
                 </p>
                 <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                           ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-                  <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
-                  <span class="truncate">{teamB.name}</span>
+                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
+                  <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
                   <span class="ml-auto mr-1 ${teamBWon ? 'text-red-700/90' : 'text-gray-400'}">{teamB.score}</span>
                 </p>
               </div>
@@ -236,19 +236,19 @@
               {@const teamBWon = isWinner(teamB, teamA)}
               
               <div id="match{getMatchId(2, region.id, matchIndex)}" 
-                   class={`absolute text-white border border-zinc-700/80 p-0 w-[115px] text-xs cursor-pointer h-[40px] mt-[24px] flex flex-col rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
+                   class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs cursor-pointer h-[40px] mt-[24px] flex flex-col rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
                           ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
                    style="top: {getMatchTopPosition(2, region.id, matchIndex)}px">
                 <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
                           ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-                  <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
-                  <span class="truncate">{teamA.name}</span>
+                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
+                  <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
                   <span class="ml-auto mr-1 ${teamAWon ? 'text-red-700/90' : 'text-gray-400'}">{teamA.score}</span>
                 </p>
                 <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                           ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-                  <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
-                  <span class="truncate">{teamB.name}</span>
+                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
+                  <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
                   <span class="ml-auto mr-1 ${teamBWon ? 'text-red-700/90' : 'text-gray-400'}">{teamB.score}</span>
                 </p>
               </div>
@@ -274,19 +274,19 @@
               {@const teamBWon = isWinner(teamB, teamA)}
               
               <div id="match{getMatchId(3, region.id, matchIndex)}" 
-                   class={`absolute text-white border border-zinc-700/80 p-0 w-[115px] text-xs cursor-pointer h-[90px] mt-[50px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
+                   class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs cursor-pointer h-[90px] mt-[50px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
                           ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
                    style="top: {getMatchTopPosition(3, region.id, matchIndex)}px">
                 <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
                           ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-                  <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
-                  <span class="truncate">{teamA.name}</span>
+                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
+                  <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
                   <span class="ml-auto mr-1 ${teamAWon ? 'text-red-700/90' : 'text-gray-400'}">{teamA.score}</span>
                 </p>
                 <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                           ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-                  <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
-                  <span class="truncate">{teamB.name}</span>
+                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
+                  <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
                   <span class="ml-auto mr-1 ${teamBWon ? 'text-red-700/90' : 'text-gray-400'}">{teamB.score}</span>
                 </p>
               </div>
@@ -311,19 +311,19 @@
             {@const teamBWon = isWinner(teamB, teamA)}
             
             <div id="match{getMatchId(4, region.id, 0)}" 
-                 class={`absolute text-white border border-zinc-700/80 p-0 w-[115px] text-xs cursor-pointer h-[190px] mt-[100px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
+                 class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs cursor-pointer h-[190px] mt-[100px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
                         ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
                  style="top: {getMatchTopPosition(4, region.id, 0)}px">
               <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
                         ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-                <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
-                <span class="truncate">{teamA.name}</span>
+                <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
+                <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
                 <span class="ml-auto mr-1 ${teamAWon ? 'text-red-700/90' : 'text-gray-400'}">{teamA.score}</span>
               </p>
               <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                         ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-                <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
-                <span class="truncate">{teamB.name}</span>
+                <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
+                <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
                 <span class="ml-auto mr-1 ${teamBWon ? 'text-red-700/90' : 'text-gray-400'}">{teamB.score}</span>
               </p>
             </div>
@@ -344,18 +344,18 @@
             {@const teamBWon = isWinner(teamB, teamA)}
             
             <div id="match{getMatchId(5, 1, matchIndex)}" 
-                 class={`absolute text-white border border-zinc-700/80 p-0 w-[115px] text-xs cursor-pointer h-[90px] top-[425px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
+                 class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs cursor-pointer h-[90px] top-[425px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
                         ${matchIndex === 0 ? 'left-0 border-l-0' : 'right-0 border-r-0'}`}>
               <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
                         ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-                <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
-                <span class="truncate">{teamA.name}</span>
+                <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
+                <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
                 <span class="ml-auto mr-1 ${teamAWon ? 'text-red-700/90' : 'text-gray-400'}">{teamA.score}</span>
               </p>
               <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                         ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-                <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
-                <span class="truncate">{teamB.name}</span>
+                <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
+                <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
                 <span class="ml-auto mr-1 ${teamBWon ? 'text-red-700/90' : 'text-gray-400'}">{teamB.score}</span>
               </p>
             </div>
@@ -371,14 +371,14 @@
         <div id="match63" class="absolute text-white p-0 w-[150px] text-xs cursor-pointer h-[90px] top-[425px] flex flex-col">
           <p class={`h-[25px] m-0 pl-[5px] whitespace-nowrap text-[13px] leading-[25px] px-[6px] pr-[10px] border-b border-zinc-700 mt-[22px] rounded-t-sm flex items-center
                     ${championWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-            <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{champion.seed}</span>
-            <span class="truncate">{champion.name}</span>
+            <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{champion.seed}</span>
+            <span class={`truncate ${!championWon ? 'line-through' : ''}`}>{champion.name}</span>
             <span class="ml-auto ${championWon ? 'text-red-700/90' : 'text-gray-400'}">{champion.score}</span>
           </p>
           <p class={`h-[25px] m-0 pl-[5px] whitespace-nowrap text-[13px] leading-[25px] px-[6px] pr-[10px]rounded-b-sm flex items-center
                     ${!championWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
-            <span class="inline-block w-[16px] text-center bg-amber-700/90 mr-1 text-[10px] font-bold">{runnerUp.seed}</span>
-            <span class="truncate">{runnerUp.name}</span>
+            <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{runnerUp.seed}</span>
+            <span class={`truncate ${championWon ? 'line-through' : ''}`}>{runnerUp.name}</span>
             <span class="ml-auto ${!championWon ? 'text-red-700/90' : 'text-gray-400'}">{runnerUp.score}</span>
           </p>
           <div class="relative whitespace-nowrap top-[-160px] mt-[10px] w-[150px]">
