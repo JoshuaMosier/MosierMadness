@@ -252,7 +252,7 @@
           <p class="h-[25px] m-0 bg-zinc-800 pl-[5px] whitespace-nowrap hover:bg-amber-800 text-[13px] leading-[25px] px-[6px] pr-[10px] transition-colors duration-200 rounded-b-sm">
             1 UConn
           </p>
-          <p class="relative whitespace-nowrap top-[-10px] border-2 border-yellow-700 text-white text-center mt-[10px] bg-amber-700 py-1 rounded-md font-semibold shadow-md">
+          <p class="relative whitespace-nowrap top-[-150px] border-2 border-yellow-700 text-white text-center mt-[10px] bg-amber-700 py-3 px-4 rounded-md font-semibold shadow-md w-[150px]">
             Champion: 1 UConn
           </p>
         </div>
