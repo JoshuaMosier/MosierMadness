@@ -1,0 +1,77 @@
+{% if matches|length >= 1%}
+	<div class="score-ticker">
+		{% if matches|length >= 11%}
+		<div class="bxslider">
+		{% endif %}	
+		{% for game in range(matches|length) %}
+		<!--  range(matches[0]|length)  -->
+		<a href="{{ url_for('matches',id=loop.index-1)}}">
+		  <div class="box">
+	      <div class="game-box">
+		      	<div class="game-date">{{matches[loop.index-1][3]}}&zwnj;
+		      		{% if matches[loop.index-1][2]|upper == 'LIVE' %}
+		      			<span style="color:#FFFF33;" class="game-prog">{{matches[loop.index-1][2]|upper}}</span>
+		      		{% elif matches[loop.index-1][2]|upper == 'PRE' %}
+		      			<span style="color:#ccc;" class="game-prog">{{matches[loop.index-1][2]|upper}}</span>
+		      		{% else %}
+		      			<span class="game-prog">{{matches[loop.index-1][2]|upper}}</span>
+		      		{% endif %}
+		      	</div>
+				<div class="game-teams score-btn-hover color-8">
+		      	{% if matches[loop.index-1][0][3] %}
+		      		<div class="game-opp winner">
+						<img width="20" src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[loop.index-1][0][6]}}.svg">
+		      			<span class="rank">{{matches[loop.index-1][0][2]}}</span> {{matches[loop.index-1][0][0]}}
+		      			<span class="score-opp">{{matches[loop.index-1][0][1]}}</span>
+		      		</div>
+					<div class="game-at">
+						<img width="20" src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[loop.index-1][1][6]}}.svg">
+		      			<span class="rank">{{matches[loop.index-1][1][2]}}</span> <span style="text-decoration:line-through;" >{{matches[loop.index-1][1][0]}}</span>
+		      			<span class="score-at">{{matches[loop.index-1][1][1]}}</span>
+		      		</div>
+				{% elif matches[loop.index-1][1][3] %}
+					<div class="game-opp">
+						<img width="20" src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[loop.index-1][0][6]}}.svg">
+					  	<span class="rank">{{matches[loop.index-1][0][2]}}</span> <span style="text-decoration:line-through;" >{{matches[loop.index-1][0][0]}}</span>
+					  	<span class="score-opp">{{matches[loop.index-1][0][1]}}</span>
+				 	</div>
+					<div class="game-at winner">
+						<img width="20" src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[loop.index-1][1][6]}}.svg">
+						<span class="rank">{{matches[loop.index-1][1][2]}}</span> {{matches[loop.index-1][1][0]}}
+						<span class="score-at">{{matches[loop.index-1][1][1]}}</span>
+					</div>
+		      	{% else %}
+					<div class="game-opp">
+						<img width="20" src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[loop.index-1][0][6]}}.svg">
+					 	<span class="rank">{{matches[loop.index-1][0][2]}}</span> {{matches[loop.index-1][0][0]}}
+					  	<span class="score-opp">{{matches[loop.index-1][0][1]}}</span>
+				  	</div>
+		      		<div class="game-at">
+						<img width="20" src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{{matches[loop.index-1][1][6]}}.svg">
+		      			<span class="rank">{{matches[loop.index-1][1][2]}}</span> {{matches[loop.index-1][1][0]}}
+		      			<span class="score-at">{{matches[loop.index-1][1][1]}}</span>
+		      		</div>
+		      	{% endif %}	
+				</div>
+		      </div>
+		  </div>
+	  <a>
+	  {% endfor %}
+	  {% if matches|length >= 11%}
+	  </div>
+	  {% endif %}	
+	</div>
+{% endif %}
+
+<script>
+	$(".bxslider").show().bxSlider({
+		startSlide:0,
+		minSlides: 4,
+		maxSlides: 32,
+		slideWidth: 170,
+		slideMargin: 0,
+		ticker: true,
+		speed: 150000,
+		mouseDrag: true,
+	  });
+	</script>
