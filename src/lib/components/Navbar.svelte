@@ -132,7 +132,7 @@
     color: #fff;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
+    border-radius: 22px;
     transition: all 0.2s ease;
     white-space: nowrap;
     overflow: hidden;
