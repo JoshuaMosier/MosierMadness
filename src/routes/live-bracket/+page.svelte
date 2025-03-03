@@ -205,13 +205,13 @@
                           ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
                   <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
                   <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
-                  <span class="ml-auto mr-1 ${teamAWon ? 'text-red-700/90' : 'text-gray-400'}">{teamA.score}</span>
+                  <span class="ml-auto mr-1 text-gray-200">{teamA.score}</span>
                 </p>
                 <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                           ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
                   <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
                   <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
-                  <span class="ml-auto mr-1 ${teamBWon ? 'text-red-700/90' : 'text-gray-400'}">{teamB.score}</span>
+                  <span class="ml-auto mr-1 text-gray-200">{teamB.score}</span>
                 </p>
               </div>
             {/if}
@@ -243,13 +243,13 @@
                           ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
                   <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
                   <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
-                  <span class="ml-auto mr-1 ${teamAWon ? 'text-red-700/90' : 'text-gray-400'}">{teamA.score}</span>
+                  <span class="ml-auto mr-1 text-gray-200">{teamA.score}</span>
                 </p>
                 <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                           ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
                   <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
                   <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
-                  <span class="ml-auto mr-1 ${teamBWon ? 'text-red-700/90' : 'text-gray-400'}">{teamB.score}</span>
+                  <span class="ml-auto mr-1 text-gray-200">{teamB.score}</span>
                 </p>
               </div>
             {/if}
@@ -281,13 +281,13 @@
                           ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
                   <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
                   <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
-                  <span class="ml-auto mr-1 ${teamAWon ? 'text-red-700/90' : 'text-gray-400'}">{teamA.score}</span>
+                  <span class="ml-auto mr-1 text-gray-200">{teamA.score}</span>
                 </p>
                 <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                           ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
                   <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
                   <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
-                  <span class="ml-auto mr-1 ${teamBWon ? 'text-red-700/90' : 'text-gray-400'}">{teamB.score}</span>
+                  <span class="ml-auto mr-1 text-gray-200">{teamB.score}</span>
                 </p>
               </div>
             {/if}
@@ -318,13 +318,13 @@
                         ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
                 <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
                 <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
-                <span class="ml-auto mr-1 ${teamAWon ? 'text-red-700/90' : 'text-gray-400'}">{teamA.score}</span>
+                <span class="ml-auto mr-1 text-gray-200">{teamA.score}</span>
               </p>
               <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                         ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
                 <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
                 <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
-                <span class="ml-auto mr-1 ${teamBWon ? 'text-red-700/90' : 'text-gray-400'}">{teamB.score}</span>
+                <span class="ml-auto mr-1 text-gray-200">{teamB.score}</span>
               </p>
             </div>
           {/if}
@@ -350,13 +350,13 @@
                         ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
                 <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
                 <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
-                <span class="ml-auto mr-1 ${teamAWon ? 'text-red-700/90' : 'text-gray-400'}">{teamA.score}</span>
+                <span class="ml-auto mr-1 text-gray-200">{teamA.score}</span>
               </p>
               <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                         ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
                 <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
                 <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
-                <span class="ml-auto mr-1 ${teamBWon ? 'text-red-700/90' : 'text-gray-400'}">{teamB.score}</span>
+                <span class="ml-auto mr-1 text-gray-200">{teamB.score}</span>
               </p>
             </div>
           {/if}
@@ -373,13 +373,13 @@
                     ${championWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
             <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{champion.seed}</span>
             <span class={`truncate ${!championWon ? 'line-through' : ''}`}>{champion.name}</span>
-            <span class="ml-auto ${championWon ? 'text-red-700/90' : 'text-gray-400'}">{champion.score}</span>
+            <span class="ml-auto ${championWon ? 'text-red-700/90' : 'text-gray-200'}">{champion.score}</span>
           </p>
           <p class={`h-[25px] m-0 pl-[5px] whitespace-nowrap text-[13px] leading-[25px] px-[6px] pr-[10px]rounded-b-sm flex items-center
                     ${!championWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/90'}`}>
             <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{runnerUp.seed}</span>
             <span class={`truncate ${championWon ? 'line-through' : ''}`}>{runnerUp.name}</span>
-            <span class="ml-auto ${!championWon ? 'text-red-700/90' : 'text-gray-400'}">{runnerUp.score}</span>
+            <span class="ml-auto ${!championWon ? 'text-red-700/90' : 'text-gray-200'}">{runnerUp.score}</span>
           </p>
           <div class="relative whitespace-nowrap top-[-160px] mt-[10px] w-[150px]">
             <div class="text-white text-center bg-amber-700/90 py-3 px-4 rounded-md font-semibold shadow-md">
