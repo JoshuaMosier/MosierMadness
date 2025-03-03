@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import { supabase } from '$lib/services/auth';
+import { supabase } from '$lib/supabaseClient';
 
 // Create a writable store with initial value of null (not authenticated)
 const userStore = writable(null);
