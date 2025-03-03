@@ -6,16 +6,10 @@
     <title>Mosier Madness</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="{{url_for('static',filename='bracket.css')}}">
-    <link rel="stylesheet" href="{{url_for('static',filename='navbar_button.css')}}">
-    <script src="{{ url_for('static',filename = 'sortable.js')}}"></script>
-    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/bxslider/4.1.1/jquery.bxslider.min.js"></script>
     <script type=text/javascript> $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
-   	<script src="{{ url_for('static',filename = 'bracketentry.js')}}"></script>
-    <script src="{{ url_for('static',filename = 'easter-egg.js')}}"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

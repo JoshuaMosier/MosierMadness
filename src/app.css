@@ -6,10 +6,26 @@
 @layer base {
   html {
     font-family: 'Montserrat', sans-serif;
+    overflow-y: scroll !important; /* Force scrollbar to always show */
   }
   
   body {
-    @apply bg-white text-mm-gray;
+    @apply text-mm-gray min-h-screen;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-image: url('/images/ui/site-background.jpg');
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
   }
 }
 

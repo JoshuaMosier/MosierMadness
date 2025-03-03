@@ -5,28 +5,39 @@ import { supabase } from '$lib/services/auth';
 // Create a writable store with initial value of null (not authenticated)
 const userStore = writable(null);
 
-// Initialize the store with the current session if available
+// Only run this code in the browser
 if (browser) {
-  // Get the current session
-  supabase.auth.getSession().then(({ data }) => {
-    if (data && data.session) {
-      userStore.set(data.session.user);
-    }
-  });
-
-  // Listen for auth changes
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      userStore.set(session.user);
-    } else if (event === 'SIGNED_OUT') {
+  // Initialize auth state
+  const initAuth = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        userStore.set(session.user);
+      }
+      
+      // Listen for auth changes
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+          userStore.set(session.user);
+        } else {
+          userStore.set(null);
+        }
+      });
+    } catch (error) {
+      console.error('Error initializing auth:', error);
       userStore.set(null);
     }
-  });
+  };
+
+  // Run the initialization
+  initAuth();
 }
 
-// Add custom methods to the store
-const user = {
-  ...userStore,
+// Export the store
+export const user = {
+  subscribe: userStore.subscribe,
+  set: userStore.set,
+  update: userStore.update,
   signUp: async (email, password, firstname, lastname) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -75,6 +86,4 @@ const user = {
     
     return { data, error };
   }
-};
-
-export { user }; 
+}; 
