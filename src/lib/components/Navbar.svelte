@@ -13,134 +13,163 @@
   }
 </script>
 
-<img id="left-banner" src="/images/ui/MM_Banner_left.png" width="156" height="166" style="position:absolute;z-index:2" alt="Left Banner"/>
-
-<nav class="mb-4 relative">
-  <div class="container mx-auto px-4 flex justify-between items-center">
-    <!-- Left Navigation -->
-    <div class="hidden md:flex items-center space-x-4">
-      <a href="/">
-        <div class="button nav-center btn-hover text-mm-gray hover:text-mm-blue px-4 py-2 rounded-md font-medium">
-          Leaderboard
-        </div>
-      </a>
-      <a href="/bracket">
-        <div class="button nav-center btn-hover text-mm-gray hover:text-mm-blue px-4 py-2 rounded-md font-medium">
-          Submit Bracket
-        </div>
-      </a>
-      <a href="/entries">
-        <div class="button nav-center btn-hover text-mm-gray hover:text-mm-blue px-4 py-2 rounded-md font-medium">
-          Entries
-        </div>
-      </a>
-      <a href="/master">
-        <div class="button nav-center btn-hover text-mm-gray hover:text-mm-blue px-4 py-2 rounded-md font-medium">
-          Master Bracket
-        </div>
-      </a>
-    </div>
-
-    <!-- Center Logo -->
-    <div class="flex items-center justify-center">
-      <a href="/" class="flex items-center">
-        <img src="/images/ui/MM_logo_small.png" alt="Mosier Madness Logo" class="h-16 w-auto" />
-      </a>
-    </div>
-
-    <!-- Right Navigation -->
-    <div class="hidden md:flex items-center space-x-4">
-      <a href="/past-winners">
-        <div class="button nav-center btn-hover text-mm-gray hover:text-mm-blue px-4 py-2 rounded-md font-medium">
-          Past Winners
-        </div>
-      </a>
-      <a href="/stats">
-        <div class="button nav-center btn-hover text-mm-gray hover:text-mm-blue px-4 py-2 rounded-md font-medium">
-          Statistics
-        </div>
-      </a>
-      <a href="/possibilities">
-        <div class="button nav-center btn-hover text-mm-gray hover:text-mm-blue px-4 py-2 rounded-md font-medium">
-          Possibilities
-        </div>
-      </a>
-      {#if $user}
-        <a href="/logout">
-          <div class="button nav-center btn-hover text-mm-gray hover:text-mm-blue px-4 py-2 rounded-md font-medium">
-            Logout
-          </div>
-        </a>
-      {:else}
-        <a href="/login">
-          <div class="button nav-center btn-hover text-mm-gray hover:text-mm-blue px-4 py-2 rounded-md font-medium">
-            Login
-          </div>
-        </a>
-      {/if}
-    </div>
-
+<nav class="relative w-full pt-1 pb-4">
+  <!-- Add banner images -->
+  <img 
+    src="/images/ui/MM_Banner_left.png" 
+    alt="Left Banner" 
+    class="hidden xl:block absolute left-0 top-0 z-0"
+  />
+  <img 
+    src="/images/ui/MM_Banner_right.png" 
+    alt="Right Banner" 
+    class="hidden xl:block absolute right-0 top-0 z-0"
+  />
+  
+  <div class="max-w-7xl mx-auto px-4 relative z-10">
     <!-- Mobile menu button -->
-    <div class="md:hidden">
-      <button 
-        on:click={toggleMenu}
-        class="inline-flex items-center justify-center p-2 rounded-md text-mm-gray hover:text-mm-blue"
-      >
-        <span class="sr-only">Open main menu</span>
-        <svg 
-          class={isMenuOpen ? 'hidden' : 'block'} 
-          xmlns="http://www.w3.org/2000/svg" 
-          fill="none" 
-          viewBox="0 0 24 24" 
-          stroke="currentColor"
-          width="24"
-          height="24"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-        <svg 
-          class={isMenuOpen ? 'block' : 'hidden'} 
-          xmlns="http://www.w3.org/2000/svg" 
-          fill="none" 
-          viewBox="0 0 24 24" 
-          stroke="currentColor"
-          width="24"
-          height="24"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-  </div>
+    <button class="md:hidden absolute top-4 left-4 p-2 z-20" on:click={toggleMenu} aria-label="Toggle navigation menu">
+      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
 
-  <!-- Mobile menu -->
-  <div class={isMenuOpen ? 'md:hidden' : 'hidden'}>
-    <div class="px-2 pt-2 pb-3 space-y-1">
-      <a href="/" class="block px-3 py-2 text-mm-gray hover:text-mm-blue">Leaderboard</a>
-      <a href="/bracket" class="block px-3 py-2 text-mm-gray hover:text-mm-blue">Submit Bracket</a>
-      <a href="/entries" class="block px-3 py-2 text-mm-gray hover:text-mm-blue">Entries</a>
-      <a href="/master" class="block px-3 py-2 text-mm-gray hover:text-mm-blue">Master Bracket</a>
-      <a href="/past-winners" class="block px-3 py-2 text-mm-gray hover:text-mm-blue">Past Winners</a>
-      <a href="/stats" class="block px-3 py-2 text-mm-gray hover:text-mm-blue">Statistics</a>
-      <a href="/possibilities" class="block px-3 py-2 text-mm-gray hover:text-mm-blue">Possibilities</a>
-      {#if $user}
-        <a href="/logout" class="block px-3 py-2 text-mm-gray hover:text-mm-blue">Logout</a>
-      {:else}
-        <a href="/login" class="block px-3 py-2 text-mm-gray hover:text-mm-blue">Login</a>
-      {/if}
+    <!-- Desktop Navigation Layout - Only visible on md screens and up -->
+    <div class="hidden md:flex justify-center">
+      <div class="flex items-center justify-between w-full">
+        <!-- Left Navigation Group -->
+        <div class="flex-shrink-0 w-1/3 flex justify-end">
+          <div class="flex items-center space-x-3">
+            <a href="/" class="nav-link">
+              <div class="nav-button">Leaderboard</div>
+            </a>
+            <a href="/bracket" class="nav-link">
+              <div class="nav-button">Submit Bracket</div>
+            </a>
+            <a href="/entries" class="nav-link">
+              <div class="nav-button">Entries</div>
+            </a>
+            <a href="/master" class="nav-link">
+              <div class="nav-button">Master Bracket</div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Center Logo -->
+        <div class="flex-shrink-0 w-1/3 flex justify-center">
+          <a href="/" class="block">
+            <img src="/images/ui/MM_logo.png" alt="Mosier Madness Logo" class="h-40 w-100 object-contain" />
+          </a>
+        </div>
+
+        <!-- Right Navigation Group -->
+        <div class="flex-shrink-0 w-1/3 flex justify-start">
+          <div class="flex items-center space-x-3">
+            <a href="/past-winners" class="nav-link">
+              <div class="nav-button">Past Winners</div>
+            </a>
+            <a href="/stats" class="nav-link">
+              <div class="nav-button">Statistics</div>
+            </a>
+            <a href="/possibilities" class="nav-link">
+              <div class="nav-button">Possibilities</div>
+            </a>
+            {#if $user}
+              <a href="/logout" class="nav-link">
+                <div class="nav-button">Logout</div>
+              </a>
+            {:else}
+              <a href="/login" class="nav-link">
+                <div class="nav-button">Login</div>
+              </a>
+            {/if}
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Mobile Logo - Only visible on small screens -->
+    <div class="md:hidden flex justify-center py-2">
+      <a href="/" class="block">
+        <img src="/images/ui/MM_logo.png" alt="Mosier Madness Logo" class="h-40 w-60 object-contain" />
+      </a>
+    </div>
+
+    <!-- Mobile Navigation Menu -->
+    {#if isMenuOpen}
+      <div class="md:hidden fixed inset-0 bg-black bg-opacity-90 z-10 pt-16">
+        <div class="px-4 pt-2 pb-3 space-y-3">
+          <a href="/" class="mobile-nav-button" on:click={closeMenu}>Leaderboard</a>
+          <a href="/bracket" class="mobile-nav-button" on:click={closeMenu}>Submit Bracket</a>
+          <a href="/entries" class="mobile-nav-button" on:click={closeMenu}>Entries</a>
+          <a href="/master" class="mobile-nav-button" on:click={closeMenu}>Master Bracket</a>
+          <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a>
+          <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a>
+          <a href="/possibilities" class="mobile-nav-button" on:click={closeMenu}>Possibilities</a>
+          {#if $user}
+            <a href="/logout" class="mobile-nav-button" on:click={closeMenu}>Logout</a>
+          {:else}
+            <a href="/login" class="mobile-nav-button" on:click={closeMenu}>Login</a>
+          {/if}
+        </div>
+      </div>
+    {/if}
   </div>
 </nav>
 
-<img id="right-banner" src="/images/ui/MM_Banner_right.png" width="156" height="166" style="position:absolute;right:0;top:0;z-index:2" alt="Right Banner"/>
-
 <style>
-  .button {
-    transition: all 0.3s ease;
+  .nav-link {
+    @apply flex-shrink-0;
+    width: 140px;
   }
-  
-  .btn-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+  .nav-button {
+    @apply flex items-center justify-center relative px-4;
+    height: 48px;
+    width: 100%;
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .nav-button:active {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(0);
+  }
+
+  .mobile-nav-button {
+    @apply block w-full px-4 py-3 rounded-md text-white text-center;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .mobile-nav-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  /* Responsive adjustments */
+  @media (min-width: 1024px) {
+    .max-w-7xl {
+      max-width: 1440px;
+    }
+  }
+
+  @media (max-width: 1280px) {
+    .nav-link {
+      width: 160px;
+    }
   }
 </style> 

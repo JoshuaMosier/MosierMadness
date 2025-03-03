@@ -10,10 +10,5 @@
   <main class="flex-grow">
     <slot />
   </main>
-  
-  <footer class="py-8">
-    <div class="mt-8 pt-6 text-center text-sm text-black">
-      <p>&copy; {new Date().getFullYear()} Mosier Madness. All rights reserved.</p>
-    </div>
-  </footer>
+
 </div> 
