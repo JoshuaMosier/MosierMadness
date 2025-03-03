@@ -1,8 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '$lib/config';
-
-// Create Supabase client
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { supabase } from '$lib/supabaseClient';
 
 // Authentication functions
 export async function signUp(email, password, firstname, lastname) {
