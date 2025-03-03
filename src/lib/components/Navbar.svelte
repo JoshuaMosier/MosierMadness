@@ -120,7 +120,7 @@
 <style>
   .nav-link {
     @apply flex-shrink-0;
-    width: 140px;
+    width: 132px;
   }
 
   .nav-button {
