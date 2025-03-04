@@ -1,38 +1,63 @@
-# sv
+# Mosier Madness
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A March Madness bracket challenge application built with SvelteKit and Supabase.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- User authentication and registration
+- Bracket creation and submission
+- Real-time leaderboard with scoring
+- Team tracking with elimination status
+- Mobile-responsive design
 
-```bash
-# create a new project in the current directory
-npx sv create
+## Tech Stack
 
-# create a new project in my-app
-npx sv create my-app
-```
+- **Frontend**: SvelteKit, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Hosting**: Vercel (recommended)
 
-## Developing
+## Setup
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file with your Supabase credentials:
+   ```
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+4. Run the database setup script:
+   ```bash
+   npm run setup-db
+   ```
+5. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-npm run dev
+## Database Schema
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+The application uses the following main tables:
 
-## Building
+- `users`: User accounts and profiles
+- `entries`: Bracket entries with round selections
+- `eliminated_teams`: Teams that have been eliminated from the tournament
 
-To create a production version of your app:
+## Deployment
 
-```bash
-npm run build
-```
+1. Build the application:
+   ```bash
+   npm run build
+   ```
+2. Deploy to your preferred hosting provider (Vercel recommended for SvelteKit)
 
-You can preview the production build with `npm run preview`.
+## License
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+MIT
+
+## Credits
+
+Created by [Your Name]

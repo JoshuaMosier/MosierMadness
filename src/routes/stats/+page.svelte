@@ -157,14 +157,13 @@
   });
 </script>
 
-<div class="container mx-auto px-4 py-8 max-w-6xl">
+<div class="container mx-auto px-4 py-8 max-w-5xl">
   <div class="text-center mb-12">
     <h1 class="text-4xl font-bold mb-4">
       <span class="bg-gradient-to-r from-amber-700 to-amber-600 text-white px-4 py-2 rounded-lg shadow-md inline-block">
         Tournament Statistics
       </span>
     </h1>
-    <p class="text-xl text-zinc-400">Explore the most impressive achievements in Mosier Madness history</p>
   </div>
   
   <!-- Stats summary cards -->
