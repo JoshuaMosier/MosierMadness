@@ -10,6 +10,49 @@
   let bracket = null;
   let saving = false;
 
+  // Sample first round teams
+  const firstRoundTeams = [
+    // South Region (1-16)
+    { name: "Houston", seed: 1 }, { name: "N Kentucky", seed: 16 },
+    { name: "Iowa", seed: 8 }, { name: "Auburn", seed: 9 },
+    { name: "Miami FL", seed: 5 }, { name: "Drake", seed: 12 },
+    { name: "Indiana", seed: 4 }, { name: "Kent State", seed: 13 },
+    { name: "Iowa State", seed: 6 }, { name: "Pittsburgh", seed: 11 },
+    { name: "Xavier", seed: 3 }, { name: "Kennesaw St", seed: 14 },
+    { name: "Texas A&M", seed: 7 }, { name: "Penn State", seed: 10 },
+    { name: "Texas", seed: 2 }, { name: "Colgate", seed: 15 },
+
+    // East Region (17-32)
+    { name: "Purdue", seed: 1 }, { name: "F Dickinson", seed: 16 },
+    { name: "Memphis", seed: 8 }, { name: "FAU", seed: 9 },
+    { name: "Duke", seed: 5 }, { name: "Oral Roberts", seed: 12 },
+    { name: "Tennessee", seed: 4 }, { name: "Louisiana", seed: 13 },
+    { name: "Kentucky", seed: 6 }, { name: "Providence", seed: 11 },
+    { name: "Kansas St", seed: 3 }, { name: "Montana St", seed: 14 },
+    { name: "Michigan St", seed: 7 }, { name: "USC", seed: 10 },
+    { name: "Marquette", seed: 2 }, { name: "Vermont", seed: 15 },
+
+    // Midwest Region (33-48)
+    { name: "Alabama", seed: 1 }, { name: "Texas A&M CC", seed: 16 },
+    { name: "Maryland", seed: 8 }, { name: "West Virginia", seed: 9 },
+    { name: "San Diego St", seed: 5 }, { name: "Charleston", seed: 12 },
+    { name: "Virginia", seed: 4 }, { name: "Furman", seed: 13 },
+    { name: "Creighton", seed: 6 }, { name: "NC State", seed: 11 },
+    { name: "Baylor", seed: 3 }, { name: "UCSB", seed: 14 },
+    { name: "Missouri", seed: 7 }, { name: "Utah State", seed: 10 },
+    { name: "Arizona", seed: 2 }, { name: "Princeton", seed: 15 },
+
+    // West Region (49-64)
+    { name: "Kansas", seed: 1 }, { name: "Howard", seed: 16 },
+    { name: "Arkansas", seed: 8 }, { name: "Illinois", seed: 9 },
+    { name: "Saint Mary's", seed: 5 }, { name: "VCU", seed: 12 },
+    { name: "UConn", seed: 4 }, { name: "Iona", seed: 13 },
+    { name: "TCU", seed: 6 }, { name: "Arizona St", seed: 11 },
+    { name: "Gonzaga", seed: 3 }, { name: "Grand Canyon", seed: 14 },
+    { name: "Northwestern", seed: 7 }, { name: "Boise State", seed: 10 },
+    { name: "UCLA", seed: 2 }, { name: "UNC Asheville", seed: 15 }
+  ];
+
   // Function to transform bracket data into the format expected by BracketView
   function transformBracketData(bracketData) {
     if (!bracketData) return null;
@@ -17,21 +60,58 @@
     const matches = {};
     const selections = bracketData.selections || [];
     
-    // Initialize matches with teams from the database
-    // This would need to be updated with actual team data from your database
-    // For now, we'll use placeholder data
-    for (let i = 0; i < 63; i++) {
+    // Initialize first round matches with actual teams (1-32)
+    for (let i = 0; i < 32; i++) {
       matches[i + 1] = {
-        teamA: selections[i * 2] ? { name: selections[i * 2], seed: 1 } : null,
-        teamB: selections[i * 2 + 1] ? { name: selections[i * 2 + 1], seed: 2 } : null,
-        winner: null // You'll need to determine this based on your data structure
+        teamA: firstRoundTeams[i * 2],
+        teamB: firstRoundTeams[i * 2 + 1],
+        winner: selections[i] || null
       };
     }
 
+    // Initialize later round matches (33-63)
+    for (let i = 32; i < 63; i++) {
+      const prevRoundMatchA = Math.floor((i - 32) * 2) + 1;
+      const prevRoundMatchB = prevRoundMatchA + 1;
+      
+      // Get the winning teams from previous matches
+      const prevMatchA = matches[prevRoundMatchA];
+      const prevMatchB = matches[prevRoundMatchB];
+      
+      // Get the selected winners from previous matches
+      const winnerA = prevMatchA?.winner ? 
+        (prevMatchA.winner === 'A' ? prevMatchA.teamA : prevMatchA.teamB) : 
+        null;
+      
+      const winnerB = prevMatchB?.winner ? 
+        (prevMatchB.winner === 'A' ? prevMatchB.teamA : prevMatchB.teamB) : 
+        null;
+
+      matches[i + 1] = {
+        teamA: winnerA,
+        teamB: winnerB,
+        winner: selections[i] || null
+      };
+    }
+
+    // Set champion if we have a winner in the final match
+    const finalMatch = matches[63];
+    const champion = finalMatch?.winner ? 
+      (finalMatch.winner === 'A' ? finalMatch.teamA : finalMatch.teamB) : 
+      null;
+
     return {
       matches,
-      champion: bracketData.champion ? { name: bracketData.champion, seed: 1 } : null
+      champion
     };
+  }
+
+  // Helper to get the previous round matches for a given match
+  function getPreviousMatches(matchId) {
+    if (matchId <= 32) return null; // First round matches have no previous matches
+    
+    const baseMatch = Math.floor((matchId - 33) * 2) + 1;
+    return [baseMatch, baseMatch + 1];
   }
 
   // Handle team selection
@@ -39,15 +119,53 @@
     if (saving || bracket.is_submitted) return;
 
     const { matchId, teamIndex, team } = event.detail;
+    if (!team) return; // Don't handle clicks on empty slots
     
-    // Update the bracket data
-    // This is a simplified example - you'll need to adjust based on your data structure
-    const newSelections = [...bracket.selections];
-    newSelections[matchId * 2 + (teamIndex === 'A' ? 0 : 1)] = team.name;
-
     try {
       saving = true;
       
+      // Create new selections array
+      const newSelections = [...(bracket.selections || new Array(63).fill(null))];
+      
+      // Get the current match data before making changes
+      const currentMatchData = transformBracketData(bracket).matches[matchId];
+      
+      // If we're selecting the team that's already selected, do nothing
+      if (currentMatchData.winner === teamIndex) {
+        saving = false;
+        return;
+      }
+      
+      // Update the winner for this match
+      newSelections[matchId - 1] = teamIndex;
+
+      // Get the losing team (the team that was previously winning, if any, or the other team)
+      const losingTeam = currentMatchData.winner ? 
+        (currentMatchData.winner === 'A' ? currentMatchData.teamA : currentMatchData.teamB) :
+        (teamIndex === 'A' ? currentMatchData.teamB : currentMatchData.teamA);
+      
+      // Clear subsequent matches only if they contain the losing team
+      let currentMatch = matchId;
+      while (currentMatch < 63) {
+        const nextMatch = Math.floor((currentMatch - 1) / 2) + 32;
+        if (nextMatch >= 63) break;
+
+        // Get the teams in the next match
+        const nextMatchData = transformBracketData({
+          ...bracket,
+          selections: newSelections
+        }).matches[nextMatch + 1];
+
+        // Only clear the selection if the losing team was selected to advance
+        if (nextMatchData?.teamA?.name === losingTeam?.name || 
+            nextMatchData?.teamB?.name === losingTeam?.name) {
+          newSelections[nextMatch] = null;
+          currentMatch = nextMatch + 1;
+        } else {
+          break; // If losing team not found, no need to check further matches
+        }
+      }
+
       // Update the bracket in the database
       const { error: updateError } = await supabase
         .from('brackets')
@@ -67,6 +185,38 @@
       };
     } catch (err) {
       console.error('Error updating bracket:', err);
+      error = err.message;
+    } finally {
+      saving = false;
+    }
+  }
+
+  // Reset bracket selections
+  async function resetBracket() {
+    if (saving || bracket.is_submitted) return;
+    
+    try {
+      saving = true;
+      
+      // Update the bracket in the database with empty selections
+      const { error: updateError } = await supabase
+        .from('brackets')
+        .update({
+          selections: new Array(63).fill(null),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bracket.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      bracket = {
+        ...bracket,
+        selections: new Array(63).fill(null),
+        updated_at: new Date().toISOString()
+      };
+    } catch (err) {
+      console.error('Error resetting bracket:', err);
       error = err.message;
     } finally {
       saving = false;
@@ -200,9 +350,20 @@
   {:else if bracket}
     <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-semibold text-zinc-200">
-          {bracket.is_submitted ? 'Submitted Bracket' : 'Draft Bracket'}
-        </h2>
+        <div class="flex items-center gap-4">
+          <h2 class="text-2xl font-semibold text-zinc-200">
+            {bracket.is_submitted ? 'Submitted Bracket' : 'Draft Bracket'}
+          </h2>
+          {#if !bracket.is_submitted}
+            <button 
+              class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-700 transition-all duration-200 disabled:opacity-50 text-sm"
+              on:click={resetBracket}
+              disabled={saving}
+            >
+              Reset Bracket Selections
+            </button>
+          {/if}
+        </div>
         <div class="text-sm text-zinc-400">
           Last updated: {new Date(bracket.updated_at).toLocaleDateString()}
         </div>
