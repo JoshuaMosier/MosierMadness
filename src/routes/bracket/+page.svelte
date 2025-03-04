@@ -2,11 +2,142 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
+  import BracketView from '$lib/components/BracketView.svelte';
 
   let loading = true;
   let error = null;
   let user = null;
   let bracket = null;
+  let saving = false;
+
+  // Function to transform bracket data into the format expected by BracketView
+  function transformBracketData(bracketData) {
+    if (!bracketData) return null;
+
+    const matches = {};
+    const selections = bracketData.selections || [];
+    
+    // Initialize matches with teams from the database
+    // This would need to be updated with actual team data from your database
+    // For now, we'll use placeholder data
+    for (let i = 0; i < 63; i++) {
+      matches[i + 1] = {
+        teamA: selections[i * 2] ? { name: selections[i * 2], seed: 1 } : null,
+        teamB: selections[i * 2 + 1] ? { name: selections[i * 2 + 1], seed: 2 } : null,
+        winner: null // You'll need to determine this based on your data structure
+      };
+    }
+
+    return {
+      matches,
+      champion: bracketData.champion ? { name: bracketData.champion, seed: 1 } : null
+    };
+  }
+
+  // Handle team selection
+  async function handleTeamSelect(event) {
+    if (saving || bracket.is_submitted) return;
+
+    const { matchId, teamIndex, team } = event.detail;
+    
+    // Update the bracket data
+    // This is a simplified example - you'll need to adjust based on your data structure
+    const newSelections = [...bracket.selections];
+    newSelections[matchId * 2 + (teamIndex === 'A' ? 0 : 1)] = team.name;
+
+    try {
+      saving = true;
+      
+      // Update the bracket in the database
+      const { error: updateError } = await supabase
+        .from('brackets')
+        .update({
+          selections: newSelections,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bracket.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      bracket = {
+        ...bracket,
+        selections: newSelections,
+        updated_at: new Date().toISOString()
+      };
+    } catch (err) {
+      console.error('Error updating bracket:', err);
+      error = err.message;
+    } finally {
+      saving = false;
+    }
+  }
+
+  // Submit bracket
+  async function submitBracket() {
+    if (saving || bracket.is_submitted) return;
+
+    try {
+      saving = true;
+      
+      // Update the bracket in the database
+      const { error: updateError } = await supabase
+        .from('brackets')
+        .update({
+          is_submitted: true,
+          submitted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bracket.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      bracket = {
+        ...bracket,
+        is_submitted: true,
+        submitted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    } catch (err) {
+      console.error('Error submitting bracket:', err);
+      error = err.message;
+    } finally {
+      saving = false;
+    }
+  }
+
+  // Create new bracket
+  async function createBracket() {
+    if (saving) return;
+
+    try {
+      saving = true;
+      
+      // Create a new bracket in the database
+      const { data, error: createError } = await supabase
+        .from('brackets')
+        .insert({
+          user_id: user.id,
+          selections: new Array(126).fill(null), // Space for 63 matches * 2 teams
+          is_submitted: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+
+      // Update local state
+      bracket = data;
+    } catch (err) {
+      console.error('Error creating bracket:', err);
+      error = err.message;
+    } finally {
+      saving = false;
+    }
+  }
 
   onMount(async () => {
     try {
@@ -26,7 +157,7 @@
         .eq('user_id', user.id)
         .single();
 
-      if (bracketError) throw bracketError;
+      if (bracketError && bracketError.code !== 'PGRST116') throw bracketError;
       bracket = data;
     } catch (err) {
       console.error('Error fetching bracket:', err);
@@ -83,22 +214,41 @@
         </div>
       {:else}
         <div class="bg-amber-950/50 border border-amber-900 text-amber-500 p-4 rounded-lg mb-6">
-          Your bracket is still in draft mode. Don't forget to submit before the tournament starts!
+          <div class="flex justify-between items-center">
+            <p>Your bracket is still in draft mode. Don't forget to submit before the tournament starts!</p>
+            <button 
+              class="px-6 py-2 bg-gradient-to-r from-amber-700 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-500 transition-all duration-200 disabled:opacity-50"
+              on:click={submitBracket}
+              disabled={saving || bracket.selections.filter(Boolean).length < 63}
+            >
+              {saving ? 'Submitting...' : 'Submit Bracket'}
+            </button>
+          </div>
         </div>
       {/if}
 
-      <!-- TODO: Add bracket visualization component here -->
-      <div class="text-zinc-300">
-        <p class="mb-4">Selected Teams: {bracket.selections.filter(Boolean).length} / 63</p>
+      <div class="text-zinc-300 mb-4">
+        <p>Selected Teams: {bracket.selections.filter(Boolean).length} / 63</p>
       </div>
+
+      <!-- Bracket View Component -->
+      <BracketView
+        mode={bracket.is_submitted ? 'view' : 'select'}
+        bracketData={transformBracketData(bracket)}
+        isLocked={bracket.is_submitted}
+        showScores={false}
+        on:teamSelect={handleTeamSelect}
+      />
     </div>
   {:else}
     <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center">
       <p class="text-zinc-300 mb-4">You haven't created a bracket yet.</p>
       <button 
-        class="px-6 py-2 bg-gradient-to-r from-amber-700 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-500 transition-all duration-200"
+        class="px-6 py-2 bg-gradient-to-r from-amber-700 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-500 transition-all duration-200 disabled:opacity-50"
+        on:click={createBracket}
+        disabled={saving}
       >
-        Create New Bracket
+        {saving ? 'Creating...' : 'Create New Bracket'}
       </button>
     </div>
   {/if}

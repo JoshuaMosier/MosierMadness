@@ -76,7 +76,7 @@
               <div class="nav-button">Leaderboard</div>
             </a>
             <a href="/bracket" class="nav-link">
-              <div class="nav-button">Submit Bracket</div>
+              <div class="nav-button">Submit Entry</div>
             </a>
             <a href="/entries" class="nav-link">
               <div class="nav-button">Entries</div>

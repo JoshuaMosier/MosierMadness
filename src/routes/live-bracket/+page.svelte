@@ -1,394 +1,159 @@
 <script>
-  // Define regions
-  const regions = [
-    { id: 1, name: "SOUTH" },
-    { id: 2, name: "EAST" },
-    { id: 3, name: "MIDWEST" },
-    { id: 4, name: "WEST" }
-  ];
-  
-  // Define rounds
-  const rounds = [
-    { id: 1, name: "1st ROUND", dates: "March 16-17" },
-    { id: 2, name: "2nd ROUND", dates: "March 18-19" },
-    { id: 3, name: "SWEET 16", dates: "March 23-24" },
-    { id: 4, name: "ELITE EIGHT", dates: "March 25-26" },
-    { id: 5, name: "FINAL FOUR", dates: "April 1" },
-    { id: 6, name: "CHAMPION", dates: "April 3" }
-  ];
-  
-  // Sample teams data - replace with actual data in your implementation
+  import { onMount } from 'svelte';
+  import { supabase } from '$lib/supabase';
+  import BracketView from '$lib/components/BracketView.svelte';
+
+  let loading = true;
+  let error = null;
+  let bracketData = null;
+
+  // Sample teams data - replace with actual data later
   const teams = [
-    { id: 1, name: "UConn", seed: 1, score: 85 },
-    { id: 2, name: "Purdue", seed: 2, score: 75 },
-    { id: 3, name: "Houston", seed: 1, score: 82 },
-    { id: 4, name: "Tennessee", seed: 2, score: 68 }
+    { name: "UConn", seed: 1, score: 85 },
+    { name: "Purdue", seed: 2, score: 75 },
+    { name: "Houston", seed: 1, score: 82 },
+    { name: "Tennessee", seed: 2, score: 68 },
+    { name: "Alabama", seed: 4, score: 72 },
+    { name: "Illinois", seed: 3, score: 79 },
+    { name: "Duke", seed: 4, score: 78 },
+    { name: "Iowa State", seed: 2, score: 73 }
   ];
-  
-  // Helper function to generate match IDs
-  function getMatchId(round, region, matchNum) {
-    if (round === 1) {
-      const baseIndex = (region - 1) * 8;
-      return baseIndex + matchNum + 1;
-    } else if (round === 2) {
-      const baseIndex = 32 + (region - 1) * 4;
-      return baseIndex + matchNum + 1;
-    } else if (round === 3) {
-      const baseIndex = 48 + (region - 1) * 2;
-      return baseIndex + matchNum + 1;
-    } else if (round === 4) {
-      return 56 + region;
-    } else if (round === 5) {
-      return 60 + matchNum + 1;
-    } else {
-      return 63;
-    }
-  }
-  
-  // Generate matches per round and region
-  function getMatchesPerRound(round) {
-    if (round === 1) return 8;
-    if (round === 2) return 4;
-    if (round === 3) return 2;
-    if (round === 4) return 1;
-    if (round === 5) return 2;
-    return 1;
-  }
-  
-  // Get top position for match based on round and match index
-  function getMatchTopPosition(round, region, matchIndex) {
-    // Round 1 positions
-    if (round === 1) {
-      const baseTop = matchIndex * 50;
-      if (region === 2 || region === 4) {
-        return baseTop + 550;
-      }
-      return baseTop;
-    }
-    
-    // Round 2 positions
-    if (round === 2) {
-      const baseTop = matchIndex * 100;
-      if (region === 2 || region === 4) {
-        return baseTop + 550;
-      }
-      return baseTop;
-    }
-    
-    // Round 3 positions
-    if (round === 3) {
-      const baseTop = matchIndex * 200;
-      if (region === 2 || region === 4) {
-        return baseTop + 550;
-      }
-      return baseTop;
-    }
-    
-    // Round 4 positions
-    if (round === 4) {
-      if (region === 2 || region === 4) {
-        return 550;
-      }
-      return 0;
-    }
-    
-    // Round 5 positions
-    if (round === 5) {
-      return 425;
-    }
-    
-    // Round 6 positions
-    return 425;
-  }
-  
-  // Helper function to get a random team for demo purposes
-  function getTeam(seed = 1) {
+
+  // Function to get a random team with a score
+  function getRandomTeam(seedRange = [1, 16]) {
     const team = teams[Math.floor(Math.random() * teams.length)];
-    return { ...team, seed };
+    return {
+      ...team,
+      seed: seedRange[0] + Math.floor(Math.random() * (seedRange[1] - seedRange[0] + 1)),
+      score: 60 + Math.floor(Math.random() * 30)
+    };
   }
-  
-  // Helper to determine if a team won (for styling)
-  function isWinner(teamA, teamB) {
-    return teamA.score > teamB.score;
+
+  // Function to transform database data into the format expected by BracketView
+  function generateSampleBracketData() {
+    const matches = {};
+    
+    // First round - 32 matches (1-32)
+    for (let i = 0; i < 32; i++) {
+      const seedA = i % 8 + 1;
+      const seedB = 16 - seedA;
+      const teamA = getRandomTeam([seedA, seedA]);
+      const teamB = getRandomTeam([seedB, seedB]);
+      matches[i + 1] = {
+        teamA,
+        teamB,
+        winner: teamA.score > teamB.score ? 'A' : 'B'
+      };
+    }
+
+    // Second round - 16 matches (33-48)
+    for (let i = 0; i < 16; i++) {
+      const teamA = getRandomTeam([1, 8]);
+      const teamB = getRandomTeam([1, 8]);
+      matches[i + 33] = {
+        teamA,
+        teamB,
+        winner: teamA.score > teamB.score ? 'A' : 'B'
+      };
+    }
+
+    // Sweet 16 - 8 matches (49-56)
+    for (let i = 0; i < 8; i++) {
+      const teamA = getRandomTeam([1, 4]);
+      const teamB = getRandomTeam([1, 4]);
+      matches[i + 49] = {
+        teamA,
+        teamB,
+        winner: teamA.score > teamB.score ? 'A' : 'B'
+      };
+    }
+
+    // Elite 8 - 4 matches (57-60)
+    for (let i = 0; i < 4; i++) {
+      const teamA = getRandomTeam([1, 3]);
+      const teamB = getRandomTeam([1, 3]);
+      matches[i + 57] = {
+        teamA,
+        teamB,
+        winner: teamA.score > teamB.score ? 'A' : 'B'
+      };
+    }
+
+    // Final Four - 2 matches (61-62)
+    for (let i = 0; i < 2; i++) {
+      const teamA = getRandomTeam([1, 2]);
+      const teamB = getRandomTeam([1, 2]);
+      matches[i + 61] = {
+        teamA,
+        teamB,
+        winner: teamA.score > teamB.score ? 'A' : 'B'
+      };
+    }
+
+    // Championship - 1 match (63)
+    const championshipTeamA = getRandomTeam([1, 1]);
+    const championshipTeamB = getRandomTeam([1, 1]);
+    matches[63] = {
+      teamA: championshipTeamA,
+      teamB: championshipTeamB,
+      winner: championshipTeamA.score > championshipTeamB.score ? 'A' : 'B'
+    };
+
+    return {
+      matches,
+      champion: championshipTeamA.score > championshipTeamB.score ? championshipTeamA : championshipTeamB
+    };
   }
-  
-  // Championship teams
-  const champion = getTeam(1);
-  const runnerUp = getTeam(1);
-  const championWon = true;
+
+  onMount(() => {
+    try {
+      // Generate sample data instead of fetching from database
+      bracketData = generateSampleBracketData();
+    } catch (err) {
+      console.error('Error generating sample bracket:', err);
+      error = err.message;
+    } finally {
+      loading = false;
+    }
+  });
 </script>
 
-<!-- Bracket -->
-<div class="bg-gradient-to-b from-neutral-900/95 to-neutral-950/95 text-center w-full max-w-[1140px] mx-auto mt-[30px] pl-0 rounded-lg shadow-2xl p-4 overflow-x-auto">
-  <div class="flex justify-center w-full">
-    <!-- Table Dates -->
-    <table class="text-xs border-collapse mx-auto w-[950px] rounded-lg overflow-hidden shadow-lg">
-      <tbody>
-        <tr>
-          {#each [...rounds, ...rounds.slice().reverse().slice(1)] as round, i}
-            <th class="text-white bg-gradient-to-r from-amber-600/90 to-amber-700/90 p-3 whitespace-nowrap text-center w-[86px] font-semibold">
-              {round.name}
-            </th>
-          {/each}
-        </tr>
-        <tr>
-          {#each [...rounds, ...rounds.slice().reverse().slice(1)] as round}
-            <td class="text-xs p-[9px] bg-zinc-100 text-zinc-800 text-center whitespace-nowrap font-medium">
-              {round.dates}
-            </td>
-          {/each}
-        </tr>
-      </tbody>
-    </table>
+<svelte:head>
+  <title>Mosier Madness - Live Tournament Bracket</title>
+  <meta name="description" content="View the live March Madness tournament bracket" />
+</svelte:head>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="text-center mb-8">
+    <h1 class="text-4xl font-bold text-amber-600 mb-2">Live Tournament Bracket</h1>
+    <p class="text-xl text-zinc-400">Follow the tournament progress in real-time</p>
   </div>
-  
-  <div class="mt-[15px] h-[1000px] relative mx-auto max-w-[950px] left-0 right-0" id="bracket">
-    <!-- Connecting Lines (Add these before the rounds) -->
-    <div class="absolute inset-0 pointer-events-none">
-      <!-- Round 1 to 2 connectors -->
-      {#each regions as region}
-        {#each Array(getMatchesPerRound(2)) as _, matchIndex}
-          <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/30 rounded-r-md
-                      ${region.id === 1 || region.id === 2 ? 'left-[115px]' : 'right-[115px] transform rotate-180'}`}
-               style="top: {getMatchTopPosition(2, region.id, matchIndex) + 5}px; 
-                      height: 80px; width: 15px;"></div>
-        {/each}
-      {/each}
-      
-      <!-- Round 2 to 3 connectors -->
-      {#each regions as region}
-        {#each Array(getMatchesPerRound(3)) as _, matchIndex}
-          <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/30 rounded-r-md
-                      ${region.id === 1 || region.id === 2 ? 'left-[230px]' : 'right-[230px] transform rotate-180'}`}
-               style="top: {getMatchTopPosition(3, region.id, matchIndex)+30}px; 
-                      height: 130px; width: 15px;"></div>
-        {/each}
-      {/each}
-      
-      <!-- Round 3 to 4 connectors -->
-      {#each regions as region}
-        <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/30 rounded-r-md
-                    ${region.id === 1 || region.id === 2 ? 'left-[345px]' : 'right-[345px] transform rotate-180'}`}
-             style="top: {getMatchTopPosition(4, region.id, 0) + 55}px; 
-                    height: 280px; width: 15px;"></div>
-      {/each}
+
+  {#if loading}
+    <div class="flex justify-center items-center min-h-[200px]">
+      <div class="text-amber-600">Loading tournament bracket...</div>
     </div>
-    
-    <!-- Round 1 -->
-    <div class="absolute top-0 w-[950px]">
-      <h3 class="pt-[15px] hidden">Round One (NCAA Men's Basketball Tournament)</h3>
-      
-      {#each regions as region}
-        <div class="region{region.id}">
-          <h4 class={`uppercase text-amber-300/90 pt-[15px] font-bold ${region.id === 1 || region.id === 2 ? 
-                      'absolute left-[170px] block w-[150px]' : 
-                      'absolute right-[170px] block text-right w-[150px]'} 
-                      ${region.id === 2 || region.id === 4 ? 'top-[715px]' : 'top-[165px]'}`}>
-            {region.name}
-          </h4>
-          
-          {#each Array(getMatchesPerRound(1)) as _, matchIndex}
-            {#if true}
-              {@const teamA = getTeam(matchIndex + 1)}
-              {@const teamB = getTeam(16 - matchIndex)}
-              {@const teamAWon = isWinner(teamA, teamB)}
-              {@const teamBWon = isWinner(teamB, teamA)}
-              
-              <div id="match{getMatchId(1, region.id, matchIndex)}" 
-                   class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs cursor-pointer h-[40px] flex flex-col rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
-                          ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
-                   style="top: {getMatchTopPosition(1, region.id, matchIndex)}px">
-                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
-                          ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
-                  <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
-                  <span class="ml-auto mr-1 text-gray-200">{teamA.score}</span>
-                </p>
-                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
-                          ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
-                  <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
-                  <span class="ml-auto mr-1 text-gray-200">{teamB.score}</span>
-                </p>
-              </div>
-            {/if}
-          {/each}
-        </div>
-      {/each}
+  {:else if error}
+    <div class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center">
+      {error}
     </div>
-    
-    <!-- Round 2 -->
-    <div class="absolute top-0 left-[115px] w-[720px]">
-      <h3 class="pt-[15px] hidden">Round Two (NCAA Men's Basketball Tournament)</h3>
-      
-      {#each regions as region}
-        <div class="region{region.id}">
-          <h4 class="uppercase text-white pt-[15px] hidden">{region.name}</h4>
-          
-          {#each Array(getMatchesPerRound(2)) as _, matchIndex}
-            {#if true}
-              {@const teamA = getTeam(matchIndex + 1)}
-              {@const teamB = getTeam(8 - matchIndex)}
-              {@const teamAWon = isWinner(teamA, teamB)}
-              {@const teamBWon = isWinner(teamB, teamA)}
-              
-              <div id="match{getMatchId(2, region.id, matchIndex)}" 
-                   class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs cursor-pointer h-[40px] mt-[24px] flex flex-col rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
-                          ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
-                   style="top: {getMatchTopPosition(2, region.id, matchIndex)}px">
-                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
-                          ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
-                  <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
-                  <span class="ml-auto mr-1 text-gray-200">{teamA.score}</span>
-                </p>
-                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
-                          ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
-                  <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
-                  <span class="ml-auto mr-1 text-gray-200">{teamB.score}</span>
-                </p>
-              </div>
-            {/if}
-          {/each}
-        </div>
-      {/each}
+  {:else}
+    <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl">
+      <!-- Live Bracket View Component -->
+      <BracketView
+        mode="live"
+        bracketData={bracketData}
+        isLocked={true}
+        highlightWinners={true}
+        showScores={true}
+      />
     </div>
-    
-    <!-- Round 3 (Sweet 16) -->
-    <div class="absolute top-0 left-[230px] w-[490px]">
-      <h3 class="pt-[15px] hidden">Round Three (NCAA Men's Basketball Tournament)</h3>
-      
-      {#each regions as region}
-        <div class="region{region.id}">
-          <h4 class="uppercase text-white pt-[15px] hidden">{region.name}</h4>
-          
-          {#each Array(getMatchesPerRound(3)) as _, matchIndex}
-            {#if true}
-              {@const teamA = getTeam(matchIndex + 1)}
-              {@const teamB = getTeam(4 - matchIndex)}
-              {@const teamAWon = isWinner(teamA, teamB)}
-              {@const teamBWon = isWinner(teamB, teamA)}
-              
-              <div id="match{getMatchId(3, region.id, matchIndex)}" 
-                   class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs cursor-pointer h-[90px] mt-[50px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
-                          ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
-                   style="top: {getMatchTopPosition(3, region.id, matchIndex)}px">
-                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
-                          ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
-                  <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
-                  <span class="ml-auto mr-1 text-gray-200">{teamA.score}</span>
-                </p>
-                <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
-                          ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-                  <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
-                  <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
-                  <span class="ml-auto mr-1 text-gray-200">{teamB.score}</span>
-                </p>
-              </div>
-            {/if}
-          {/each}
-        </div>
-      {/each}
-    </div>
-    
-    <!-- Round 4 (Elite Eight) -->
-    <div class="absolute top-0 left-[345px] w-[260px]">
-      <h3 class="pt-[15px] hidden">Round Four (NCAA Men's Basketball Tournament)</h3>
-      
-      {#each regions as region}
-        <div class="region{region.id}">
-          <h4 class="uppercase text-white pt-[15px] hidden">{region.name}</h4>
-          
-          {#if true}
-            {@const teamA = getTeam(1)}
-            {@const teamB = getTeam(2)}
-            {@const teamAWon = isWinner(teamA, teamB)}
-            {@const teamBWon = isWinner(teamB, teamA)}
-            
-            <div id="match{getMatchId(4, region.id, 0)}" 
-                 class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs cursor-pointer h-[190px] mt-[100px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
-                        ${region.id === 1 || region.id === 2 ? 'border-l-0 left-0' : 'border-r-0 right-0'}`}
-                 style="top: {getMatchTopPosition(4, region.id, 0)}px">
-              <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
-                        ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-                <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
-                <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
-                <span class="ml-auto mr-1 text-gray-200">{teamA.score}</span>
-              </p>
-              <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
-                        ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-                <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
-                <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
-                <span class="ml-auto mr-1 text-gray-200">{teamB.score}</span>
-              </p>
-            </div>
-          {/if}
-        </div>
-      {/each}
-    </div>
-    
-    <!-- Round 5 (Final Four) -->
-    <div class="absolute top-0 left-[280px] w-[380px]">
-      <h3 class="pt-[15px] hidden">Round Five (NCAA Men's Basketball Tournament)</h3>
-      <div>
-        {#each Array(2) as _, matchIndex}
-          {#if true}
-            {@const teamA = getTeam(1)}
-            {@const teamB = getTeam(1)}
-            {@const teamAWon = isWinner(teamA, teamB)}
-            {@const teamBWon = isWinner(teamB, teamA)}
-            
-            <div id="match{getMatchId(5, 1, matchIndex)}" 
-                 class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs cursor-pointer h-[90px] top-[425px] flex flex-col justify-between rounded-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/80
-                        ${matchIndex === 0 ? 'left-0 border-l-0' : 'right-0 border-r-0'}`}>
-              <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
-                        ${teamAWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-                <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamA.seed}</span>
-                <span class={`truncate ${!teamAWon ? 'line-through' : ''}`}>{teamA.name}</span>
-                <span class="ml-auto mr-1 text-gray-200">{teamA.score}</span>
-              </p>
-              <p class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
-                        ${teamBWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-                <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{teamB.seed}</span>
-                <span class={`truncate ${!teamBWon ? 'line-through' : ''}`}>{teamB.name}</span>
-                <span class="ml-auto mr-1 text-gray-200">{teamB.score}</span>
-              </p>
-            </div>
-          {/if}
-        {/each}
-      </div>
-    </div>
-    
-    <!-- Round 6 (Championship) -->
-    <div class="absolute top-0 left-[395px] w-[150px]">
-      <h3 class="pt-[15px] hidden">Round Six (NCAA Men's Basketball Tournament)</h3>
-      <div>
-        <div id="match63" class="absolute text-white p-0 w-[150px] text-xs cursor-pointer h-[90px] top-[425px] flex flex-col">
-          <p class={`h-[25px] m-0 pl-[5px] whitespace-nowrap text-[13px] leading-[25px] px-[6px] pr-[10px] border-b border-zinc-700 mt-[22px] rounded-t-sm flex items-center
-                    ${championWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-            <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{champion.seed}</span>
-            <span class={`truncate ${!championWon ? 'line-through' : ''}`}>{champion.name}</span>
-            <span class="ml-auto ${championWon ? 'text-red-700/90' : 'text-gray-200'}">{champion.score}</span>
-          </p>
-          <p class={`h-[25px] m-0 pl-[5px] whitespace-nowrap text-[13px] leading-[25px] px-[6px] pr-[10px]rounded-b-sm flex items-center
-                    ${!championWon ? 'bg-amber-800/90 font-medium' : 'bg-zinc-800/80'}`}>
-            <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">{runnerUp.seed}</span>
-            <span class={`truncate ${championWon ? 'line-through' : ''}`}>{runnerUp.name}</span>
-            <span class="ml-auto ${!championWon ? 'text-red-700/90' : 'text-gray-200'}">{runnerUp.score}</span>
-          </p>
-          <div class="relative whitespace-nowrap top-[-160px] mt-[10px] w-[150px]">
-            <div class="text-white text-center bg-amber-700/90 py-3 px-4 rounded-md font-semibold shadow-md">
-              <div class="text-xs uppercase tracking-wider mb-1">Champion</div>
-              <div class="flex items-center justify-center">
-                <span class="inline-block w-[20px] h-[20px] text-center bg-amber-800/90 mr-1 text-[11px] font-bold rounded-full flex items-center justify-center">{champion.seed}</span>
-                <span>{champion.name}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  {/if}
 </div>
+
+<style>
+  :global(body) {
+    background-color: #18181b;
+    color: #f4f4f5;
+  }
+</style>
