@@ -139,32 +139,48 @@
       // Update the winner for this match
       newSelections[matchId - 1] = teamIndex;
 
-      // Get the losing team (the team that was previously winning, if any, or the other team)
+      // Identify the winning team and losing team
+      const winningTeam = teamIndex === 'A' ? currentMatchData.teamA : currentMatchData.teamB;
       const losingTeam = currentMatchData.winner ? 
         (currentMatchData.winner === 'A' ? currentMatchData.teamA : currentMatchData.teamB) :
         (teamIndex === 'A' ? currentMatchData.teamB : currentMatchData.teamA);
       
-      // Clear subsequent matches only if they contain the losing team
-      let currentMatch = matchId;
-      while (currentMatch < 63) {
-        const nextMatch = Math.floor((currentMatch - 1) / 2) + 32;
-        if (nextMatch >= 63) break;
-
-        // Get the teams in the next match
-        const nextMatchData = transformBracketData({
-          ...bracket,
-          selections: newSelections
-        }).matches[nextMatch + 1];
-
-        // Only clear the selection if the losing team was selected to advance
-        if (nextMatchData?.teamA?.name === losingTeam?.name || 
-            nextMatchData?.teamB?.name === losingTeam?.name) {
-          newSelections[nextMatch] = null;
-          currentMatch = nextMatch + 1;
-        } else {
-          break; // If losing team not found, no need to check further matches
+      // We need to track the path of the losing team and clear only those matches
+      // First, create a temporary copy of the bracket with our new selection
+      const tempBracket = {
+        ...bracket,
+        selections: [...newSelections]
+      };
+      
+      // We'll need to simulate the bracket with both the original team winning
+      // and the new team winning to identify exactly which matches to clear
+      
+      // First, let's create a selections array with the original winner
+      const originalSelections = [...bracket.selections];
+      
+      // Then let's run the transform function to see which matches would have the losing team
+      const originalBracket = transformBracketData({
+        ...bracket,
+        selections: originalSelections
+      });
+      
+      // Find the path where the losing team would have appeared
+      const matchesWithLosingTeam = new Set();
+      
+      // Check every match past the current one
+      for (let i = matchId + 1; i <= 63; i++) {
+        const match = originalBracket.matches[i];
+        
+        // If this match contains the losing team, add it to our set
+        if (match?.teamA?.name === losingTeam?.name || match?.teamB?.name === losingTeam?.name) {
+          matchesWithLosingTeam.add(i);
         }
       }
+      
+      // Now clear only those matches that had the losing team
+      matchesWithLosingTeam.forEach(matchId => {
+        newSelections[matchId - 1] = null;
+      });
 
       // Update the bracket in the database
       const { error: updateError } = await supabase

@@ -125,14 +125,16 @@
   function getTeamClass(team, isWinningTeam, isSelected) {
     const classes = [];
     
-    if (mode === 'select' && !isLocked) {
-      classes.push('cursor-pointer hover:border-amber-500/80');
+    if (mode === 'select' && !isLocked && !isSelected) {
+      classes.push('cursor-pointer hover:bg-amber-700/30');
     }
     
     if (isSelected) {
-      classes.push('bg-amber-800/90 font-medium');
+      classes.push('bg-amber-800/90 font-medium cursor-pointer');
     } else if (highlightWinners && isWinningTeam) {
       classes.push('bg-amber-800/90 font-medium');
+    } else if (!team?.name || team?.name === 'TBD') {
+      classes.push('bg-zinc-800/40'); // Lighter shade for TBD cells
     } else {
       classes.push('bg-zinc-800/80');
     }
