@@ -148,9 +148,9 @@
       <!-- Round 1 to 2 connectors -->
       {#each regions as region}
         {#each Array(getMatchesPerRound(2)) as _, matchIndex}
-          <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/20 rounded-r-md
+          <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/30 rounded-r-md
                       ${region.id === 1 || region.id === 2 ? 'left-[115px]' : 'right-[115px] transform rotate-180'}`}
-               style="top: {getMatchTopPosition(2, region.id, matchIndex) + 10}px; 
+               style="top: {getMatchTopPosition(2, region.id, matchIndex) + 5}px; 
                       height: 80px; width: 15px;"></div>
         {/each}
       {/each}
@@ -158,23 +158,20 @@
       <!-- Round 2 to 3 connectors -->
       {#each regions as region}
         {#each Array(getMatchesPerRound(3)) as _, matchIndex}
-          <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/20 rounded-r-md
+          <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/30 rounded-r-md
                       ${region.id === 1 || region.id === 2 ? 'left-[230px]' : 'right-[230px] transform rotate-180'}`}
-               style="top: {getMatchTopPosition(3, region.id, matchIndex) + 20}px; 
-                      height: 160px; width: 15px;"></div>
+               style="top: {getMatchTopPosition(3, region.id, matchIndex)+30}px; 
+                      height: 130px; width: 15px;"></div>
         {/each}
       {/each}
       
       <!-- Round 3 to 4 connectors -->
       {#each regions as region}
-        <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/20 rounded-r-md
+        <div class={`absolute border-r-2 border-t-2 border-b-2 border-amber-700/30 rounded-r-md
                     ${region.id === 1 || region.id === 2 ? 'left-[345px]' : 'right-[345px] transform rotate-180'}`}
-             style="top: {getMatchTopPosition(4, region.id, 0) + 40}px; 
-                    height: 320px; width: 15px;"></div>
+             style="top: {getMatchTopPosition(4, region.id, 0) + 55}px; 
+                    height: 280px; width: 15px;"></div>
       {/each}
-      
-      <!-- Final Four connectors -->
-      <div class="absolute left-[395px] top-[425px] border-t-2 border-amber-700/20" style="width: 150px; height: 1px;"></div>
     </div>
     
     <!-- Round 1 -->
