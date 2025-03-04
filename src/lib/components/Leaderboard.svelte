@@ -1,7 +1,5 @@
 <script>
   import { onMount } from 'svelte';
-  import { user } from '$lib/stores/user';
-  import { supabase } from '$lib/supabaseClient';
   
   let leaderboardData = [];
   let error = null;

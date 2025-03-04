@@ -1,109 +1,100 @@
-<script>
-  import { onMount } from 'svelte';
-  import { user } from '$lib/stores/user';
-  import { goto } from '$app/navigation';
-  import { page } from '$app/stores';
-  
-  let email = '';
-  let password = '';
-  let isSubmitting = false;
-  let error = '';
-  let redirectTo = '/';
-  
-  onMount(() => {
-    // Check if there's a redirect parameter
-    redirectTo = $page.url.searchParams.get('redirect') || '/';
-    
-    // If user is already logged in, redirect
-    if ($user) {
-      goto(redirectTo);
-    }
-  });
-  
-  async function handleSubmit() {
-    error = '';
-    isSubmitting = true;
-    
-    if (!email || !password) {
-      error = 'Please enter both email and password';
-      isSubmitting = false;
-      return;
-    }
-    
+<script lang="ts">
+  import { supabase } from '$lib/supabase'
+  import { goto } from '$app/navigation'
+
+  let email = ''
+  let password = ''
+  let loading = false
+  let error: string | null = null
+
+  async function handleLogin() {
     try {
-      const { data, error: signInError } = await user.signIn(email, password);
-      
-      if (signInError) {
-        error = signInError.message;
-      } else {
-        // Redirect after successful login
-        goto(redirectTo);
+      loading = true
+      const { data, error: err } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (err) throw err
+
+      if (data.user) {
+        goto('/')
       }
     } catch (err) {
-      error = err.message;
+      error = err.message
     } finally {
-      isSubmitting = false;
+      loading = false
     }
   }
 </script>
 
 <div class="container mx-auto px-4 py-8 flex justify-center items-center min-h-[50vh]">
   <div class="w-full max-w-md mx-auto px-4 sm:px-0">
-    <div class="bg-zinc-900 bg-opacity-90 border border-zinc-800 rounded-lg shadow-xl overflow-hidden text-zinc-100">
-      <div class="px-6 py-6 border-b border-zinc-800">
-        <h1 class="text-3xl font-bold text-amber-600 text-center">Sign In</h1>
+    <div class="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl p-8 shadow-lg border border-zinc-700">
+      <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold">
+          <span class="bg-gradient-to-r from-amber-700 to-amber-600 text-white px-4 py-2 rounded-lg shadow-md inline-block">
+            Sign In
+          </span>
+        </h1>
       </div>
-      
-      <div class="px-6 py-6">
-        {#if error}
-          <div class="bg-red-900/50 border border-red-800 text-red-100 px-4 py-3 rounded text-sm mb-5" role="alert">
-            <span>{error}</span>
-          </div>
-        {/if}
-        
-        <form on:submit|preventDefault={handleSubmit} class="space-y-5">
-          <div>
-            <label for="email" class="block text-zinc-300 text-sm font-medium mb-2">Email</label>
-            <input
-              type="email"
-              id="email"
-              bind:value={email}
-              class="w-full px-4 py-3 bg-zinc-900 bg-opacity-90 border border-zinc-700 rounded focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600 text-white placeholder-zinc-500"
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-          
-          <div>
-            <label for="password" class="block text-zinc-300 text-sm font-medium mb-2">Password</label>
-            <input
-              type="password"
-              id="password"
-              bind:value={password}
-              class="w-full px-4 py-3 bg-zinc-900 bg-opacity-90 border border-zinc-700 rounded focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600 text-white placeholder-zinc-500"
-              placeholder="Enter your password"
-              required
-            />
-          </div>
-          
-          <div class="pt-2">
-            <button
-              type="submit"
-              class="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-4 rounded transition duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 disabled:opacity-50"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
-            </button>
-          </div>
-        </form>
-        
-        <div class="mt-6 text-center">
-          <p class="text-zinc-400">
-            Don't have an account?
-            <a href="/register" class="text-amber-500 hover:text-amber-400 hover:underline">Register</a>
-          </p>
+      <form class="space-y-6" on:submit|preventDefault={handleLogin}>
+        <div>
+          <label for="email" class="block text-sm font-medium text-zinc-300 mb-2">
+            Email address
+          </label>
+          <input
+            bind:value={email}
+            id="email"
+            name="email"
+            type="email"
+            required
+            class="block w-full rounded-lg border-0 bg-zinc-800 text-zinc-100 py-2.5 px-3 shadow-sm ring-1 ring-inset ring-zinc-700 placeholder:text-zinc-500 focus:ring-2 focus:ring-inset focus:ring-amber-600 sm:text-sm"
+          />
         </div>
-      </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium text-zinc-300 mb-2">
+            Password
+          </label>
+          <input
+            bind:value={password}
+            id="password"
+            name="password"
+            type="password"
+            required
+            class="block w-full rounded-lg border-0 bg-zinc-800 text-zinc-100 py-2.5 px-3 shadow-sm ring-1 ring-inset ring-zinc-700 placeholder:text-zinc-500 focus:ring-2 focus:ring-inset focus:ring-amber-600 sm:text-sm"
+          />
+        </div>
+
+        {#if error}
+          <div class="text-red-500 text-sm bg-red-950/50 p-3 rounded-lg border border-red-900">{error}</div>
+        {/if}
+
+        <div>
+          <button
+            type="submit"
+            disabled={loading}
+            class="flex w-full justify-center rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-amber-600 hover:to-amber-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </div>
+      </form>
+
+      <p class="mt-8 text-center text-sm text-zinc-400">
+        Not a member?
+        <a href="/register" class="font-semibold text-amber-600 hover:text-amber-500 transition-colors duration-200">
+          Register here
+        </a>
+      </p>
     </div>
   </div>
-</div> 
+</div>
+
+<style>
+  :global(body) {
+    background-color: #18181b;
+    color: #f4f4f5;
+  }
+</style>

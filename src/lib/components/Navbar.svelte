@@ -1,9 +1,26 @@
 <script>
   import { onMount } from 'svelte';
-  import { user } from '$lib/stores/user';
   import { goto } from '$app/navigation';
+  import { supabase } from '$lib/supabase';
   
   let isMenuOpen = false;
+  let user = null;
+  
+  onMount(async () => {
+    // Get initial auth state
+    const { data: { user: initialUser } } = await supabase.auth.getUser();
+    user = initialUser;
+    
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      user = session?.user || null;
+    });
+
+    // Cleanup subscription on component destroy
+    return () => {
+      subscription?.unsubscribe();
+    };
+  });
   
   function toggleMenu() {
     isMenuOpen = !isMenuOpen;
@@ -16,12 +33,12 @@
   async function handleLogout(event) {
     event.preventDefault();
     try {
-      const { error } = await user.signOut();
+      const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Error signing out:', error);
+      } else {
+        goto('/');
       }
-      // Redirect to home page after logout
-      goto('/');
     } catch (err) {
       console.error('Unexpected error during logout:', err);
     }
@@ -89,10 +106,10 @@
             <a href="/scenarios" class="nav-link">
               <div class="nav-button">Scenarios</div>
             </a>
-            {#if $user}
-              <a href="/" on:click|preventDefault={handleLogout} class="nav-link">
+            {#if user}
+              <button on:click={handleLogout} class="nav-link">
                 <div class="nav-button">Logout</div>
-              </a>
+              </button>
             {:else}
               <a href="/login" class="nav-link">
                 <div class="nav-button">Login</div>
@@ -121,8 +138,8 @@
           <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a>
           <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a>
           <a href="/scenarios" class="mobile-nav-button" on:click={closeMenu}>Scenarios</a>
-          {#if $user}
-            <a href="/" on:click|preventDefault={(e) => { handleLogout(e); closeMenu(); }} class="mobile-nav-button">Logout</a>
+          {#if user}
+            <button on:click={handleLogout} class="mobile-nav-button w-full">Logout</button>
           {:else}
             <a href="/login" class="mobile-nav-button" on:click={closeMenu}>Login</a>
           {/if}
