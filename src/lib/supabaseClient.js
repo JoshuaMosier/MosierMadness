@@ -20,7 +20,38 @@ export async function query(tableName, queryFn) {
     
     return data || [];
   } catch (error) {
-    console.error('Database error:', error);
+    console.error(`Error querying ${tableName}:`, error);
     throw error;
+  }
+}
+
+// Function to create a user record bypassing RLS
+export async function createUserRecord(userId, userData) {
+  try {
+    // First try with regular client
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{ id: userId, ...userData }])
+      .select()
+      .single();
+    
+    if (!error) {
+      return { data, error: null };
+    }
+    
+    // If there's an RLS error, we'll need to handle it differently
+    console.warn('RLS policy prevented user creation. You may need to add the appropriate policy.');
+    console.error('Error creating user record:', error);
+    
+    return { 
+      data: null, 
+      error: {
+        ...error,
+        message: 'Unable to create user record due to security policies. Please contact the administrator.'
+      }
+    };
+  } catch (error) {
+    console.error('Error in createUserRecord:', error);
+    return { data: null, error };
   }
 } 

@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import { supabase } from '$lib/supabaseClient';
+import { supabase, createUserRecord } from '$lib/supabaseClient';
 
 // Create a writable store with initial value of null (not authenticated)
 const userStore = writable(null);
@@ -39,6 +39,7 @@ export const user = {
   set: userStore.set,
   update: userStore.update,
   signUp: async (email, password, firstname, lastname) => {
+    // First, create the auth user
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -49,6 +50,50 @@ export const user = {
         }
       }
     });
+    
+    if (error) {
+      return { data, error };
+    }
+    
+    // If auth signup was successful, create a record in the users table
+    if (data?.user) {
+      const { error: insertError } = await createUserRecord(data.user.id, {
+        firstname,
+        lastname,
+        email
+      });
+      
+      if (insertError) {
+        console.error('Error creating user record:', insertError);
+        return { data, error: insertError };
+      }
+      
+      // Create default bracket entries for the user
+      try {
+        // Get current year
+        const currentYear = new Date().getFullYear();
+        
+        // Create a default bracket for the current year
+        const { error: bracketError } = await supabase
+          .from('brackets')
+          .insert([
+            {
+              user_id: data.user.id,
+              year: currentYear,
+              selections: []
+            }
+          ]);
+        
+        if (bracketError) {
+          console.error('Error creating default bracket:', bracketError);
+          // We don't want to fail registration if bracket creation fails
+          // Just log the error and continue
+        }
+      } catch (bracketError) {
+        console.error('Error in bracket creation:', bracketError);
+        // Continue with registration even if bracket creation fails
+      }
+    }
     
     return { data, error };
   },
@@ -85,5 +130,33 @@ export const user = {
       .single();
     
     return { data, error };
+  },
+  
+  // Create a user record for an existing auth user
+  createUserRecord: async (firstname, lastname) => {
+    let currentUser;
+    userStore.subscribe(value => {
+      currentUser = value;
+    })();
+    
+    if (!currentUser) return { error: new Error('Not authenticated') };
+    
+    // Check if user record already exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+    
+    if (existingUser) {
+      return { data: existingUser, error: null };
+    }
+    
+    // Create user record using the helper function
+    return await createUserRecord(currentUser.id, {
+      firstname: firstname || currentUser.user_metadata?.firstname || 'User',
+      lastname: lastname || currentUser.user_metadata?.lastname || 'Name',
+      email: currentUser.email
+    });
   }
 }; 

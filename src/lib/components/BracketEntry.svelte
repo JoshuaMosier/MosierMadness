@@ -14,6 +14,14 @@
   let messageType = 'info'; // 'info', 'success', 'error'
   let isLoading = true;
   
+  // Define regions
+  const regions = [
+    { name: "South", startIndex: 0 },
+    { name: "East", startIndex: 16 },
+    { name: "Midwest", startIndex: 32 },
+    { name: "West", startIndex: 48 }
+  ];
+  
   onMount(async () => {
     try {
       teams = await getBracketTeams();
@@ -138,107 +146,140 @@
             </div>
           </div>
           
-          <!-- South Region (First Quadrant) -->
-          <div class="mt-8 mb-12">
-            <h3 class="text-xl font-bold mb-4 text-mm-blue">South Region</h3>
-            <div class="flex">
-              <!-- First round -->
-              <div class="bracket-column px-2">
-                {#each Array(8) as _, i}
-                  <div class="mb-2 game-pair">
-                    <button 
-                      type="button"
-                      class={`w-full text-left p-2 border cursor-pointer hover:bg-blue-50 ${selections[i*2] === teams[i*2] ? 'bg-blue-100 font-bold' : ''}`}
-                      on:click={() => selectTeam(i*2, teams[i*2])}
-                      on:keydown={(e) => e.key === 'Enter' && selectTeam(i*2, teams[i*2])}
-                    >
-                      {teams[i*2]}
-                    </button>
-                    <button 
-                      type="button"
-                      class={`w-full text-left p-2 border border-t-0 cursor-pointer hover:bg-blue-50 ${selections[i*2+1] === teams[i*2+1] ? 'bg-blue-100 font-bold' : ''}`}
-                      on:click={() => selectTeam(i*2+1, teams[i*2+1])}
-                      on:keydown={(e) => e.key === 'Enter' && selectTeam(i*2+1, teams[i*2+1])}
-                    >
-                      {teams[i*2+1]}
-                    </button>
+          <!-- Render each region -->
+          {#each regions as region, regionIndex}
+            <div class="mt-8 mb-12">
+              <h3 class="text-xl font-bold mb-4 text-mm-blue">{region.name} Region</h3>
+              <div class="flex">
+                <!-- First round (Round of 64) -->
+                <div class="bracket-column px-2">
+                  {#each Array(8) as _, i}
+                    {@const teamIndex1 = region.startIndex + i * 2}
+                    {@const teamIndex2 = region.startIndex + i * 2 + 1}
+                    <div class="mb-2 game-pair">
+                      <button 
+                        type="button"
+                        class={`w-full text-left p-2 border cursor-pointer hover:bg-blue-50 ${selections[teamIndex1] === teams[teamIndex1] ? 'bg-blue-100 font-bold' : ''}`}
+                        on:click={() => selectTeam(teamIndex1, teams[teamIndex1])}
+                        on:keydown={(e) => e.key === 'Enter' && selectTeam(teamIndex1, teams[teamIndex1])}
+                      >
+                        {teams[teamIndex1] || `Team ${teamIndex1 + 1}`}
+                      </button>
+                      <button 
+                        type="button"
+                        class={`w-full text-left p-2 border border-t-0 cursor-pointer hover:bg-blue-50 ${selections[teamIndex2] === teams[teamIndex2] ? 'bg-blue-100 font-bold' : ''}`}
+                        on:click={() => selectTeam(teamIndex2, teams[teamIndex2])}
+                        on:keydown={(e) => e.key === 'Enter' && selectTeam(teamIndex2, teams[teamIndex2])}
+                      >
+                        {teams[teamIndex2] || `Team ${teamIndex2 + 1}`}
+                      </button>
+                    </div>
+                  {/each}
+                </div>
+                
+                <!-- Second round (Round of 32) -->
+                <div class="bracket-column px-2">
+                  {#each Array(4) as _, i}
+                    {@const gameIndex = 32 + regionIndex * 4 + i}
+                    <div class="mb-8 game-pair">
+                      <button 
+                        type="button"
+                        class={`w-full text-left p-2 border cursor-pointer hover:bg-blue-50 ${selections[gameIndex] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
+                        on:click={() => selections[gameIndex] && selectTeam(gameIndex, selections[gameIndex])}
+                        on:keydown={(e) => e.key === 'Enter' && selections[gameIndex] && selectTeam(gameIndex, selections[gameIndex])}
+                      >
+                        {selections[gameIndex] || 'Winner'}
+                      </button>
+                    </div>
+                  {/each}
+                </div>
+                
+                <!-- Sweet 16 -->
+                <div class="bracket-column px-2">
+                  {#each Array(2) as _, i}
+                    {@const gameIndex = 48 + regionIndex * 2 + i}
+                    <div class="mb-20 game-pair">
+                      <button 
+                        type="button"
+                        class={`w-full text-left p-2 border cursor-pointer hover:bg-blue-50 ${selections[gameIndex] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
+                        on:click={() => selections[gameIndex] && selectTeam(gameIndex, selections[gameIndex])}
+                        on:keydown={(e) => e.key === 'Enter' && selections[gameIndex] && selectTeam(gameIndex, selections[gameIndex])}
+                      >
+                        {selections[gameIndex] || 'Winner'}
+                      </button>
+                    </div>
+                  {/each}
+                </div>
+                
+                <!-- Elite 8 -->
+                <div class="bracket-column px-2">
+                  <div class="mb-48 game-pair">
+                    {#if true}
+                      {@const gameIndex = 56 + regionIndex}
+                      <button 
+                        type="button"
+                        class={`w-full text-left p-2 border cursor-pointer hover:bg-blue-50 ${selections[gameIndex] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
+                        on:click={() => selections[gameIndex] && selectTeam(gameIndex, selections[gameIndex])}
+                        on:keydown={(e) => e.key === 'Enter' && selections[gameIndex] && selectTeam(gameIndex, selections[gameIndex])}
+                      >
+                        {selections[gameIndex] || `${region.name} Champion`}
+                      </button>
+                    {/if}
                   </div>
-                {/each}
-              </div>
-              
-              <!-- Second round -->
-              <div class="bracket-column px-2">
-                {#each Array(4) as _, i}
-                  <div class="mb-8 game-pair">
-                    <div 
-                      class={`p-2 border cursor-pointer hover:bg-blue-50 ${selections[32+i] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
-                    >
-                      {selections[32+i] || 'Winner'}
+                </div>
+                
+                <!-- Only show Final Four and Championship in the first region -->
+                {#if regionIndex === 0}
+                  <!-- Final Four (left side) -->
+                  <div class="bracket-column px-2">
+                    <div class="mb-48 game-pair">
+                      <button 
+                        type="button"
+                        class={`w-full text-left p-2 border cursor-pointer hover:bg-blue-50 ${selections[60] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
+                        on:click={() => selections[60] && selectTeam(60, selections[60])}
+                        on:keydown={(e) => e.key === 'Enter' && selections[60] && selectTeam(60, selections[60])}
+                      >
+                        {selections[60] || 'Final Four Winner'}
+                      </button>
                     </div>
                   </div>
-                {/each}
-              </div>
-              
-              <!-- Sweet 16 -->
-              <div class="bracket-column px-2">
-                {#each Array(2) as _, i}
-                  <div class="mb-20 game-pair">
-                    <div 
-                      class={`p-2 border cursor-pointer hover:bg-blue-50 ${selections[48+i] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
-                    >
-                      {selections[48+i] || 'Winner'}
+                  
+                  <!-- Championship -->
+                  <div class="bracket-column px-2">
+                    <div class="mb-48 game-pair">
+                      <button 
+                        type="button"
+                        class={`w-full text-left p-2 border cursor-pointer hover:bg-blue-50 ${selections[62] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
+                        on:click={() => selections[62] && selectTeam(62, selections[62])}
+                        on:keydown={(e) => e.key === 'Enter' && selections[62] && selectTeam(62, selections[62])}
+                      >
+                        {selections[62] || 'National Champion'}
+                      </button>
                     </div>
                   </div>
-                {/each}
-              </div>
-              
-              <!-- Elite 8 -->
-              <div class="bracket-column px-2">
-                <div class="mb-48 game-pair">
-                  <div 
-                    class={`p-2 border cursor-pointer hover:bg-blue-50 ${selections[56] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
-                  >
-                    {selections[56] || 'South Champion'}
+                  
+                  <!-- Final Four (right side) -->
+                  <div class="bracket-column px-2">
+                    <div class="mb-48 game-pair">
+                      <button 
+                        type="button"
+                        class={`w-full text-left p-2 border cursor-pointer hover:bg-blue-50 ${selections[61] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
+                        on:click={() => selections[61] && selectTeam(61, selections[61])}
+                        on:keydown={(e) => e.key === 'Enter' && selections[61] && selectTeam(61, selections[61])}
+                      >
+                        {selections[61] || 'Final Four Winner'}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </div>
-              
-              <!-- Final Four and Championship will be in the center -->
-              <div class="bracket-column px-2">
-                <div class="mb-48 game-pair">
-                  <div 
-                    class={`p-2 border cursor-pointer hover:bg-blue-50 ${selections[60] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
-                  >
-                    {selections[60] || 'Final Four Winner'}
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Championship -->
-              <div class="bracket-column px-2">
-                <div class="mb-48 game-pair">
-                  <div 
-                    class={`p-2 border cursor-pointer hover:bg-blue-50 ${selections[62] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
-                  >
-                    {selections[62] || 'National Champion'}
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Final Four (right side) -->
-              <div class="bracket-column px-2">
-                <div class="mb-48 game-pair">
-                  <div 
-                    class={`p-2 border cursor-pointer hover:bg-blue-50 ${selections[61] ? 'bg-blue-100 font-bold' : 'bg-gray-50'}`}
-                  >
-                    {selections[61] || 'Final Four Winner'}
-                  </div>
-                </div>
+                {:else}
+                  <!-- Empty columns for other regions to maintain layout -->
+                  <div class="bracket-column px-2"></div>
+                  <div class="bracket-column px-2"></div>
+                  <div class="bracket-column px-2"></div>
+                {/if}
               </div>
             </div>
-          </div>
-          
-          <!-- Add other regions similarly -->
+          {/each}
         </div>
       </div>
     </div>
@@ -262,5 +303,29 @@
     width: 10px;
     height: 1px;
     background-color: #ccc;
+  }
+  
+  /* Add connecting lines between rounds */
+  .bracket-column:not(:last-child) .game-pair::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -10px;
+    width: 20px;
+    height: 1px;
+    background-color: #ccc;
+  }
+  
+  /* Style for buttons */
+  button {
+    transition: all 0.2s ease;
+  }
+  
+  button:hover {
+    transform: translateX(2px);
+  }
+  
+  button:active {
+    transform: translateX(0);
   }
 </style> 

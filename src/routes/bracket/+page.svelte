@@ -8,6 +8,7 @@
   let userBracket = null;
   let isLoading = true;
   let error = null;
+  let userProfile = null;
   
   onMount(async () => {
     // Check if user is logged in
@@ -17,6 +18,17 @@
     }
     
     try {
+      // First check if the user has a profile in the users table
+      const { data: profileData, error: profileError } = await user.getProfile();
+      
+      if (profileError || !profileData) {
+        // If there's no profile, redirect to create one
+        goto('/create-user-record');
+        return;
+      }
+      
+      userProfile = profileData;
+      
       // Get the user's bracket if it exists
       const { data, error: bracketError } = await getUserBracket($user.id);
       
@@ -34,6 +46,11 @@
     }
   });
 </script>
+
+<svelte:head>
+  <title>Mosier Madness - Bracket Entry</title>
+  <meta name="description" content="Fill out your March Madness bracket" />
+</svelte:head>
 
 <div class="container mx-auto px-4 py-8">
   <div class="text-center mb-8">
@@ -66,7 +83,7 @@
       </div>
     </div>
   {:else}
-    <div class="card">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       <BracketEntry initialSelections={userBracket?.selections || Array(63).fill('')} />
     </div>
   {/if}

@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { user } from '$lib/stores/user';
+  import { goto } from '$app/navigation';
   
   let isMenuOpen = false;
   
@@ -10,6 +11,20 @@
   
   function closeMenu() {
     isMenuOpen = false;
+  }
+
+  async function handleLogout(event) {
+    event.preventDefault();
+    try {
+      const { error } = await user.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+      }
+      // Redirect to home page after logout
+      goto('/');
+    } catch (err) {
+      console.error('Unexpected error during logout:', err);
+    }
   }
 </script>
 
@@ -75,7 +90,7 @@
               <div class="nav-button">Scenarios</div>
             </a>
             {#if $user}
-              <a href="/logout" class="nav-link">
+              <a href="/" on:click|preventDefault={handleLogout} class="nav-link">
                 <div class="nav-button">Logout</div>
               </a>
             {:else}
@@ -107,7 +122,7 @@
           <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a>
           <a href="/scenarios" class="mobile-nav-button" on:click={closeMenu}>Scenarios</a>
           {#if $user}
-            <a href="/logout" class="mobile-nav-button" on:click={closeMenu}>Logout</a>
+            <a href="/" on:click|preventDefault={(e) => { handleLogout(e); closeMenu(); }} class="mobile-nav-button">Logout</a>
           {:else}
             <a href="/login" class="mobile-nav-button" on:click={closeMenu}>Login</a>
           {/if}

@@ -1,4 +1,4 @@
-import { supabase } from './auth';
+import { supabase } from '$lib/supabaseClient';
 
 // Save a user's bracket
 export async function saveBracket(userId, selections) {

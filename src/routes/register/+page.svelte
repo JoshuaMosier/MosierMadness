@@ -144,6 +144,10 @@
               {isSubmitting ? 'Registering...' : 'Register'}
             </button>
           </div>
+          
+          <div class="mt-4 text-xs text-zinc-400 text-center">
+            <p>A default bracket will be created for you automatically.</p>
+          </div>
         </form>
         
         <div class="mt-6 text-center">
