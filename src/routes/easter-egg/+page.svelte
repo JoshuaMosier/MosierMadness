@@ -12,8 +12,6 @@
     let world: Matter.World;
     let ball: Matter.Body;
     let rim: Matter.Body;
-    let leftNet: Matter.Body;
-    let rightNet: Matter.Body;
     let isDragging = false;
     let startPos = { x: 0, y: 0 };
     let containerWidth = 0;
@@ -25,21 +23,18 @@
     let isScoring = false;
 
     // Constants
-    const BALL_RADIUS = 20;
+    const BALL_RADIUS = 25;
     const RIM_WIDTH = 120;
     const RIM_HEIGHT = 5;
-    const NET_WIDTH = 5;
-    const NET_HEIGHT = 80;
-    const NET_ANGLE = 10;
+    const NET_HEIGHT = 100;
     const SCORE_COOLDOWN = 100;
     const DEFAULT_X = 200;
     const DEFAULT_Y = 200;
     const PLATFORM_WIDTH = 60;
-    const PLATFORM_HEIGHT = 10;
+    const PLATFORM_HEIGHT = 8;
     const BACKBOARD_WIDTH = 10;
-    const BACKBOARD_HEIGHT = 100;
+    const BACKBOARD_HEIGHT = 120;
     const NET_SEGMENTS = 8;
-    const NET_STIFFNESS = 0.1;
     
     // Collision categories
     const Categories = {
@@ -53,7 +48,7 @@
     // Game visual settings
     const BALL_COLOR = '#ff6b00';
     const BALL_STROKE = '#c65200';
-    const RIM_COLOR = '#f59e0b';
+    const RIM_COLOR = '#ad2411';
     const NET_COLOR = 'rgba(255, 255, 255, 0.4)';
     const BACKBOARD_COLOR = '#cbd5e1';
     const PLATFORM_COLOR = '#475569';
@@ -662,7 +657,7 @@
             const backboard = createBackboard(containerWidth - 150, 250);
 
             // Create the platform
-            const platform = createPlatform(DEFAULT_X, containerHeight - DEFAULT_Y + BALL_RADIUS * 2 - 40);
+            const platform = createPlatform(DEFAULT_X, containerHeight - DEFAULT_Y + BALL_RADIUS * 2 - 45);
 
             // Add all bodies to the world
             Matter.World.add(world, [
@@ -873,17 +868,6 @@
         background-color: rgba(39, 39, 42, 0.8);
         padding: 15px 25px;
         border-radius: 10px;
-    }
-
-    .score-effect {
-        position: absolute;
-        font-size: 24px;
-        font-weight: bold;
-        color: #fbbf24;
-        text-shadow: 0 0 5px rgba(0,0,0,0.5);
-        animation: score-animation 1s ease-out forwards;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
     }
 
     @keyframes score-animation {
