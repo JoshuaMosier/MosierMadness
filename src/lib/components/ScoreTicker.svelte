@@ -83,42 +83,56 @@
     No games scheduled at this time.
   </div>
 {:else}
-  <div class="w-full bg-black bg-opacity-20 backdrop-blur-sm rounded-lg shadow-lg border border-white/10">
+  <div class="w-full bg-black bg-opacity-20 backdrop-blur-sm rounded-lg shadow-lg">
     <!-- Featured mode for 1-4 games - show in a static layout -->
     {#if displayMode === 'featured'}
       <div class="p-2">
         <div class="flex flex-wrap gap-2 justify-center">
           {#each matches as game, index}
             <a href="/game/{index}" class="flex-shrink-0 w-64">
-              <div class="game-box bg-black bg-opacity-30 rounded-lg p-2 border border-white/10 hover:border-white/30 hover:bg-black/50 transition-all transform hover:-translate-y-1">
-                <div class="game-date flex justify-between items-center mb-1 text-sm">
-                  <span>{game[3] || ''}</span>
-                  <span class="game-prog {getStatusColor(game[2])} font-semibold">{game[2].toUpperCase()}</span>
+              <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
+                <div class="game-date flex justify-between items-center mb-3">
+                  <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
+                  <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 py-1 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
                 </div>
                 
-                <div class="game-teams">
+                <div class="game-teams space-y-3">
                   <!-- Away Team -->
-                  <div class="game-team flex justify-between items-center py-1 {isWinner(game[0]) ? 'font-bold' : ''}">
-                    <div class="flex items-center">
-                      <img width="24" height="24" class="mr-2" alt="{game[0][0]} logo" 
-                           src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
-                           on:error={handleImageError}>
-                      <span class="rank text-xs bg-gray-800 text-white px-1 rounded mr-1">{game[0][2]}</span>
-                      <span class="{isWinner(game[0]) ? '' : isWinner(game[1]) ? 'line-through opacity-75' : ''}">{game[0][0]}</span>
+                  <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
+                    <div class="flex items-center flex-1 min-w-0">
+                      <div class="relative w-8 h-8 mr-3">
+                        <img class="w-full h-full object-contain transition-transform" 
+                             alt="{game[0][0]} logo" 
+                             src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
+                             on:error={handleImageError}>
+                      </div>
+                      <div class="truncate">
+                        {#if game[0][2]}
+                          <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
+                        {/if}
+                        <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors">{game[0][0]}</span>
+                      </div>
                     </div>
-                    <span class="score-value text-lg font-semibold">{game[0][1]}</span>
+                    <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
                   </div>
                   
                   <!-- Home Team -->
-                  <div class="game-team flex justify-between items-center py-1 {isWinner(game[1]) ? 'font-bold' : ''}">
-                    <div class="flex items-center">
-                      <img width="24" height="24" class="mr-2" alt="{game[1][0]} logo" 
-                           src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
-                           on:error={handleImageError}>
-                      <span class="rank text-xs bg-gray-800 text-white px-1 rounded mr-1">{game[1][2]}</span>
-                      <span class="{isWinner(game[1]) ? '' : isWinner(game[0]) ? 'line-through opacity-75' : ''}">{game[1][0]}</span>
+                  <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
+                    <div class="flex items-center flex-1 min-w-0">
+                      <div class="relative w-8 h-8 mr-3">
+                        <img class="w-full h-full object-contain transition-transform" 
+                             alt="{game[1][0]} logo" 
+                             src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
+                             on:error={handleImageError}>
+                      </div>
+                      <div class="truncate">
+                        {#if game[1][2]}
+                          <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
+                        {/if}
+                        <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors">{game[1][0]}</span>
+                      </div>
                     </div>
-                    <span class="score-value text-lg font-semibold">{game[1][1]}</span>
+                    <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
                   </div>
                 </div>
               </div>
@@ -132,11 +146,8 @@
       <div class="relative">
         <!-- View All Scores Button -->
         <div class="absolute -top-10 right-0">
-          <a href="/scores" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1 border border-white/10">
+          <a href="/scores" class="bg-black/40 hover:bg-black/60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border border-white/10 hover:border-white/30 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02]">
             <span>View All Games</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-            </svg>
           </a>
         </div>
 
@@ -145,35 +156,49 @@
           <div class="md:hidden flex overflow-x-auto py-2 px-1 scrollbar-hide">
             {#each matches as game, index}
               <a href="/game/{index}" class="flex-shrink-0 mx-1 w-64">
-                <div class="game-box bg-black bg-opacity-30 rounded-lg p-2 border border-white/10 hover:border-white/30 transition-all">
-                  <div class="game-date flex justify-between items-center mb-1 text-sm">
-                    <span>{game[3] || ''}</span>
-                    <span class="game-prog {getStatusColor(game[2])} font-semibold">{game[2].toUpperCase()}</span>
+                <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
+                  <div class="game-date flex justify-between items-center mb-3">
+                    <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
+                    <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 py-1 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
                   </div>
                   
-                  <div class="game-teams">
+                  <div class="game-teams space-y-3">
                     <!-- Away Team -->
-                    <div class="game-team flex justify-between items-center py-1 {isWinner(game[0]) ? 'font-bold' : ''}">
-                      <div class="flex items-center">
-                        <img width="24" height="24" class="mr-2" alt="{game[0][0]} logo" 
-                             src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
-                             on:error={handleImageError}>
-                        <span class="rank text-xs bg-gray-800 text-white px-1 rounded mr-1">{game[0][2]}</span>
-                        <span class="{isWinner(game[0]) ? '' : isWinner(game[1]) ? 'line-through opacity-75' : ''}">{game[0][0]}</span>
+                    <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
+                      <div class="flex items-center flex-1 min-w-0">
+                        <div class="relative w-8 h-8 mr-3">
+                          <img class="w-full h-full object-contain transition-transform" 
+                               alt="{game[0][0]} logo" 
+                               src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
+                               on:error={handleImageError}>
+                        </div>
+                        <div class="truncate">
+                          {#if game[0][2]}
+                            <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
+                          {/if}
+                          <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors">{game[0][0]}</span>
+                        </div>
                       </div>
-                      <span class="score-value text-lg font-semibold">{game[0][1]}</span>
+                      <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
                     </div>
                     
                     <!-- Home Team -->
-                    <div class="game-team flex justify-between items-center py-1 {isWinner(game[1]) ? 'font-bold' : ''}">
-                      <div class="flex items-center">
-                        <img width="24" height="24" class="mr-2" alt="{game[1][0]} logo" 
-                             src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
-                             on:error={handleImageError}>
-                        <span class="rank text-xs bg-gray-800 text-white px-1 rounded mr-1">{game[1][2]}</span>
-                        <span class="{isWinner(game[1]) ? '' : isWinner(game[0]) ? 'line-through opacity-75' : ''}">{game[1][0]}</span>
+                    <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
+                      <div class="flex items-center flex-1 min-w-0">
+                        <div class="relative w-8 h-8 mr-3">
+                          <img class="w-full h-full object-contain transition-transform" 
+                               alt="{game[1][0]} logo" 
+                               src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
+                               on:error={handleImageError}>
+                        </div>
+                        <div class="truncate">
+                          {#if game[1][2]}
+                            <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
+                          {/if}
+                          <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors">{game[1][0]}</span>
+                        </div>
                       </div>
-                      <span class="score-value text-lg font-semibold">{game[1][1]}</span>
+                      <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
                     </div>
                   </div>
                 </div>
@@ -182,39 +207,109 @@
           </div>
           
           <!-- Desktop view: auto-scrolling marquee -->
-          <div class="hidden md:block overflow-hidden">
-            <div class="flex animate-marquee whitespace-nowrap">
+          <div class="hidden md:block overflow-hidden relative">
+            <!-- Gradient masks for smooth fade effect -->
+            <div class="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black to-transparent z-10"></div>
+            <div class="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black to-transparent z-10"></div>
+            
+            <div class="flex animate-marquee whitespace-nowrap hover:pause-animation">
               {#each duplicatedMatches as game, index}
-                <a href="/game/{index % matches.length}" class="flex-shrink-0 mx-2 w-64">
-                  <div class="game-box bg-black bg-opacity-30 rounded-lg p-2 border border-white/10 hover:border-white/30 hover:bg-black/50 transition-all transform hover:-translate-y-1">
-                    <div class="game-date flex justify-between items-center mb-1 text-sm">
-                      <span>{game[3] || ''}</span>
-                      <span class="game-prog {getStatusColor(game[2])} font-semibold">{game[2].toUpperCase()}</span>
+                <a href="/game/{index % matches.length}" class="flex-shrink-0 mx-2 w-64 transition-transform duration-300">
+                  <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
+                    <div class="game-date flex justify-between items-center mb-3">
+                      <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
+                      <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
                     </div>
                     
-                    <div class="game-teams">
+                    <div class="game-teams space-y-3">
                       <!-- Away Team -->
-                      <div class="game-team flex justify-between items-center py-1 {isWinner(game[0]) ? 'font-bold' : ''}">
-                        <div class="flex items-center">
-                          <img width="24" height="24" class="mr-2" alt="{game[0][0]} logo" 
-                               src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
-                               on:error={handleImageError}>
-                          <span class="rank text-xs bg-gray-800 text-white px-1 rounded mr-1">{game[0][2]}</span>
-                          <span class="{isWinner(game[0]) ? '' : isWinner(game[1]) ? 'line-through opacity-75' : ''}">{game[0][0]}</span>
+                      <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
+                        <div class="flex items-center flex-1 min-w-0">
+                          <div class="relative w-8 h-8 mr-3">
+                            <img class="w-full h-full object-contain transition-transform" 
+                                 alt="{game[0][0]} logo" 
+                                 src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
+                                 on:error={handleImageError}>
+                          </div>
+                          <div class="truncate">
+                            {#if game[0][2]}
+                              <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
+                            {/if}
+                            <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors">{game[0][0]}</span>
+                          </div>
                         </div>
-                        <span class="score-value text-lg font-semibold">{game[0][1]}</span>
+                        <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
                       </div>
                       
                       <!-- Home Team -->
-                      <div class="game-team flex justify-between items-center py-1 {isWinner(game[1]) ? 'font-bold' : ''}">
-                        <div class="flex items-center">
-                          <img width="24" height="24" class="mr-2" alt="{game[1][0]} logo" 
-                               src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
-                               on:error={handleImageError}>
-                          <span class="rank text-xs bg-gray-800 text-white px-1 rounded mr-1">{game[1][2]}</span>
-                          <span class="{isWinner(game[1]) ? '' : isWinner(game[0]) ? 'line-through opacity-75' : ''}">{game[1][0]}</span>
+                      <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
+                        <div class="flex items-center flex-1 min-w-0">
+                          <div class="relative w-8 h-8 mr-3">
+                            <img class="w-full h-full object-contain transition-transform" 
+                                 alt="{game[1][0]} logo" 
+                                 src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
+                                 on:error={handleImageError}>
+                          </div>
+                          <div class="truncate">
+                            {#if game[1][2]}
+                              <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
+                            {/if}
+                            <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors">{game[1][0]}</span>
+                          </div>
                         </div>
-                        <span class="score-value text-lg font-semibold">{game[1][1]}</span>
+                        <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              {/each}
+              
+              <!-- Duplicate the first few items again to create seamless loop -->
+              {#each matches.slice(0, 3) as game, index}
+                <a href="/game/{index}" class="flex-shrink-0 mx-2 w-64 transition-transform duration-300">
+                  <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
+                    <div class="game-date flex justify-between items-center mb-3">
+                      <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
+                      <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
+                    </div>
+                    
+                    <div class="game-teams space-y-3">
+                      <!-- Away Team -->
+                      <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
+                        <div class="flex items-center flex-1 min-w-0">
+                          <div class="relative w-8 h-8 mr-3">
+                            <img class="w-full h-full object-contain transition-transform" 
+                                 alt="{game[0][0]} logo" 
+                                 src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
+                                 on:error={handleImageError}>
+                          </div>
+                          <div class="truncate">
+                            {#if game[0][2]}
+                              <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
+                            {/if}
+                            <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors">{game[0][0]}</span>
+                          </div>
+                        </div>
+                        <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
+                      </div>
+                      
+                      <!-- Home Team -->
+                      <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
+                        <div class="flex items-center flex-1 min-w-0">
+                          <div class="relative w-8 h-8 mr-3">
+                            <img class="w-full h-full object-contain transition-transform" 
+                                 alt="{game[1][0]} logo" 
+                                 src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
+                                 on:error={handleImageError}>
+                          </div>
+                          <div class="truncate">
+                            {#if game[1][2]}
+                              <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
+                            {/if}
+                            <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors">{game[1][0]}</span>
+                          </div>
+                        </div>
+                        <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
                       </div>
                     </div>
                   </div>
@@ -238,13 +333,27 @@
   }
   
   @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    0% { 
+      transform: translateX(0); 
+    }
+    100% { 
+      transform: translateX(calc(-50% - 1.5rem)); /* Adjust for the extra items */
+    }
   }
   
   .animate-marquee {
     white-space: nowrap;
     will-change: transform;
-    animation: marquee 60s linear infinite;
+    animation: marquee 20s linear infinite;
+  }
+  
+  /* Add smooth transition when animation restarts */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .animate-marquee > a {
+    animation: fadeIn 0.5s ease-in-out;
   }
 </style> 
