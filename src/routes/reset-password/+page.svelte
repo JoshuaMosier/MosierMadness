@@ -11,15 +11,26 @@
       loading = true
       error = null
       
-      const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+      console.log('Attempting to send reset password email to:', email)
+      const { data, error: err } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password/update`
       })
 
-      if (err) throw err
+      if (err) {
+        console.error('Detailed reset password error:', {
+          message: err.message,
+          status: err.status,
+          name: err.name,
+          details: err,
+          data: data
+        })
+        throw err
+      }
       
       success = true
     } catch (err) {
-      error = err.message
+      console.error('Full error object:', err)
+      error = err.message || 'An unexpected error occurred'
       success = false
     } finally {
       loading = false
