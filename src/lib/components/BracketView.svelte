@@ -238,7 +238,10 @@
                     <div class="border border-zinc-700 rounded-sm overflow-hidden">
                       <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200
                                 ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
-                           on:click={() => handleTeamClick(matchId, 'A', match.teamA)}>
+                           on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
+                           on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
+                           role="button"
+                           tabindex="0">
                         <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">
                           {match.teamA?.seed || '-'}
                         </span>
@@ -249,7 +252,10 @@
                       </div>
                       <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200
                                 ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
-                           on:click={() => handleTeamClick(matchId, 'B', match.teamB)}>
+                           on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
+                           on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
+                           role="button"
+                           tabindex="0">
                         <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">
                           {match.teamB?.seed || '-'}
                         </span>
@@ -280,7 +286,10 @@
                     <!-- Team A -->
                     <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
                                 ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
-                         on:click={() => handleTeamClick(matchId, 'A', match.teamA)}>
+                         on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
+                         on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
+                         role="button"
+                         tabindex="0">
                       <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">
                         {match.teamA?.seed || '-'}
                       </span>
@@ -293,7 +302,10 @@
                     <!-- Team B -->
                     <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                                 ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
-                         on:click={() => handleTeamClick(matchId, 'B', match.teamB)}>
+                         on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
+                         on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
+                         role="button"
+                         tabindex="0">
                       <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">
                         {match.teamB?.seed || '-'}
                       </span>
