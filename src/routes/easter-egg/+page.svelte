@@ -20,7 +20,10 @@
     let containerHeight = 0;
     let mouseConstraint: Matter.MouseConstraint;
     let runner: Matter.Runner;
-    
+    let lastBallPosY = 0;
+    let hasPassedRimTop = false;
+    let isScoring = false;
+
     // Constants
     const BALL_RADIUS = 20;
     const RIM_WIDTH = 120;
@@ -33,14 +36,27 @@
     const DEFAULT_Y = 200;
     const PLATFORM_WIDTH = 60;
     const PLATFORM_HEIGHT = 10;
-
+    const BACKBOARD_WIDTH = 10;
+    const BACKBOARD_HEIGHT = 100;
+    const NET_SEGMENTS = 8;
+    const NET_STIFFNESS = 0.1;
+    
     // Collision categories
     const Categories = {
         DEFAULT: 0x0001,
         BALL: 0x0002,
         RIM: 0x0004,
-        NET: 0x0008
+        NET: 0x0008,
+        SENSOR: 0x0010
     };
+
+    // Game visual settings
+    const BALL_COLOR = '#ff6b00';
+    const BALL_STROKE = '#c65200';
+    const RIM_COLOR = '#f59e0b';
+    const NET_COLOR = 'rgba(255, 255, 255, 0.4)';
+    const BACKBOARD_COLOR = '#cbd5e1';
+    const PLATFORM_COLOR = '#475569';
 
     const isMobile = () => {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -52,71 +68,310 @@
             friction: 0.005,
             density: 0.001,
             frictionAir: 0.001,
+            render: {
+                fillStyle: BALL_COLOR,
+                strokeStyle: BALL_STROKE,
+                lineWidth: 2
+            },
             collisionFilter: {
                 category: Categories.BALL,
-                mask: Categories.DEFAULT | Categories.NET // Only collide with default bodies and nets
-            },
-            render: {
-                fillStyle: '#ff6b00',
-                strokeStyle: '#c65200',
-                lineWidth: 2
+                mask: Categories.DEFAULT | Categories.NET // Only collide with default bodies and net
             }
         });
     }
 
     function createRim(x: number, y: number) {
-        const rimBody = Matter.Bodies.rectangle(x, y, RIM_WIDTH, RIM_HEIGHT, {
+        const rim = Matter.Bodies.rectangle(x, y, RIM_WIDTH, RIM_HEIGHT, {
             isStatic: true,
+            render: {
+                fillStyle: RIM_COLOR,
+                strokeStyle: '#b45309',
+                lineWidth: 1
+            },
             collisionFilter: {
                 category: Categories.RIM,
-                mask: Categories.DEFAULT // Don't collide with ball
-            },
-            render: {
-                fillStyle: '#f59e0b',
-                strokeStyle: '#b45309',
-                lineWidth: 2
+                mask: 0x0000 // Collides with nothing
             }
         });
-
-        // Create decorative backboard
-        const backboardWidth = 20;
-        const backboardHeight = 120;
-        const backboard = Matter.Bodies.rectangle(x + RIM_WIDTH/2 + backboardWidth/2, y - backboardHeight/2, backboardWidth, backboardHeight, {
+        
+        // Add a sensor to detect ball passing through
+        const rimSensor = Matter.Bodies.rectangle(x, y, RIM_WIDTH, RIM_HEIGHT * 3, {
             isStatic: true,
-            collisionFilter: {
-                category: Categories.DEFAULT
-            },
+            isSensor: true,
             render: {
-                fillStyle: '#e5e7eb',
-                strokeStyle: '#9ca3af',
-                lineWidth: 2
+                visible: false
+            },
+            collisionFilter: {
+                category: Categories.SENSOR,
+                mask: Categories.BALL
             }
         });
-
-        return [rimBody, backboard];
+        
+        return { rim, rimSensor };
     }
 
-    function createNet(x: number, y: number, angle: number) {
-        return Matter.Bodies.rectangle(x, y, NET_WIDTH, NET_HEIGHT, {
-            isStatic: true,
-            angle: angle * Math.PI / 180,
-            collisionFilter: {
-                category: Categories.NET,
-                mask: Categories.BALL | Categories.DEFAULT
-            },
-            render: {
-                fillStyle: 'rgba(255, 255, 255, 0.3)',
-                strokeStyle: 'rgba(255, 255, 255, 0.5)',
-                lineWidth: 1
+    function createBackboard(x: number, y: number) {
+        return Matter.Bodies.rectangle(
+            x + RIM_WIDTH/2 + BACKBOARD_WIDTH/2, 
+            y - BACKBOARD_HEIGHT/2, 
+            BACKBOARD_WIDTH, 
+            BACKBOARD_HEIGHT, 
+            {
+                isStatic: true,
+                render: {
+                    fillStyle: BACKBOARD_COLOR
+                }
             }
-        });
+        );
     }
+
+    function createChainNet(x: number, rimWidth: number, y: number) {
+    const netGroup = Matter.Body.nextGroup(true);
+    const segments = NET_SEGMENTS;
+    const segmentWidth = rimWidth / segments;
+    
+    // Create left and right side of the net (chains)
+    const leftSidePoints = [];
+    const rightSidePoints = [];
+    
+    // Create points for the chains with a more natural curve
+    for (let i = 0; i <= segments; i++) {
+        const yPos = y + (NET_HEIGHT * i / segments);
+        const progress = i / segments;
+        
+        // Enhanced curve calculation for more realistic net shape
+        const xOffset = Math.sin(progress * Math.PI) * 8;
+        
+        leftSidePoints.push({ x: x - rimWidth/2 + xOffset, y: yPos });
+        rightSidePoints.push({ x: x + rimWidth/2 - xOffset, y: yPos });
+    }
+    
+    // Create vertical chains with increased stiffness
+    const leftChain = Matter.Composites.chain(
+        Matter.Composites.stack(
+            leftSidePoints[0].x, 
+            leftSidePoints[0].y, 
+            1, 
+            segments, 
+            0, 
+            0, 
+            (x, y, indexX, indexY) => {
+                return Matter.Bodies.circle(
+                    leftSidePoints[indexY].x, 
+                    leftSidePoints[indexY].y, 
+                    2, 
+                    {
+                        collisionFilter: {
+                            category: Categories.NET,
+                            mask: Categories.BALL,
+                            group: netGroup
+                        },
+                        render: {
+                            fillStyle: NET_COLOR,
+                            lineWidth: 1
+                        },
+                        friction: 0.5,
+                        restitution: 0.2,
+                        density: 0.001
+                    }
+                );
+            }
+        ),
+        0, 0, 0, 0, 
+        {
+            stiffness: 0.8,
+            damping: 0.5,
+            render: {
+                type: 'line',
+                strokeStyle: NET_COLOR,
+                lineWidth: 2,
+                anchors: false
+            }
+        }
+    );
+    
+    const rightChain = Matter.Composites.chain(
+        Matter.Composites.stack(
+            rightSidePoints[0].x, 
+            rightSidePoints[0].y, 
+            1, 
+            segments, 
+            0, 
+            0, 
+            (x, y, indexX, indexY) => {
+                return Matter.Bodies.circle(
+                    rightSidePoints[indexY].x, 
+                    rightSidePoints[indexY].y, 
+                    2, 
+                    {
+                        collisionFilter: {
+                            category: Categories.NET,
+                            mask: Categories.BALL,
+                            group: netGroup
+                        },
+                        render: {
+                            fillStyle: NET_COLOR,
+                            lineWidth: 1
+                        },
+                        friction: 0.5,
+                        restitution: 0.2,
+                        density: 0.001
+                    }
+                );
+            }
+        ),
+        0, 0, 0, 0, 
+        {
+            stiffness: 0.8,
+            damping: 0.5,
+            render: {
+                type: 'line',
+                strokeStyle: NET_COLOR,
+                lineWidth: 2,
+                anchors: false
+            }
+        }
+    );
+    
+    // Create horizontal chains with optimized spacing
+    const horizontalChains = [];
+    for (let i = 0; i < segments - 1; i++) {
+        const leftPoint = leftSidePoints[i];
+        const rightPoint = rightSidePoints[i];
+        const horizontalSegments = Math.floor(segments / 2);
+        
+        const horizontalChain = Matter.Composites.chain(
+            Matter.Composites.stack(
+                leftPoint.x, 
+                leftPoint.y, 
+                horizontalSegments, 
+                1, 
+                (rightPoint.x - leftPoint.x) / horizontalSegments, 
+                0, 
+                (x, y) => {
+                    return Matter.Bodies.circle(
+                        x, y, 2, 
+                        {
+                            collisionFilter: {
+                                category: Categories.NET,
+                                mask: Categories.BALL,
+                                group: netGroup
+                            },
+                            render: {
+                                fillStyle: NET_COLOR,
+                                lineWidth: 1
+                            },
+                            friction: 0.5,
+                            restitution: 0.2,
+                            density: 0.001
+                        }
+                    );
+                }
+            ),
+            0, 0, 0, 0, 
+            {
+                stiffness: 0.6,
+                damping: 0.5,
+                render: {
+                    type: 'line',
+                    strokeStyle: NET_COLOR,
+                    lineWidth: 1,
+                    anchors: false
+                }
+            }
+        );
+        
+        horizontalChains.push(horizontalChain);
+    }
+    
+    // Create static anchor points with stronger constraints
+    const leftRimAnchor = Matter.Bodies.circle(
+        x - rimWidth/2, y, 2, 
+        {
+            isStatic: true,
+            render: { visible: false },
+            collisionFilter: { group: netGroup }
+        }
+    );
+    
+    const rightRimAnchor = Matter.Bodies.circle(
+        x + rimWidth/2, y, 2, 
+        {
+            isStatic: true,
+            render: { visible: false },
+            collisionFilter: { group: netGroup }
+        }
+    );
+    
+    // Connect top chains to anchors with enhanced stiffness
+    const leftTopConstraint = Matter.Constraint.create({
+        bodyA: leftRimAnchor,
+        bodyB: leftChain.bodies[0],
+        stiffness: 1,
+        length: 0,
+        render: {
+            visible: true,
+            strokeStyle: NET_COLOR,
+            lineWidth: 2
+        }
+    });
+    
+    const rightTopConstraint = Matter.Constraint.create({
+        bodyA: rightRimAnchor,
+        bodyB: rightChain.bodies[0],
+        stiffness: 1,
+        length: 0,
+        render: {
+            visible: true,
+            strokeStyle: NET_COLOR,
+            lineWidth: 2
+        }
+    });
+    
+    // Connect horizontal chains to vertical chains
+    const crossConstraints = [];
+    horizontalChains.forEach((chain, index) => {
+        if (chain.bodies.length > 0) {
+            // Left side connection
+            crossConstraints.push(Matter.Constraint.create({
+                bodyA: leftChain.bodies[index],
+                bodyB: chain.bodies[0],
+                stiffness: 0.7,
+                damping: 0.5,
+                render: {
+                    strokeStyle: NET_COLOR,
+                    lineWidth: 1
+                }
+            }));
+            
+            // Right side connection
+            crossConstraints.push(Matter.Constraint.create({
+                bodyA: rightChain.bodies[index],
+                bodyB: chain.bodies[chain.bodies.length - 1],
+                stiffness: 0.7,
+                damping: 0.2,
+                render: {
+                    strokeStyle: NET_COLOR,
+                    lineWidth: 1
+                }
+            }));
+        }
+    });
+    
+    return [
+        leftChain, rightChain,
+        ...horizontalChains,
+        leftRimAnchor, rightRimAnchor,
+        leftTopConstraint, rightTopConstraint,
+        ...crossConstraints
+    ];
+}
 
     function createPlatform(x: number, y: number) {
         const platformOptions = {
             isStatic: true,
             render: {
-                fillStyle: '#475569'
+                fillStyle: PLATFORM_COLOR
             }
         };
 
@@ -159,35 +414,75 @@
 
     function resetGame() {
         score = 0;
+        scoreElement.textContent = `Score: ${score}`;
         resetBall();
     }
 
     function checkScoring() {
         const currentTime = performance.now();
-        if (currentTime - lastScoreTime > SCORE_COOLDOWN) {
-            const ballPos = ball.position;
-            const rimPos = rim.position;
-            const netLeftPos = leftNet.position;
-            const netRightPos = rightNet.position;
-
-            // Check if ball is between nets and below rim
-            if (ballPos.x > netLeftPos.x && 
-                ballPos.x < netRightPos.x && 
+        const ballPos = ball.position;
+        const rimPos = rim.position;
+        
+        // Store the ball's vertical position to track direction
+        const ballMovingDown = ballPos.y > lastBallPosY;
+        
+        // Check if ball is above rim
+        if (ballPos.y < rimPos.y) {
+            hasPassedRimTop = true;
+        }
+        
+        // Reset scoring state if ball moves above rim again or is far from rim
+        if (ballPos.y < rimPos.y - BALL_RADIUS || 
+            Math.abs(ballPos.x - rimPos.x) > RIM_WIDTH) {
+            hasPassedRimTop = false;
+            isScoring = false;
+        }
+        
+        // Only check for scoring if enough time has passed since last score
+        if (currentTime - lastScoreTime > SCORE_COOLDOWN && 
+            !isScoring && 
+            hasPassedRimTop && 
+            ballMovingDown) {
+            
+            // Check if ball is passing through rim area
+            if (ballPos.x > rimPos.x - RIM_WIDTH/2 && 
+                ballPos.x < rimPos.x + RIM_WIDTH/2 && 
                 ballPos.y > rimPos.y && 
-                ballPos.y < rimPos.y + NET_HEIGHT && 
-                ball.velocity.y > 0) {
+                ballPos.y < rimPos.y + BALL_RADIUS * 2) {
                 
+                isScoring = true;
                 score += 2;
                 lastScoreTime = currentTime;
                 scoreElement.textContent = `Score: ${score}`;
                 
                 // Add score animation
-                scoreElement.style.transform = 'scale(1.2)';
+                scoreElement.style.transform = 'scale(1.5)';
                 setTimeout(() => {
                     scoreElement.style.transform = 'scale(1)';
-                }, 200);
+                }, 300);
+
+                // Add a visual effect for scoring
+                createScoreEffect(ballPos.x, ballPos.y);
             }
         }
+        
+        // Update last ball position
+        lastBallPosY = ballPos.y;
+    }
+
+    function createScoreEffect(x: number, y: number) {
+        // Create a DOM element for the score effect
+        const effect = document.createElement('div');
+        effect.className = 'score-effect';
+        effect.textContent = '+2';
+        effect.style.left = `${x}px`;
+        effect.style.top = `${y}px`;
+        gameContainer.appendChild(effect);
+        
+        // Remove the element after animation completes
+        setTimeout(() => {
+            effect.remove();
+        }, 1000);
     }
 
     function updateAimLine(mouseX: number, mouseY: number) {
@@ -282,7 +577,7 @@
             
             // Draw the lines
             context.beginPath();
-            context.strokeStyle = '#c65200';
+            context.strokeStyle = BALL_STROKE;
             context.lineWidth = 2;
             
             // Horizontal line
@@ -302,6 +597,27 @@
             
             context.stroke();
             context.restore();
+        });
+    }
+
+
+
+    function drawCourtMarkings(render: Matter.Render) {
+        const context = render.context;
+        Matter.Events.on(render, 'beforeRender', () => {
+            // Draw court floor
+            context.fillStyle = '#334155';
+            context.fillRect(0, containerHeight - 100, containerWidth, 100);
+            
+            // Draw free throw line
+            context.beginPath();
+            context.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            context.lineWidth = 2;
+            context.setLineDash([5, 5]);
+            context.moveTo(100, containerHeight - 100);
+            context.lineTo(containerWidth - 100, containerHeight - 100);
+            context.stroke();
+            context.setLineDash([]);
         });
     }
 
@@ -333,10 +649,17 @@
 
             // Create game objects
             ball = createBall(DEFAULT_X, containerHeight - DEFAULT_Y);
-            const [rimBody, backboard] = createRim(containerWidth - 150, 250);
-            rim = rimBody;
-            leftNet = createNet(containerWidth - 150 - RIM_WIDTH/2, 250 + NET_HEIGHT/2, -NET_ANGLE);
-            rightNet = createNet(containerWidth - 150 + RIM_WIDTH/2, 250 + NET_HEIGHT/2, NET_ANGLE);
+            
+            // Create rim with collision disabled
+            const rimObjects = createRim(containerWidth - 150, 250);
+            rim = rimObjects.rim;
+            const rimSensor = rimObjects.rimSensor;
+            
+            // Create chainNet
+            const netObjects = createChainNet(containerWidth - 150, RIM_WIDTH, 250);
+            
+            // Create backboard
+            const backboard = createBackboard(containerWidth - 150, 250);
 
             // Create the platform
             const platform = createPlatform(DEFAULT_X, containerHeight - DEFAULT_Y + BALL_RADIUS * 2 - 40);
@@ -345,11 +668,11 @@
             Matter.World.add(world, [
                 ball,
                 rim,
+                rimSensor,
                 backboard,
-                leftNet,
-                rightNet,
                 ...platform,
-                ...createWalls()
+                ...createWalls(),
+                ...netObjects
             ]);
 
             // Add mouse control
@@ -378,6 +701,7 @@
 
             // Setup basketball appearance
             drawBasketballLines(render);
+            drawCourtMarkings(render);
 
             // Add event listeners
             window.addEventListener('mousedown', handleMouseDown);
@@ -468,10 +792,11 @@
         width: 100%;
         height: 70vh;
         overflow: hidden;
-        background: linear-gradient(to bottom, #7a828f00, #9fa4b149);
+        background: linear-gradient(to bottom, #1e293b, #334155);
         cursor: default;
         border-radius: 0.5rem;
         position: relative;
+        box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
     }
 
     .score {
@@ -482,7 +807,7 @@
         font-weight: bold;
         color: #f59e0b;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        transition: transform 0.2s ease;
+        transition: transform 0.3s ease;
         z-index: 1000;
     }
 
@@ -512,12 +837,18 @@
         border-radius: 4px;
         font-size: 16px;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: background 0.2s, transform 0.1s;
         z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
 
     .reset-button:hover {
         background: #92400e;
+        transform: translateY(-2px);
+    }
+    
+    .reset-button:active {
+        transform: translateY(0);
     }
 
     .aim-line {
@@ -539,6 +870,31 @@
         text-align: center;
         font-size: 18px;
         color: #f4f4f5;
+        background-color: rgba(39, 39, 42, 0.8);
+        padding: 15px 25px;
+        border-radius: 10px;
+    }
+
+    .score-effect {
+        position: absolute;
+        font-size: 24px;
+        font-weight: bold;
+        color: #fbbf24;
+        text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        animation: score-animation 1s ease-out forwards;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+
+    @keyframes score-animation {
+        0% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        100% {
+            opacity: 0;
+            transform: translate(-50%, -150%) scale(1.5);
+        }
     }
 
     /* Ensure text is readable in light mode too */
