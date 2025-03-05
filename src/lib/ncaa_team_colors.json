@@ -1,0 +1,1702 @@
+{
+    "Abilene Christian": {
+        "primary_color": "#4f2170",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#c5c6c8"
+    },
+    "Air Force": {
+        "primary_color": "#003087",
+        "secondary_color": "#8A8D8F",
+        "tertiary_color": "#003087"
+    },
+    "Akron": {
+        "primary_color": "#041E42",
+        "secondary_color": "#A89968",
+        "tertiary_color": null
+    },
+    "Alabama A&M": {
+        "primary_color": "#660000",
+        "secondary_color": "#ffffff",
+        "tertiary_color": null
+    },
+    "Alabama": {
+        "primary_color": "#9e1b32",
+        "secondary_color": "#828a8f",
+        "tertiary_color": "#ffffff"
+    },
+    "Alabama St.": {
+        "primary_color": "#C99700",
+        "secondary_color": "#000000",
+        "tertiary_color": null
+    },
+    "Albany": {
+        "primary_color": "#461660",
+        "secondary_color": "#eeb211",
+        "tertiary_color": "#461660"
+    },
+    "Alcorn St.": {
+        "primary_color": "#ce8e00",
+        "secondary_color": "#4b306a",
+        "tertiary_color": null
+    },
+    "Appalachian St.": {
+        "primary_color": "#222222",
+        "secondary_color": "#ffcc00",
+        "tertiary_color": "#222222"
+    },
+    "Arizona St.": {
+        "primary_color": "#8C1D40",
+        "secondary_color": "#FFC627",
+        "tertiary_color": "#8C1D40"
+    },
+    "Arizona": {
+        "primary_color": "#CC0033",
+        "secondary_color": "#003366",
+        "tertiary_color": "#CC0033"
+    },
+    "Arkansas Golden Lions": {
+        "primary_color": "#EEB310",
+        "secondary_color": "#E31837",
+        "tertiary_color": "#ffffff"
+    },
+    "Arkansas Little-Rock": {
+        "primary_color": "#6e2639",
+        "secondary_color": "#A7A9AC",
+        "tertiary_color": null
+    },
+    "Arkansas": {
+        "primary_color": "#9D2235",
+        "secondary_color": "#FFFFFF",
+        "tertiary_color": "#9D2235"
+    },
+    "Arkansas St.": {
+        "primary_color": "#cc092f",
+        "secondary_color": "#000000",
+        "tertiary_color": null
+    },
+    "Army Black Knights": {
+        "primary_color": "#D4BF91",
+        "secondary_color": "#B2B4B3",
+        "tertiary_color": "#D4BF91"
+    },
+    "Auburn": {
+        "primary_color": "#0C2340",
+        "secondary_color": "#E87722",
+        "tertiary_color": "#0C2340"
+    },
+    "Austin Peay Governors": {
+        "primary_color": "#C41E3A",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#ADAFAA"
+    },
+    "B-C Wildcats": {
+        "primary_color": "#F2A900",
+        "secondary_color": "#6F263D",
+        "tertiary_color": "#000000"
+    },
+    "BYU": {
+        "primary_color": "#0062B8",
+        "secondary_color": "#FFFFFF",
+        "tertiary_color": "#002E5D"
+    },
+    "Ball St.": {
+        "primary_color": "#BA0C2F",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Baylor": {
+        "primary_color": "#154734",
+        "secondary_color": "#FFB81C",
+        "tertiary_color": "#154734"
+    },
+    "Belmont": {
+        "primary_color": "#C8102E",
+        "secondary_color": "#00205B",
+        "tertiary_color": "#ffffff"
+    },
+    "Binghamton": {
+        "primary_color": "#005A43",
+        "secondary_color": "#169B62",
+        "tertiary_color": "#BF0D3E"
+    },
+    "Boise St.": {
+        "primary_color": "#D64309",
+        "secondary_color": "#0033A0",
+        "tertiary_color": "#D64309"
+    },
+    "Boston College": {
+        "primary_color": "#98002E",
+        "secondary_color": "#BC9B6A",
+        "tertiary_color": "#726158"
+    },
+    "Boston University": {
+        "primary_color": "#CC0000",
+        "secondary_color": "#A3011B",
+        "tertiary_color": "#231F20"
+    },
+    "Bowling Green": {
+        "primary_color": "#FE5000",
+        "secondary_color": "#4F2C1D",
+        "tertiary_color": "#CDA077"
+    },
+    "Bradley": {
+        "primary_color": "#A50000",
+        "secondary_color": "#999999",
+        "tertiary_color": null
+    },
+    "Brown": {
+        "primary_color": "#4E3629",
+        "secondary_color": "#7C2529",
+        "tertiary_color": "#E4002B"
+    },
+    "Bryant": {
+        "primary_color": "#b4975b",
+        "secondary_color": "#c9bb8c",
+        "tertiary_color": "#818286"
+    },
+    "Bucknell": {
+        "primary_color": "#E87722",
+        "secondary_color": "#003865",
+        "tertiary_color": "#FFFFFF"
+    },
+    "Buffalo Bulls": {
+        "primary_color": "#005BBB",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Butler": {
+        "primary_color": "#13294b",
+        "secondary_color": "#747678",
+        "tertiary_color": "#d1e0d7"
+    },
+    "C. C.": {
+        "primary_color": "#00539b",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#cfd4d8"
+    },
+    "CSUB": {
+        "primary_color": "#003594",
+        "secondary_color": "#FFC72C",
+        "tertiary_color": null
+    },
+    "CSUN": {
+        "primary_color": "#CE1126",
+        "secondary_color": "#D1CEC6",
+        "tertiary_color": null
+    },
+    "Cal Poly": {
+        "primary_color": "#003831",
+        "secondary_color": "#FFE395",
+        "tertiary_color": "#B38F4F"
+    },
+    "Cal State Fullerton": {
+        "primary_color": "#00274C",
+        "secondary_color": "#DC8218",
+        "tertiary_color": null
+    },
+    "California Baptist": {
+        "primary_color": "#002554",
+        "secondary_color": "#A37400",
+        "tertiary_color": null
+    },
+    "California": {
+        "primary_color": "#003262",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Campbell": {
+        "primary_color": "#f58025",
+        "secondary_color": "#231f20",
+        "tertiary_color": null
+    },
+    "Canisius": {
+        "primary_color": "#0C2340",
+        "secondary_color": "#ffba00",
+        "tertiary_color": null
+    },
+    "Central Arkansas": {
+        "primary_color": "#4f2d7f",
+        "secondary_color": "#818a8f",
+        "tertiary_color": "#ffffff"
+    },
+    "Central Michigan": {
+        "primary_color": "#6A0032",
+        "secondary_color": "#FFC82E",
+        "tertiary_color": "#6A0032"
+    },
+    "Charleston Buccaneers": {
+        "primary_color": "#A8996E",
+        "secondary_color": "#002855",
+        "tertiary_color": "#ffffff"
+    },
+    "Col. of Charleston": {
+        "primary_color": "#800000",
+        "secondary_color": "#9d8958",
+        "tertiary_color": "#d9d9d6"
+    },
+    "Charlotte": {
+        "primary_color": "#046A38",
+        "secondary_color": "#B9975B",
+        "tertiary_color": "#27251F"
+    },
+    "Chattanooga": {
+        "primary_color": "#00386b",
+        "secondary_color": "#e0aa0f",
+        "tertiary_color": "#adafaa"
+    },
+    "Chicago St.": {
+        "primary_color": "#006666",
+        "secondary_color": "#000000",
+        "tertiary_color": null
+    },
+    "Cincinnati": {
+        "primary_color": "#E00122",
+        "secondary_color": "#E00122",
+        "tertiary_color": null
+    },
+    "Clemson": {
+        "primary_color": "#F56600",
+        "secondary_color": "#522D80",
+        "tertiary_color": "#F56600"
+    },
+    "Cleveland St.": {
+        "primary_color": "#006747",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Coastal Carolina": {
+        "primary_color": "#006f71",
+        "secondary_color": "#A27752",
+        "tertiary_color": "#111111"
+    },
+    "Colgate": {
+        "primary_color": "#821019",
+        "secondary_color": "#E10028",
+        "tertiary_color": "#000000"
+    },
+    "Colorado": {
+        "primary_color": "#CFB87C",
+        "secondary_color": "#000000",
+        "tertiary_color": "#A2A4A3"
+    },
+    "Colorado St.": {
+        "primary_color": "#1E4D2B",
+        "secondary_color": "#C8C372",
+        "tertiary_color": "#1E4D2B"
+    },
+    "Columbia": {
+        "primary_color": "#003865",
+        "secondary_color": "#9BCBEB",
+        "tertiary_color": "#FFFFFF"
+    },
+    "UConn": {
+        "primary_color": "#000e2f",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#7C878E"
+    },
+    "Coppin St.": {
+        "primary_color": "#003056",
+        "secondary_color": "#ffc915",
+        "tertiary_color": null
+    },
+    "Cornell": {
+        "primary_color": "#B31B1B",
+        "secondary_color": "#5e3920",
+        "tertiary_color": "#89572e"
+    },
+    "Creighton": {
+        "primary_color": "#005ca9",
+        "secondary_color": "#00235D",
+        "tertiary_color": "#6CADDE"
+    },
+    "Dartmouth": {
+        "primary_color": "#046A38",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Davidson": {
+        "primary_color": "#ac1a2f",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Dayton": {
+        "primary_color": "#CE1141",
+        "secondary_color": "#004B8D",
+        "tertiary_color": "#F80228"
+    },
+    "DePaul": {
+        "primary_color": "#005EB8",
+        "secondary_color": "#E4002B",
+        "tertiary_color": null
+    },
+    "Delaware": {
+        "primary_color": "#00539f",
+        "secondary_color": "#FFDD31",
+        "tertiary_color": "#ffd200"
+    },
+    "Delaware St.": {
+        "primary_color": "#EE3124",
+        "secondary_color": "#72CDF4",
+        "tertiary_color": "#009DDC"
+    },
+    "Denver": {
+        "primary_color": "#8b2332",
+        "secondary_color": "#8b6f4b",
+        "tertiary_color": null
+    },
+    "Detroit Mercy": {
+        "primary_color": "#A6093D",
+        "secondary_color": "#002D72",
+        "tertiary_color": "#D7D2CB"
+    },
+    "Drake": {
+        "primary_color": "#004477",
+        "secondary_color": "#999999",
+        "tertiary_color": null
+    },
+    "Drexel": {
+        "primary_color": "#00437b",
+        "secondary_color": "#ffda02",
+        "tertiary_color": null
+    },
+    "Duke": {
+        "primary_color": "#003087",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#012169"
+    },
+    "Duquesne": {
+        "primary_color": "#041E42",
+        "secondary_color": "#BA0C2F",
+        "tertiary_color": "#041E42"
+    },
+    "E. Kentucky Colonels": {
+        "primary_color": "#8a0039",
+        "secondary_color": "#ffffff",
+        "tertiary_color": null
+    },
+    "ETSU": {
+        "primary_color": "#041e42",
+        "secondary_color": "#FFC72C",
+        "tertiary_color": null
+    },
+    "East Carolina Pirates": {
+        "primary_color": "#592A8A",
+        "secondary_color": "#FDC82F",
+        "tertiary_color": "#592A8A"
+    },
+    "Eastern Illinois Panthers": {
+        "primary_color": "#919295",
+        "secondary_color": "#004b83",
+        "tertiary_color": "#ffffff"
+    },
+    "Eastern Michigan": {
+        "primary_color": "#006633",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Elon Phoenix": {
+        "primary_color": "#73000a",
+        "secondary_color": "#b59a57",
+        "tertiary_color": "#ffffff"
+    },
+    "Evansville Purple Aces": {
+        "primary_color": "#52237f",
+        "secondary_color": "#f36f21",
+        "tertiary_color": null
+    },
+    "F. Dickinson Knights": {
+        "primary_color": "#28334A",
+        "secondary_color": "#72293C",
+        "tertiary_color": null
+    },
+    "Fla. Atlantic": {
+        "primary_color": "#003366",
+        "secondary_color": "#CC0000",
+        "tertiary_color": "#8A8D8F"
+    },
+    "FIU Panthers": {
+        "primary_color": "#081E3F",
+        "secondary_color": "#B6862C",
+        "tertiary_color": "#081E3F"
+    },
+    "Fairfield Stags": {
+        "primary_color": "#C8102E",
+        "secondary_color": "#A2AAAD",
+        "tertiary_color": null
+    },
+    "Florida A&M Rattlers": {
+        "primary_color": "#ee7624",
+        "secondary_color": "#1b5633",
+        "tertiary_color": "#231f20"
+    },
+    "Florida": {
+        "primary_color": "#0021A5",
+        "secondary_color": "#FA4616",
+        "tertiary_color": "#0021A5"
+    },
+    "Florida Gulf Coast Eagles": {
+        "primary_color": "#002D72",
+        "secondary_color": "#007749",
+        "tertiary_color": "#B9975B"
+    },
+    "Florida State Seminoles": {
+        "primary_color": "#782F40",
+        "secondary_color": "#CEB888",
+        "tertiary_color": "#FFFFFF"
+    },
+    "Fordham Rams": {
+        "primary_color": "#860038",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Fort Wayne Mastadons": {
+        "primary_color": "#002F6C",
+        "secondary_color": "#000000",
+        "tertiary_color": "#63666A"
+    },
+    "Fresno State Bulldogs": {
+        "primary_color": "#db0032",
+        "secondary_color": "#002e6d",
+        "tertiary_color": "#007934"
+    },
+    "Furman Paladins": {
+        "primary_color": "#201547",
+        "secondary_color": "#582c83",
+        "tertiary_color": "#A7A8AA"
+    },
+    "Gardner-Webb Bulldogs": {
+        "primary_color": "#BF2F37",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#000000"
+    },
+    "George Mason Patriots": {
+        "primary_color": "#006633",
+        "secondary_color": "#FFCC33",
+        "tertiary_color": null
+    },
+    "George Washington Colonials": {
+        "primary_color": "#e2cb92",
+        "secondary_color": "#002654",
+        "tertiary_color": null
+    },
+    "Georgetown Hoyas": {
+        "primary_color": "#041E42",
+        "secondary_color": "#8D817B",
+        "tertiary_color": "#041E42"
+    },
+    "Georgia": {
+        "primary_color": "#BA0C2F",
+        "secondary_color": "#000000",
+        "tertiary_color": "#FFFFFF"
+    },
+    "Georgia Southern": {
+        "primary_color": "#011e41",
+        "secondary_color": "#A3AAAE",
+        "tertiary_color": "#87714D"
+    },
+    "Georgia St.": {
+        "primary_color": "#0039A6",
+        "secondary_color": "#C60C30",
+        "tertiary_color": "#000000"
+    },
+    "Georgia Tech ": {
+        "primary_color": "#B3A369",
+        "secondary_color": "#A28D5B",
+        "tertiary_color": "#003057"
+    },
+    "Gonzaga": {
+        "primary_color": "#041E42",
+        "secondary_color": "#C8102E",
+        "tertiary_color": "#C1C6C8"
+    },
+    "Grambling": {
+        "primary_color": "#eaa921",
+        "secondary_color": "#000000",
+        "tertiary_color": null
+    },
+    "Grand Canyon": {
+        "primary_color": "#522398",
+        "secondary_color": "#000000",
+        "tertiary_color": "#522398"
+    },
+    "Green Bay": {
+        "primary_color": "#006747",
+        "secondary_color": "#9D2235",
+        "tertiary_color": "#8A8D8F"
+    },
+    "Hampton": {
+        "primary_color": "#0060A9",
+        "secondary_color": "#ffffff",
+        "tertiary_color": null
+    },
+    "Hartford": {
+        "primary_color": "#c02427",
+        "secondary_color": "#0f0708",
+        "tertiary_color": null
+    },
+    "Harvard Crimson": {
+        "primary_color": "#000000",
+        "secondary_color": "#808285",
+        "tertiary_color": "#B6B6B6"
+    },
+    "Hawaii Warriors": {
+        "primary_color": "#024731",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "High Point Panthers": {
+        "primary_color": "#330072",
+        "secondary_color": "#ffffff",
+        "tertiary_color": null
+    },
+    "Hofstra Pride": {
+        "primary_color": "#0B1E73",
+        "secondary_color": "#FEB612",
+        "tertiary_color": "#ffffff"
+    },
+    "Holy Cross": {
+        "primary_color": "#602d89",
+        "secondary_color": "#FFFFFF",
+        "tertiary_color": "#000000"
+    },
+    "Houston Baptist Huskies": {
+        "primary_color": "#1c4e9d",
+        "secondary_color": "#f3652c",
+        "tertiary_color": "#ffffff"
+    },
+    "Houston": {
+        "primary_color": "#C8102E",
+        "secondary_color": "#76232F",
+        "tertiary_color": "#B2B4B2"
+    },
+    "Howard Bisons": {
+        "primary_color": "#003a63",
+        "secondary_color": "#e51937",
+        "tertiary_color": "#6a808c"
+    },
+    "IUPUI Jaguars": {
+        "primary_color": "#9D2235",
+        "secondary_color": "#DFD1A7",
+        "tertiary_color": "#9D2235"
+    },
+    "Idaho Vandals": {
+        "primary_color": "#000000",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Illinois": {
+        "primary_color": "#13294b",
+        "secondary_color": "#E84A27",
+        "tertiary_color": "#13294B"
+    },
+    "Illinois St.": {
+        "primary_color": "#ce1126",
+        "secondary_color": "#F9DD16",
+        "tertiary_color": null
+    },
+    "Incarnate Word Cardinals": {
+        "primary_color": "#cb333b",
+        "secondary_color": "#000000",
+        "tertiary_color": null
+    },
+    "Indiana Hoosiers": {
+        "primary_color": "#990000",
+        "secondary_color": "#EEEDEB",
+        "tertiary_color": "#990000"
+    },
+    "Indiana State Sycamores": {
+        "primary_color": "#0142BC",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Iona Gaels": {
+        "primary_color": "#6F2C3F",
+        "secondary_color": "#F2A900",
+        "tertiary_color": null
+    },
+    "Iowa": {
+        "primary_color": "#FFCD00",
+        "secondary_color": "#000000",
+        "tertiary_color": "#000000"
+    },
+    "Iowa St.": {
+        "primary_color": "#C8102E",
+        "secondary_color": "#F1BE48",
+        "tertiary_color": "#C8102E"
+    },
+    "J. State Gamecocks": {
+        "primary_color": "#CC0000",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#000000"
+    },
+    "Jackson St.": {
+        "primary_color": "#002147",
+        "secondary_color": "#008ED6",
+        "tertiary_color": "#ffffff"
+    },
+    "Jacksonville": {
+        "primary_color": "#004E44",
+        "secondary_color": "#898a8d",
+        "tertiary_color": "#BBBBBB"
+    },
+    "James Madison": {
+        "primary_color": "#450084",
+        "secondary_color": "#CBB677",
+        "tertiary_color": null
+    },
+    "Kansas": {
+        "primary_color": "#0051BA",
+        "secondary_color": "#E8000D",
+        "tertiary_color": "#ffc82d"
+    },
+    "Kansas St.": {
+        "primary_color": "#512888",
+        "secondary_color": "#d1d1d1",
+        "tertiary_color": "#a7a7a7"
+    },
+    "Kennesaw State": {
+        "primary_color": "#FDBB30",
+        "secondary_color": "#0B1315",
+        "tertiary_color": "#C5C6C8"
+    },
+    "Kent St.": {
+        "primary_color": "#002664",
+        "secondary_color": "#EAAB00",
+        "tertiary_color": null
+    },
+    "Kentucky": {
+        "primary_color": "#0033a0",
+        "secondary_color": "#FFFFFF",
+        "tertiary_color": "#0033A0"
+    },
+    "La Salle": {
+        "primary_color": "#ffcc00",
+        "secondary_color": "#003366",
+        "tertiary_color": null
+    },
+    "Lafayette": {
+        "primary_color": "#a8996e",
+        "secondary_color": "#98002e",
+        "tertiary_color": "#ffffff"
+    },
+    "Lamar": {
+        "primary_color": "#dc0032",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#fcb034"
+    },
+    "Lehigh": {
+        "primary_color": "#653600",
+        "secondary_color": "#ffd24f",
+        "tertiary_color": "#e51937"
+    },
+    "Liberty": {
+        "primary_color": "#002d62",
+        "secondary_color": "#c41230",
+        "tertiary_color": "#ffffff"
+    },
+    "Lipscomb": {
+        "primary_color": "#331E54",
+        "secondary_color": "#F4AA00",
+        "tertiary_color": null
+    },
+    "Long Beach St.": {
+        "primary_color": "#ffc72a",
+        "secondary_color": "#000000",
+        "tertiary_color": "#FFC72A"
+    },
+    "Long Island Sharks": {
+        "primary_color": "#69B3E7",
+        "secondary_color": "#FFC72C",
+        "tertiary_color": "#ffffff"
+    },
+    "Longwood": {
+        "primary_color": "#15213B",
+        "secondary_color": "#999D9E",
+        "tertiary_color": "#ffffff"
+    },
+    "Louisiana Ragin' Cajuns": {
+        "primary_color": "#ce181e",
+        "secondary_color": "#0a0203",
+        "tertiary_color": "#c1c5c9"
+    },
+    "Louisiana State Tigers": {
+        "primary_color": "#461D7C",
+        "secondary_color": "#FDD023",
+        "tertiary_color": "#461D7C"
+    },
+    "Louisiana Tech Bulldogs": {
+        "primary_color": "#002F8B",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Louisiana-Monroe Warhawks": {
+        "primary_color": "#840029",
+        "secondary_color": "#FDB913",
+        "tertiary_color": "#840029"
+    },
+    "Louisville Cardinals": {
+        "primary_color": "#AD0000",
+        "secondary_color": "#000000",
+        "tertiary_color": "#FDB913"
+    },
+    "Loyola (MD) Greyhounds": {
+        "primary_color": "#00694e",
+        "secondary_color": "#cacac8",
+        "tertiary_color": "#000000"
+    },
+    "Loyola Marymount Lions": {
+        "primary_color": "#b62b3a",
+        "secondary_color": "#00447c",
+        "tertiary_color": "#617080"
+    },
+    "Maine Black Bears": {
+        "primary_color": "#003263",
+        "secondary_color": "#B0D7FF",
+        "tertiary_color": "#AB0634"
+    },
+    "Manhattan": {
+        "primary_color": "#00703C",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Marist Red Foxes": {
+        "primary_color": "#C8102E",
+        "secondary_color": "#b2b2b2",
+        "tertiary_color": null
+    },
+    "Marquette": {
+        "primary_color": "#003366",
+        "secondary_color": "#ffcc00",
+        "tertiary_color": null
+    },
+    "Marshall": {
+        "primary_color": "#00B140",
+        "secondary_color": "#A2AAAD",
+        "tertiary_color": "#693F23"
+    },
+    "Maryland E.S.": {
+        "primary_color": "#862633",
+        "secondary_color": "#888B8D",
+        "tertiary_color": "#000000"
+    },
+    "Maryland ": {
+        "primary_color": "#E03a3e",
+        "secondary_color": "#ffd520",
+        "tertiary_color": "#000000"
+    },
+    "McNeese": {
+        "primary_color": "#00529b",
+        "secondary_color": "#ffd204",
+        "tertiary_color": null
+    },
+    "Memphis": {
+        "primary_color": "#003087",
+        "secondary_color": "#898D8D",
+        "tertiary_color": "#F8992E"
+    },
+    "Mercer": {
+        "primary_color": "#f76800",
+        "secondary_color": "#000000",
+        "tertiary_color": null
+    },
+    "Merrimack": {
+        "primary_color": "#003768",
+        "secondary_color": "#fdb813",
+        "tertiary_color": null
+    },
+    "Miami (FL)": {
+        "primary_color": "#F47321",
+        "secondary_color": "#005030",
+        "tertiary_color": "#FFFFFF"
+    },
+    "Miami (OH)": {
+        "primary_color": "#b61e2e",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Michigan St.": {
+        "primary_color": "#18453B",
+        "secondary_color": "#FFFFFF",
+        "tertiary_color": "#18453B"
+    },
+    "Michigan": {
+        "primary_color": "#00274c",
+        "secondary_color": "#ffcb05",
+        "tertiary_color": "#00274C"
+    },
+    "Milwaukee": {
+        "primary_color": "#FFBD00",
+        "secondary_color": "#CCCCCC",
+        "tertiary_color": null
+    },
+    "Minnesota": {
+        "primary_color": "#7A0019",
+        "secondary_color": "#FFCC33",
+        "tertiary_color": "#7A0019"
+    },
+    "Mississippi": {
+        "primary_color": "#00703c",
+        "secondary_color": "#e51937",
+        "tertiary_color": "#000000"
+    },
+    "Mississippi St.": {
+        "primary_color": "#660000",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#CCCCCC"
+    },
+    "Missouri St.": {
+        "primary_color": "#5E0009",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Missouri": {
+        "primary_color": "#000000",
+        "secondary_color": "#F1B82D",
+        "tertiary_color": "#000000"
+    },
+    "Monmouth": {
+        "primary_color": "#041E42",
+        "secondary_color": "#53565A",
+        "tertiary_color": null
+    },
+    "Montana St.": {
+        "primary_color": "#00205B",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Morehead St.": {
+        "primary_color": "#FFCF00",
+        "secondary_color": "#005EB8",
+        "tertiary_color": "#ffffff"
+    },
+    "Morgan St.": {
+        "primary_color": "#1b4383",
+        "secondary_color": "#f47937",
+        "tertiary_color": "#CDA177"
+    },
+    "Murray St.": {
+        "primary_color": "#ECAC00",
+        "secondary_color": "#002144",
+        "tertiary_color": "#ffffff"
+    },
+    "N.S. Demons": {
+        "primary_color": "#663399",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#ff6600"
+    },
+    "NC State": {
+        "primary_color": "#CC0000",
+        "secondary_color": "#000000",
+        "tertiary_color": "#FFFFFF"
+    },
+    "NJIT Highlanders": {
+        "primary_color": "#D22630",
+        "secondary_color": "#071D49",
+        "tertiary_color": "#C1C6C8"
+    },
+    "Navy Midshipmen": {
+        "primary_color": "#C5B783",
+        "secondary_color": "#00205B",
+        "tertiary_color": null
+    },
+    "Nebraska": {
+        "primary_color": "#e41c38",
+        "secondary_color": "#000000",
+        "tertiary_color": "#fdf2d9"
+    },
+    "Nevada": {
+        "primary_color": "#003366",
+        "secondary_color": "#807f84",
+        "tertiary_color": "#003366"
+    },
+    "New Hampshire": {
+        "primary_color": "#041e42",
+        "secondary_color": "#BBBCBC",
+        "tertiary_color": "#FFFFFF"
+    },
+    "New Mexico": {
+        "primary_color": "#BA0C2F",
+        "secondary_color": "#a7a8aa",
+        "tertiary_color": "#63666A"
+    },
+    "New Mexico St.": {
+        "primary_color": "#861F41",
+        "secondary_color": "#97999B",
+        "tertiary_color": "#000000"
+    },
+    "New Orleans": {
+        "primary_color": "#005ca6",
+        "secondary_color": "#a3a9ac",
+        "tertiary_color": "#002f56"
+    },
+    "Niagara": {
+        "primary_color": "#582C83",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Nicholls": {
+        "primary_color": "#ae132a",
+        "secondary_color": "#72808a",
+        "tertiary_color": "#ffffff"
+    },
+    "Norfolk St.": {
+        "primary_color": "#007A53",
+        "secondary_color": "#F3D03E",
+        "tertiary_color": "#54585A"
+    },
+    "North Alabama": {
+        "primary_color": "#46166B",
+        "secondary_color": "#DB9F11",
+        "tertiary_color": "#5F6062"
+    },
+    "North Carolina Aggies": {
+        "primary_color": "#f3b237",
+        "secondary_color": "#003d6d",
+        "tertiary_color": "#ffffff"
+    },
+    "North Carolina Eagles": {
+        "primary_color": "#880023",
+        "secondary_color": "#8e9093",
+        "tertiary_color": "#000000"
+    },
+    "North Carolina": {
+        "primary_color": "#7BAFD4",
+        "secondary_color": "#FFFFFF",
+        "tertiary_color": "#13294B"
+    },
+    "North Dakota Fighting Hawks": {
+        "primary_color": "#009A44",
+        "secondary_color": "#AAAEAD",
+        "tertiary_color": "#000000"
+    },
+    "North Dakota State Bison": {
+        "primary_color": "#0a5640",
+        "secondary_color": "#ffc72a",
+        "tertiary_color": "#0A5640"
+    },
+    "North Florida Ospreys": {
+        "primary_color": "#00246B",
+        "secondary_color": "#D9D9D9",
+        "tertiary_color": null
+    },
+    "North Texas Mean Green": {
+        "primary_color": "#00853E",
+        "secondary_color": "#00853E",
+        "tertiary_color": null
+    },
+    "Northeastern Huskies": {
+        "primary_color": "#D41B2C",
+        "secondary_color": "#000000",
+        "tertiary_color": "#ffffff"
+    },
+    "Northern Illinois": {
+        "primary_color": "#BA0C2F",
+        "secondary_color": "#8A8D8F",
+        "tertiary_color": null
+    },
+    "Northern Iowa": {
+        "primary_color": "#4B116F",
+        "secondary_color": "#FFCC00",
+        "tertiary_color": null
+    },
+    "Northern Kentucky Norse": {
+        "primary_color": "#FFC72C",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Northwestern": {
+        "primary_color": "#4E2A84",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Notre Dame Fighting Irish": {
+        "primary_color": "#0C2340",
+        "secondary_color": "#c99700",
+        "tertiary_color": "#Ae9142"
+    },
+    "Oakland": {
+        "primary_color": "#B59A57",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Ohio Bobcats": {
+        "primary_color": "#00694E",
+        "secondary_color": "#CDA077",
+        "tertiary_color": null
+    },
+    "Ohio State Buckeyes": {
+        "primary_color": "#BB0000",
+        "secondary_color": "#666666",
+        "tertiary_color": "#FFFFFF"
+    },
+    "Oklahoma Sooners": {
+        "primary_color": "#841617",
+        "secondary_color": "#FDF9D8",
+        "tertiary_color": "#841617"
+    },
+    "Oklahoma State Cowboys": {
+        "primary_color": "#FF7300",
+        "secondary_color": "#000000",
+        "tertiary_color": "#FF7300"
+    },
+    "Old Dominion": {
+        "primary_color": "#003057",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Ole Miss": {
+        "primary_color": "#CE1126",
+        "secondary_color": "#14213D",
+        "tertiary_color": "#CE1126"
+    },
+    "Omaha": {
+        "primary_color": "#000000",
+        "secondary_color": "#D71920",
+        "tertiary_color": "#636568"
+    },
+    "Oral Roberts": {
+        "primary_color": "#002f60",
+        "secondary_color": "#C5b783",
+        "tertiary_color": "#A28E2A"
+    },
+    "Oregon": {
+        "primary_color": "#154733",
+        "secondary_color": "#FEE123",
+        "tertiary_color": "#154733"
+    },
+    "Oregon St.": {
+        "primary_color": "#dc4405",
+        "secondary_color": "#000000",
+        "tertiary_color": "#ffffff"
+    },
+    "Pacific": {
+        "primary_color": "#E35205",
+        "secondary_color": "#231f20",
+        "tertiary_color": "#D86018"
+    },
+    "Penn": {
+        "primary_color": "#990000",
+        "secondary_color": "#011F5B",
+        "tertiary_color": "#990000"
+    },
+    "Penn St.": {
+        "primary_color": "#041E42",
+        "secondary_color": "#FFFFFF",
+        "tertiary_color": "#041E42"
+    },
+    "Pepperdine": {
+        "primary_color": "#00205c",
+        "secondary_color": "#ee7624",
+        "tertiary_color": null
+    },
+    "Pittsburgh ": {
+        "primary_color": "#003594",
+        "secondary_color": "#FFB81C",
+        "tertiary_color": "#1c2957"
+    },
+    "Portland": {
+        "primary_color": "#1e1656",
+        "secondary_color": "#5e6A71",
+        "tertiary_color": null
+    },
+    "Portland St.": {
+        "primary_color": "#154734",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Prairie View": {
+        "primary_color": "#330066",
+        "secondary_color": "#ffcc33",
+        "tertiary_color": "#000000"
+    },
+    "Presbyterian": {
+        "primary_color": "#0060A9",
+        "secondary_color": "#9D2235",
+        "tertiary_color": "#ffffff"
+    },
+    "Princeton": {
+        "primary_color": "#FF671F",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Providence": {
+        "primary_color": "#8a8d8f",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Purdue": {
+        "primary_color": "#ceb888",
+        "secondary_color": "#000000",
+        "tertiary_color": "#9d968D"
+    },
+    "Radford": {
+        "primary_color": "#c2011b",
+        "secondary_color": "#d1d3d4",
+        "tertiary_color": "#003C71"
+    },
+    "Rhode Island": {
+        "primary_color": "#68abe8",
+        "secondary_color": "#002147",
+        "tertiary_color": "#68ABE8"
+    },
+    "Rice": {
+        "primary_color": "#00205B",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Richmond": {
+        "primary_color": "#000066",
+        "secondary_color": "#990000",
+        "tertiary_color": null
+    },
+    "Rider Broncs": {
+        "primary_color": "#981E32",
+        "secondary_color": "#6C6F70",
+        "tertiary_color": null
+    },
+    "Robert Morris": {
+        "primary_color": "#14234b",
+        "secondary_color": "#a6192e",
+        "tertiary_color": "#b2b1ae"
+    },
+    "Rutgers": {
+        "primary_color": "#cc0033",
+        "secondary_color": "#5F6A72",
+        "tertiary_color": "#000000"
+    },
+    "S.H.S. Bearkats": {
+        "primary_color": "#fe5100",
+        "secondary_color": "#ffffff",
+        "tertiary_color": null
+    },
+    "SE Louisiana Lions": {
+        "primary_color": "#006341",
+        "secondary_color": "#eaaa00",
+        "tertiary_color": "#000000"
+    },
+    "SE M.S. Redhawks": {
+        "primary_color": "#000000",
+        "secondary_color": "#C8102E",
+        "tertiary_color": "#ffffff"
+    },
+    "SIUE": {
+        "primary_color": "#ef3829",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#cfaa7a"
+    },
+    "SMU": {
+        "primary_color": "#0033A0",
+        "secondary_color": "#C8102E",
+        "tertiary_color": "#0033A0"
+    },
+    "Sacred Heart": {
+        "primary_color": "#ce1141",
+        "secondary_color": "#b1b3b6",
+        "tertiary_color": "#4d4d4f"
+    },
+    "Saint Mary's (CA)": {
+        "primary_color": "#D80024",
+        "secondary_color": "#06315B",
+        "tertiary_color": null
+    },
+    "Samford": {
+        "primary_color": "#002649",
+        "secondary_color": "#C4161D",
+        "tertiary_color": null
+    },
+    "San Diego St.": {
+        "primary_color": "#a6192e",
+        "secondary_color": "#000000",
+        "tertiary_color": "#FFFFFF"
+    },
+    "San Diego": {
+        "primary_color": "#002868",
+        "secondary_color": "#84bce8",
+        "tertiary_color": "#207bc1"
+    },
+    "San Francisco": {
+        "primary_color": "#FDBB30",
+        "secondary_color": "#00543C",
+        "tertiary_color": "#919194"
+    },
+    "San Jose St.": {
+        "primary_color": "#0055A2",
+        "secondary_color": "#E5A823",
+        "tertiary_color": "#939597"
+    },
+    "Santa Clara": {
+        "primary_color": "#862633",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Seattle": {
+        "primary_color": "#AA0000",
+        "secondary_color": "#000000",
+        "tertiary_color": null
+    },
+    "Seton Hall": {
+        "primary_color": "#004488",
+        "secondary_color": "#A2AAAD",
+        "tertiary_color": "#004488"
+    },
+    "Siena": {
+        "primary_color": "#FFC72C",
+        "secondary_color": "#C8102E",
+        "tertiary_color": "#006747"
+    },
+    "South Alabama": {
+        "primary_color": "#00205B",
+        "secondary_color": "#BF0D3E",
+        "tertiary_color": "#FFFFFF"
+    },
+    "South Carolina Bulldogs": {
+        "primary_color": "#862633",
+        "secondary_color": "#001A72",
+        "tertiary_color": "#000000"
+    },
+    "South Carolina": {
+        "primary_color": "#73000A",
+        "secondary_color": "#000000",
+        "tertiary_color": "#73000A"
+    },
+    "South Carolina Upstate Spartans": {
+        "primary_color": "#00703c",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "South Dakota Coyotes": {
+        "primary_color": "#ad0000",
+        "secondary_color": "#b4b4b4",
+        "tertiary_color": "#000000"
+    },
+    "South Dakota St.": {
+        "primary_color": "#0033A0",
+        "secondary_color": "#FFD100",
+        "tertiary_color": null
+    },
+    "South Florida Bulls": {
+        "primary_color": "#006747",
+        "secondary_color": "#CFC493",
+        "tertiary_color": null
+    },
+    "Southern Illinois": {
+        "primary_color": "#720000",
+        "secondary_color": "#FFFFFF",
+        "tertiary_color": "#000000"
+    },
+    "Southern Jaguars": {
+        "primary_color": "#58b6e7",
+        "secondary_color": "#ffce34",
+        "tertiary_color": null
+    },
+    "Southern Miss Golden Eagles": {
+        "primary_color": "#000000",
+        "secondary_color": "#FFAB00",
+        "tertiary_color": null
+    },
+    "St. Bonaventure Bonnies": {
+        "primary_color": "#54261a",
+        "secondary_color": "#fdb726",
+        "tertiary_color": "#bdb6b0"
+    },
+    "St. John's Red Storm": {
+        "primary_color": "#BA0C2F",
+        "secondary_color": "#041C2C",
+        "tertiary_color": "#A7A8AA"
+    },
+    "St. Joseph's Hawks": {
+        "primary_color": "#9e1b32",
+        "secondary_color": "#6c6f70",
+        "tertiary_color": null
+    },
+    "St. Louis Billikens": {
+        "primary_color": "#003DA5",
+        "secondary_color": "#C8C9C7",
+        "tertiary_color": null
+    },
+    "Saint Peter's": {
+        "primary_color": "#003C71",
+        "secondary_color": "#0072CE",
+        "tertiary_color": "#A59C94"
+    },
+    "St.Francis Red Flash": {
+        "primary_color": "#bd1f25",
+        "secondary_color": "#790000",
+        "tertiary_color": "#8e908f"
+    },
+    "St.Francis Terriers": {
+        "primary_color": "#005496",
+        "secondary_color": "#e03a3e",
+        "tertiary_color": "#ffffff"
+    },
+    "St.Mary's Mountaineers": {
+        "primary_color": "#002855",
+        "secondary_color": "#84754E",
+        "tertiary_color": "#ffffff"
+    },
+    "Stanford Cardinal": {
+        "primary_color": "#8C1515",
+        "secondary_color": "#4D4F53",
+        "tertiary_color": "#2e2d29"
+    },
+    "Stephen F.A. Lumberjacks": {
+        "primary_color": "#613393",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#613393"
+    },
+    "Stetson": {
+        "primary_color": "#00523E",
+        "secondary_color": "#3B8729",
+        "tertiary_color": "#FFFFFF"
+    },
+    "Stony Brook Seawolves": {
+        "primary_color": "#990000",
+        "secondary_color": "#16243e",
+        "tertiary_color": "#828282"
+    },
+    "Syracuse Orange": {
+        "primary_color": "#F76900",
+        "secondary_color": "#FFFFFF",
+        "tertiary_color": "#000E54"
+    },
+    "Temple": {
+        "primary_color": "#9D2235",
+        "secondary_color": "#FFCD00",
+        "tertiary_color": "#8A8D8F"
+    },
+    "Tennessee": {
+        "primary_color": "#4f2984",
+        "secondary_color": "#FFDD00",
+        "tertiary_color": null
+    },
+    "Tennessee St.": {
+        "primary_color": "#00539F",
+        "secondary_color": "#ffffff",
+        "tertiary_color": null
+    },
+    "Texas A&M": {
+        "primary_color": "#500000",
+        "secondary_color": "#FFFFFF",
+        "tertiary_color": "#500000"
+    },
+    "Texas A&M-CC": {
+        "primary_color": "#0067C5",
+        "secondary_color": "#007F3E",
+        "tertiary_color": "#9EA2A4"
+    },
+    "TCU": {
+        "primary_color": "#4d1979",
+        "secondary_color": "#a3a9ac",
+        "tertiary_color": "#FFFFFF"
+    },
+    "Texas": {
+        "primary_color": "#bf5700",
+        "secondary_color": "#333f48",
+        "tertiary_color": "#FFFFFF"
+    },
+    "Texas Southern": {
+        "primary_color": "#7c183e",
+        "secondary_color": "#9da6ab",
+        "tertiary_color": "#ffffff"
+    },
+    "Texas St.": {
+        "primary_color": "#501214",
+        "secondary_color": "#8d734a",
+        "tertiary_color": null
+    },
+    "Texas Tech": {
+        "primary_color": "#CC0000",
+        "secondary_color": "#000000",
+        "tertiary_color": "#FFFFFF"
+    },
+    "Texas-Arlington Mavericks": {
+        "primary_color": "#f58025",
+        "secondary_color": "#0064b1",
+        "tertiary_color": null
+    },
+    "The Citadel": {
+        "primary_color": "#3975B7",
+        "secondary_color": "#1F3A60",
+        "tertiary_color": null
+    },
+    "Toledo Rockets": {
+        "primary_color": "#15397F",
+        "secondary_color": "#005CB9",
+        "tertiary_color": "#FFDA00"
+    },
+    "Towson Tigers": {
+        "primary_color": "#FFBB00",
+        "secondary_color": "#3C3C3C",
+        "tertiary_color": "#ffffff"
+    },
+    "Troy Trojans": {
+        "primary_color": "#8a2432",
+        "secondary_color": "#b3b5b8",
+        "tertiary_color": "#ffffff"
+    },
+    "Tulane Green Wave": {
+        "primary_color": "#006747",
+        "secondary_color": "#43B02A",
+        "tertiary_color": "#418FDE"
+    },
+    "Tulsa Golden Hurricane": {
+        "primary_color": "#002D72",
+        "secondary_color": "#C8102E",
+        "tertiary_color": "#C5B783"
+    },
+    "UAB": {
+        "primary_color": "#CC8A00",
+        "secondary_color": "#000000",
+        "tertiary_color": "#BF0D3E"
+    },
+    "UC Davis": {
+        "primary_color": "#002855",
+        "secondary_color": "#B3A369",
+        "tertiary_color": "#002855"
+    },
+    "UC Irvine Anteaters": {
+        "primary_color": "#0C2340",
+        "secondary_color": "#FFC72C",
+        "tertiary_color": null
+    },
+    "UC Riverside Highlanders": {
+        "primary_color": "#2D6CC0",
+        "secondary_color": "#003066",
+        "tertiary_color": "#F1AB00"
+    },
+    "UC Santa Barbara Gauchos": {
+        "primary_color": "#003660",
+        "secondary_color": "#FEBC11",
+        "tertiary_color": null
+    },
+    "UCF Knights": {
+        "primary_color": "#ffc904",
+        "secondary_color": "#ba9b37",
+        "tertiary_color": "#FFC904"
+    },
+    "UCLA Bruins": {
+        "primary_color": "#f2a900",
+        "secondary_color": "#FFE800",
+        "tertiary_color": "#2D68C4"
+    },
+    "UIC Flames": {
+        "primary_color": "#ac1e2d",
+        "secondary_color": "#041E42",
+        "tertiary_color": "#facc09"
+    },
+    "UMBC Retrievers": {
+        "primary_color": "#b18906",
+        "secondary_color": "#ffc20e",
+        "tertiary_color": "#000000"
+    },
+    "UMKC Kangaroos": {
+        "primary_color": "#005293",
+        "secondary_color": "#fecb00",
+        "tertiary_color": "#000000"
+    },
+    "UMass Lowell": {
+        "primary_color": "#003DA5",
+        "secondary_color": "#C8102E",
+        "tertiary_color": null
+    },
+    "UMass Minutemen": {
+        "primary_color": "#971B2F",
+        "secondary_color": "#572932",
+        "tertiary_color": "#B1B3B3"
+    },
+    "UNC Asheville Bulldogs": {
+        "primary_color": "#003DA5",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#808285"
+    },
+    "UNC Seahawks": {
+        "primary_color": "#003366",
+        "secondary_color": "#006666",
+        "tertiary_color": "#FFD600"
+    },
+    "UNCG Spartans": {
+        "primary_color": "#0f2044",
+        "secondary_color": "#ffb71b",
+        "tertiary_color": "#bec0c2"
+    },
+    "UNLV Rebels": {
+        "primary_color": "#CF0A2C",
+        "secondary_color": "#CAC8C8",
+        "tertiary_color": "#000000"
+    },
+    "USC Trojans": {
+        "primary_color": "#990000",
+        "secondary_color": "#FFC72C",
+        "tertiary_color": "#990000"
+    },
+    "UT Martin Skyhawks": {
+        "primary_color": "#f79728",
+        "secondary_color": "#002a5b",
+        "tertiary_color": null
+    },
+    "UTEP Miners": {
+        "primary_color": "#041E42",
+        "secondary_color": "#B1B3B3",
+        "tertiary_color": "#FF8200"
+    },
+    "UTRGV Vaqueros": {
+        "primary_color": "#FFA300",
+        "secondary_color": "#f05023",
+        "tertiary_color": "#00843D"
+    },
+    "UTSA Roadrunners": {
+        "primary_color": "#0C2340",
+        "secondary_color": "#F15A22",
+        "tertiary_color": null
+    },
+    "Utah St.": {
+        "primary_color": "#00263A",
+        "secondary_color": "#8a8d8f",
+        "tertiary_color": "#000000"
+    },
+    "Utah": {
+        "primary_color": "#CC0000",
+        "secondary_color": "#808080",
+        "tertiary_color": "#000000"
+    },
+    "Utah Valley": {
+        "primary_color": "#275d38",
+        "secondary_color": "#000000",
+        "tertiary_color": "#8e8c89"
+    },
+    "VMI Keydets": {
+        "primary_color": "#a71f23",
+        "secondary_color": "#ffd520",
+        "tertiary_color": "#000000"
+    },
+    "Valparaiso Crusaders": {
+        "primary_color": "#381e0e",
+        "secondary_color": "#613318",
+        "tertiary_color": "#ffcc00"
+    },
+    "Vanderbilt Commodores": {
+        "primary_color": "#000000",
+        "secondary_color": "#866d4b",
+        "tertiary_color": "#000000"
+    },
+    "Villanova Wildcats": {
+        "primary_color": "#00205b",
+        "secondary_color": "#13b5ea",
+        "tertiary_color": "#8B634B"
+    },
+    "Vermont": {
+        "primary_color": "#007155",
+        "secondary_color": "#006666",
+        "tertiary_color": "#FFD600"
+    },
+    "Virginia Cavaliers": {
+        "primary_color": "#232D4B",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Virginia Commonwealth": {
+        "primary_color": "#ffb300",
+        "secondary_color": "#FFB300",
+        "tertiary_color": null
+    },
+    "Virginia Tech": {
+        "primary_color": "#630031",
+        "secondary_color": "#cf4420",
+        "tertiary_color": "#630031"
+    },
+    "Wagner": {
+        "primary_color": "#00483a",
+        "secondary_color": "#b9bbbd",
+        "tertiary_color": "#ffffff"
+    },
+    "Wake Forest": {
+        "primary_color": "#9E7E38",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Washington": {
+        "primary_color": "#4B2E83",
+        "secondary_color": "#b7a57a",
+        "tertiary_color": "#85754d"
+    },
+    "Washington St.": {
+        "primary_color": "#981E32",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "West Virginia Mountaineers": {
+        "primary_color": "#002855",
+        "secondary_color": "#EAAA00",
+        "tertiary_color": "#002855"
+    },
+    "Western Carolina Catamounts": {
+        "primary_color": "#592c88",
+        "secondary_color": "#C1A875",
+        "tertiary_color": null
+    },
+    "Western Illinois Leathernecks": {
+        "primary_color": "#663399",
+        "secondary_color": "#ffcc00",
+        "tertiary_color": null
+    },
+    "Western Ky.": {
+        "primary_color": "#c60c30",
+        "secondary_color": "#1E1E1E",
+        "tertiary_color": "#A2A4A3"
+    },
+    "Western Michigan": {
+        "primary_color": "#6C4023",
+        "secondary_color": "#B5A167",
+        "tertiary_color": "#AAA8AA"
+    },
+    "Wichita State Shockers": {
+        "primary_color": "#FFCD00",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "William & Mary Tribe": {
+        "primary_color": "#115740",
+        "secondary_color": "#F0B323",
+        "tertiary_color": null
+    },
+    "Winthrop": {
+        "primary_color": "#660000",
+        "secondary_color": "#F0B323",
+        "tertiary_color": "#ffffff"
+    },
+    "Wisconsin": {
+        "primary_color": "#c5050c",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#C5050C"
+    },
+    "Wofford": {
+        "primary_color": "#886E4C",
+        "secondary_color": "#FFFFFF",
+        "tertiary_color": "#C7B37F"
+    },
+    "Wright St.": {
+        "primary_color": "#026937",
+        "secondary_color": "#CEA052",
+        "tertiary_color": "#FFE1A5"
+    },
+    "Wyoming": {
+        "primary_color": "#ffc425",
+        "secondary_color": "#492f24",
+        "tertiary_color": "#FFC425"
+    },
+    "Xavier": {
+        "primary_color": "#0C2340",
+        "secondary_color": "#9EA2A2",
+        "tertiary_color": "#0099CC"
+    },
+    "Yale": {
+        "primary_color": "#00356b",
+        "secondary_color": null,
+        "tertiary_color": null
+    },
+    "Youngstown St.": {
+        "primary_color": "#C8102E",
+        "secondary_color": "#F3D54E",
+        "tertiary_color": null
+    }
+}

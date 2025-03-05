@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import teamColors from '$lib/ncaa_team_colors.json';
 
 /**
  * Gets the current NCAA tournament first round URL
@@ -10,6 +11,20 @@ function getFirstRoundUrls() {
     "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/21/scoreboard.json",
     "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/22/scoreboard.json"
   ];
+}
+
+/**
+ * Helper function to find team color by matching the display name
+ * @param {Object} teamData - The team data from NCAA API
+ * @returns {string} The primary color for the team
+ */
+function findTeamColor(teamData) {
+  // Use the display name (short name) for matching
+  const displayName = teamData.names.short;
+  const teamColor = teamColors[displayName]?.primary_color;
+  
+  // Return the color if found, otherwise return a default gray
+  return teamColor || '#666666';
 }
 
 /**
@@ -39,7 +54,8 @@ async function getBracketTeams() {
                 game.game.away.names.short : 
                 game.game.away.names.char6,
           seed: parseInt(game.game.away.seed),
-          seoName: game.game.away.names.seo
+          seoName: game.game.away.names.seo,
+          color: findTeamColor(game.game.away)
         };
         
         // Format home team
@@ -48,7 +64,8 @@ async function getBracketTeams() {
                 game.game.home.names.short : 
                 game.game.home.names.char6,
           seed: parseInt(game.game.home.seed),
-          seoName: game.game.home.names.seo
+          seoName: game.game.home.names.seo,
+          color: findTeamColor(game.game.home)
         };
         
         // Place teams in correct order based on seed
