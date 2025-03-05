@@ -267,7 +267,7 @@
                            on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                            role="button"
                            tabindex="0">
-                        <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">
+                        <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                           {match.teamA?.seed || '-'}
                         </span>
                         <span class="truncate">{match.teamA?.name || 'TBD'}</span>
@@ -282,7 +282,7 @@
                            on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                            role="button"
                            tabindex="0">
-                        <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">
+                        <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                           {match.teamB?.seed || '-'}
                         </span>
                         <span class="truncate">{match.teamB?.name || 'TBD'}</span>
@@ -317,7 +317,7 @@
                          on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                          role="button"
                          tabindex="0">
-                      <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">
+                      <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                         {match.teamA?.seed || '-'}
                       </span>
                       <span class="truncate">{match.teamA?.name || 'TBD'}</span>
@@ -334,7 +334,7 @@
                          on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                          role="button"
                          tabindex="0">
-                      <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">
+                      <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                         {match.teamB?.seed || '-'}
                       </span>
                       <span class="truncate">{match.teamB?.name || 'TBD'}</span>
@@ -354,16 +354,21 @@
     <!-- Champion Trophy (only show in live mode or when there's a winner) -->
     {#if mode === 'live' || bracketData?.champion}
       <div class="absolute left-0 right-0 mx-auto top-[330px] w-[145px]">
-        <div class="text-white text-center bg-amber-700/90 py-3 px-4 rounded-md font-semibold shadow-md">
-          <div class="text-xs uppercase tracking-wider mb-1">Champion</div>
-          <div class="flex items-center justify-center">
+        <div class="text-white text-center">
+          <div class="text-[11px] uppercase tracking-wider mb-2 text-amber-300/90 font-bold">Champion</div>
+          <div class="border border-zinc-700 rounded-sm overflow-hidden bg-zinc-800/80">
             {#if bracketData?.champion}
-              <span class="inline-block w-[20px] h-[20px] text-center bg-amber-800/90 mr-1 text-[11px] font-bold rounded-full flex items-center justify-center">
-                {bracketData.champion.seed}
-              </span>
-              <span>{bracketData.champion.name}</span>
+              <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center" style={getTeamStyle(bracketData.champion, true)}>
+                <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
+                  {bracketData.champion.seed}
+                </span>
+                <span class="truncate font-medium">{bracketData.champion.name}</span>
+              </div>
             {:else}
-              <span>TBD</span>
+              <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center bg-stone-900 border border-dashed border-amber-300/50">
+                <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">-</span>
+                <span class="truncate">TBD</span>
+              </div>
             {/if}
           </div>
         </div>
@@ -376,5 +381,13 @@
   :global(body) {
     background-color: #18181b;
     color: #f4f4f5;
+  }
+
+  /* Slightly condensed but legible font for team names */
+  :global(.truncate) {
+    font-family: Inter, "Segoe UI", Roboto, -apple-system, sans-serif;
+    font-feature-settings: "tnum" on, "lnum" on;
+    letter-spacing: -0.01em;
+    font-weight: 450;
   }
 </style> 
