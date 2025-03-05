@@ -45,7 +45,7 @@
   }
 </script>
 
-<nav class="relative w-full pt-1 pb-4">
+<nav class="relative w-full pt-1">
   <!-- Add banner images -->
   <img 
     src="/images/ui/MM_Banner_left.png" 
@@ -58,7 +58,7 @@
     class="hidden xl:block absolute right-0 top-0 z-0"
   />
   
-  <div class="max-w-7xl mx-auto px-4 relative z-10">
+  <div class="max-w-6xl mx-auto px-4 relative z-10">
     <!-- Mobile menu button -->
     <button class="md:hidden absolute top-4 left-4 p-2 z-20" on:click={toggleMenu} aria-label="Toggle navigation menu">
       <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,12 +1,62 @@
 import { json } from '@sveltejs/kit';
 
 /**
+ * Gets the current NCAA tournament scoreboard URL
+ * This function should be updated with the correct dates as the tournament progresses
+ * @returns {string} The URL for the current tournament phase
+ */
+function getCurrentScoreboardUrl() {
+  const today = new Date();
+  
+  // First Four: March 19-20, 2024
+  if (today >= new Date('2024-03-19') && today <= new Date('2024-03-20')) {
+    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/19/scoreboard.json";
+  }
+  
+  // First Round: March 21-22, 2024
+  if (today >= new Date('2024-03-21') && today <= new Date('2024-03-22')) {
+    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/21/scoreboard.json";
+  }
+  
+  // Second Round: March 23-24, 2024
+  if (today >= new Date('2024-03-23') && today <= new Date('2024-03-24')) {
+    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/23/scoreboard.json";
+  }
+  
+  // Sweet 16: March 28-29, 2024
+  if (today >= new Date('2024-03-28') && today <= new Date('2024-03-29')) {
+    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/28/scoreboard.json";
+  }
+  
+  // Elite Eight: March 30-31, 2024
+  if (today >= new Date('2024-03-30') && today <= new Date('2024-03-31')) {
+    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/30/scoreboard.json";
+  }
+  
+  // Final Four: April 6, 2024
+  if (today >= new Date('2024-04-06') && today <= new Date('2024-04-06')) {
+    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/04/06/scoreboard.json";
+  }
+  
+  // Championship: April 8, 2024
+  if (today >= new Date('2024-04-08') && today <= new Date('2024-04-08')) {
+    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/04/08/scoreboard.json";
+  }
+  
+  // Default to the most recent phase or return a fallback URL
+  // This is useful for testing outside of tournament dates
+  return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/04/scoreboard.json";
+}
+
+/**
  * Fetches NCAA basketball scores from the NCAA API
  * @returns {Promise<Array>} Array of game data
  */
 async function getScoreTicker() {
   try {
-    const response = await fetch("https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/28/scoreboard.json");
+    // Get the appropriate URL for the current tournament phase
+    const scoreboardUrl = getCurrentScoreboardUrl();
+    const response = await fetch(scoreboardUrl);
     
     if (!response.ok) {
       throw new Error(`NCAA API responded with status: ${response.status}`);
@@ -15,8 +65,15 @@ async function getScoreTicker() {
     const data = await response.json();
     const matches = [];
     
+    // Check if there are any games
+    if (!data.games || data.games.length === 0) {
+      return matches; // Return empty array if no games
+    }
+    
     for (const game of data.games) {
-      if (game.game.bracketId === "") continue; // Skip non-tournament games
+      // Skip non-tournament games if needed
+      // Uncomment this line during tournament to only show tournament games
+      // if (game.game.bracketId === "") continue;
       
       const gm = [];
       
@@ -54,7 +111,7 @@ async function getScoreTicker() {
         }
         gm.push(period);
       } else if (game.game.gameState === 'final') {
-        gm.push("");
+        gm.push("FINAL");
       } else {
         gm.push(game.game.startTime);
       }
@@ -62,10 +119,23 @@ async function getScoreTicker() {
       matches.push(gm);
     }
     
-    // Sort by game state (live games first)
+    // Sort games by status: live games first, then upcoming, then final
     return matches.sort((a, b) => {
-      if (a[3] && !b[3]) return -1;
-      if (!a[3] && b[3]) return 1;
+      // Priority order: LIVE > PRE > FINAL
+      const stateOrder = { 'LIVE': 0, 'PRE': 1, 'FINAL': 2 };
+      const stateA = a[2].toUpperCase();
+      const stateB = b[2].toUpperCase();
+      
+      // If states are different, sort by state priority
+      if (stateA !== stateB) {
+        return (stateOrder[stateA] || 3) - (stateOrder[stateB] || 3);
+      }
+      
+      // If both are the same state, sort by time for PRE games
+      if (stateA === 'PRE' && a[3] && b[3]) {
+        return a[3].localeCompare(b[3]);
+      }
+      
       return 0;
     });
     

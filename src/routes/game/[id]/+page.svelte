@@ -5,6 +5,7 @@
   let gameData = null;
   let loading = true;
   let error = null;
+  let allGames = [];
   
   onMount(async () => {
     try {
@@ -16,12 +17,20 @@
       }
       
       const matches = await response.json();
+      allGames = matches;
       
-      if (matches && matches.length > gameId) {
-        gameData = matches[gameId];
-        loading = false;
+      if (matches && matches.length > 0) {
+        if (gameId < matches.length) {
+          gameData = matches[gameId];
+          loading = false;
+        } else {
+          // If the requested game ID is out of range, show the first game
+          gameData = matches[0];
+          loading = false;
+          console.warn(`Game ID ${gameId} out of range, showing first game instead`);
+        }
       } else {
-        throw new Error('Game not found');
+        throw new Error('No games available at this time');
       }
     } catch (err) {
       console.error('Failed to fetch game data:', err);
@@ -34,18 +43,24 @@
   function isWinner(team) {
     return team[3] === true;
   }
+  
+  // Helper function to get game status color
+  function getStatusColor(status) {
+    switch(status.toUpperCase()) {
+      case 'LIVE': return 'text-yellow-300';
+      case 'FINAL': return 'text-white';
+      case 'PRE': return 'text-gray-400';
+      default: return 'text-white';
+    }
+  }
+  
+  // Handle image loading errors
+  function handleImageError(event) {
+    event.target.src = '/images/placeholder-team.svg';
+  }
 </script>
 
 <div class="container mx-auto px-4 py-8">
-  <div class="mb-4">
-    <a href="/" class="text-blue-400 hover:text-blue-300 flex items-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-      </svg>
-      Back to Scores
-    </a>
-  </div>
-
   {#if loading}
     <div class="w-full py-12 text-center">
       <div class="inline-block animate-pulse text-white">
@@ -53,8 +68,17 @@
       </div>
     </div>
   {:else if error}
-    <div class="w-full py-12 text-center text-red-500">
-      {error}
+    <div class="bg-black bg-opacity-30 rounded-lg p-6 shadow-lg border border-white/10 max-w-2xl mx-auto">
+      <div class="text-center py-8">
+        <div class="text-red-500 mb-4">{error}</div>
+        <p class="text-white">There are no games scheduled at this time. Check back during tournament play.</p>
+        
+        <div class="mt-8">
+          <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
+            Return to Home
+          </a>
+        </div>
+      </div>
     </div>
   {:else if gameData}
     <div class="bg-black bg-opacity-30 rounded-lg p-6 shadow-lg border border-white/10 max-w-2xl mx-auto">
@@ -77,6 +101,7 @@
             class="w-24 h-24 mx-auto mb-2" 
             src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{gameData[0][6]}.svg" 
             alt="{gameData[0][0]} logo"
+            on:error={handleImageError}
           >
           <div class="team-seed bg-gray-800 text-white inline-block px-2 py-1 rounded mb-1">
             #{gameData[0][2]}
@@ -100,6 +125,7 @@
             class="w-24 h-24 mx-auto mb-2" 
             src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{gameData[1][6]}.svg" 
             alt="{gameData[1][0]} logo"
+            on:error={handleImageError}
           >
           <div class="team-seed bg-gray-800 text-white inline-block px-2 py-1 rounded mb-1">
             #{gameData[1][2]}
