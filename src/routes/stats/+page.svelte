@@ -167,7 +167,7 @@
   </div>
   
   <!-- Stats summary cards -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
     
     <div class="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl p-6 shadow-lg border border-zinc-700 transform hover:scale-105 transition-transform duration-300">
       <div class="text-5xl font-bold text-amber-600 mb-2">{mostGamesCorrect.stat}</div>

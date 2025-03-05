@@ -21,7 +21,9 @@
 	},
 	"dependencies": {
 		"@supabase/supabase-js": "^2.49.1",
+		"@types/matter-js": "^0.19.8",
 		"chart.js": "^4.4.8",
-		"date-fns": "^4.1.0"
+		"date-fns": "^4.1.0",
+		"matter-js": "^0.20.0"
 	}
 }

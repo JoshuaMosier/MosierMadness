@@ -1,446 +1,466 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import Matter from 'matter-js';
 
-    let ball: HTMLDivElement;
-    let rim: HTMLDivElement;
-    let hoop: HTMLDivElement;
+    let gameContainer: HTMLDivElement;
     let scoreElement: HTMLDivElement;
     let aimLine: HTMLDivElement;
-    let gameContainer: HTMLDivElement;
-    let netLeft: HTMLDivElement;
-    let netRight: HTMLDivElement;
     let score = 0;
-    let pos = { x: 100, y: 300 };
-    let vel = { x: 0, y: 0 };
+    let lastScoreTime = 0;
+    let engine: Matter.Engine;
+    let render: Matter.Render;
+    let world: Matter.World;
+    let ball: Matter.Body;
+    let rim: Matter.Body;
+    let leftNet: Matter.Body;
+    let rightNet: Matter.Body;
     let isDragging = false;
     let startPos = { x: 0, y: 0 };
-    let lastTime = 0;
-    let lastScoreTime = 0;
-    let animationFrame: number;
-    let isShooting = false;
     let containerWidth = 0;
     let containerHeight = 0;
+    let mouseConstraint: Matter.MouseConstraint;
+    let runner: Matter.Runner;
     
-    // Default starting position
-    const defaultPosition = { x: 200, y: 200 };
-    
-    const FPS = 60;
-    const frameTime = 1000 / FPS;
-    const gravity = 0.5;
-    const bounce = 0.8;
-    const friction = 0.99;
-    const powerFactor = 0.2;
-    const maxPower = 30;
-    const ballRadius = 20; // Half the ball size
-    const ballSize = 40;
-    const netWidth = 5; // Width of net sides
-    const netHeight = 80; // Height of net sides
-    const netAngle = 10; // Angle of net sides in degrees
-    const minBounceVelocity = 0.5; // Minimum velocity after bounce
-    const collisionOffset = 4; // Pixels to offset after collision
-    const scoreCooldown = 100; // Milliseconds before another score can be counted
-    const scoreZoneOffset = 10; // Pixels below net bottom to check for scoring
+    // Constants
+    const BALL_RADIUS = 20;
+    const RIM_WIDTH = 120;
+    const RIM_HEIGHT = 5;
+    const NET_WIDTH = 5;
+    const NET_HEIGHT = 80;
+    const NET_ANGLE = 10;
+    const SCORE_COOLDOWN = 100;
+    const DEFAULT_X = 200;
+    const DEFAULT_Y = 200;
+    const PLATFORM_WIDTH = 60;
+    const PLATFORM_HEIGHT = 10;
+
+    // Collision categories
+    const Categories = {
+        DEFAULT: 0x0001,
+        BALL: 0x0002,
+        RIM: 0x0004,
+        NET: 0x0008
+    };
 
     const isMobile = () => {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     };
 
-    // Reset ball to starting position
-    function resetBallPosition() {
-        isShooting = false;
-        pos = { 
-            x: defaultPosition.x, 
-            y: containerHeight - ballSize - defaultPosition.y 
+    function createBall(x: number, y: number) {
+        return Matter.Bodies.circle(x, y, BALL_RADIUS, {
+            restitution: 0.8,
+            friction: 0.005,
+            density: 0.001,
+            frictionAir: 0.001,
+            collisionFilter: {
+                category: Categories.BALL,
+                mask: Categories.DEFAULT | Categories.NET // Only collide with default bodies and nets
+            },
+            render: {
+                fillStyle: '#ff6b00',
+                strokeStyle: '#c65200',
+                lineWidth: 2
+            }
+        });
+    }
+
+    function createRim(x: number, y: number) {
+        const rimBody = Matter.Bodies.rectangle(x, y, RIM_WIDTH, RIM_HEIGHT, {
+            isStatic: true,
+            collisionFilter: {
+                category: Categories.RIM,
+                mask: Categories.DEFAULT // Don't collide with ball
+            },
+            render: {
+                fillStyle: '#f59e0b',
+                strokeStyle: '#b45309',
+                lineWidth: 2
+            }
+        });
+
+        // Create decorative backboard
+        const backboardWidth = 20;
+        const backboardHeight = 120;
+        const backboard = Matter.Bodies.rectangle(x + RIM_WIDTH/2 + backboardWidth/2, y - backboardHeight/2, backboardWidth, backboardHeight, {
+            isStatic: true,
+            collisionFilter: {
+                category: Categories.DEFAULT
+            },
+            render: {
+                fillStyle: '#e5e7eb',
+                strokeStyle: '#9ca3af',
+                lineWidth: 2
+            }
+        });
+
+        return [rimBody, backboard];
+    }
+
+    function createNet(x: number, y: number, angle: number) {
+        return Matter.Bodies.rectangle(x, y, NET_WIDTH, NET_HEIGHT, {
+            isStatic: true,
+            angle: angle * Math.PI / 180,
+            collisionFilter: {
+                category: Categories.NET,
+                mask: Categories.BALL | Categories.DEFAULT
+            },
+            render: {
+                fillStyle: 'rgba(255, 255, 255, 0.3)',
+                strokeStyle: 'rgba(255, 255, 255, 0.5)',
+                lineWidth: 1
+            }
+        });
+    }
+
+    function createPlatform(x: number, y: number) {
+        const platformOptions = {
+            isStatic: true,
+            render: {
+                fillStyle: '#475569'
+            }
         };
-        vel = { x: 0, y: 0 };
+
+        // Create three rectangles to form a U shape
+        const base = Matter.Bodies.rectangle(x, y, PLATFORM_WIDTH, PLATFORM_HEIGHT, platformOptions);
+        const leftWall = Matter.Bodies.rectangle(x - PLATFORM_WIDTH/2 + PLATFORM_HEIGHT/2, y - PLATFORM_HEIGHT, PLATFORM_HEIGHT, PLATFORM_HEIGHT * 2, platformOptions);
+        const rightWall = Matter.Bodies.rectangle(x + PLATFORM_WIDTH/2 - PLATFORM_HEIGHT/2, y - PLATFORM_HEIGHT, PLATFORM_HEIGHT, PLATFORM_HEIGHT * 2, platformOptions);
+
+        return [base, leftWall, rightWall];
     }
 
-    // Helper function to check collision between ball and line segment
-    function checkLineCollision(ballX: number, ballY: number, x1: number, y1: number, x2: number, y2: number): boolean {
-        // Vector from line start to ball
-        const v1x = ballX - x1;
-        const v1y = ballY - y1;
-        // Vector from line start to line end
-        const v2x = x2 - x1;
-        const v2y = y2 - y1;
-        // Length of line segment squared
-        const lengthSq = v2x * v2x + v2y * v2y;
-        
-        // Calculate dot product and clamp to [0,1]
-        const t = Math.max(0, Math.min(1, (v1x * v2x + v1y * v2y) / lengthSq));
-        
-        // Find closest point on line segment
-        const closestX = x1 + t * v2x;
-        const closestY = y1 + t * v2y;
-        
-        // Check if distance is less than ball radius
-        const dx = ballX - closestX;
-        const dy = ballY - closestY;
-        const distanceSq = dx * dx + dy * dy;
-        
-        return distanceSq < ballRadius * ballRadius;
-    }
-
-    // Helper function to handle collision response
-    function handleNetCollision(netX1: number, netY1: number, netX2: number, netY2: number) {
-        // Calculate normal vector of the net line
-        const dx = netX2 - netX1;
-        const dy = netY2 - netY1;
-        const length = Math.sqrt(dx * dx + dy * dy);
-        const nx = -dy / length; // Normal x component
-        const ny = dx / length;  // Normal y component
-        
-        // Calculate dot product of velocity and normal
-        const dotProduct = vel.x * nx + vel.y * ny;
-        
-        // Calculate reflection vector
-        vel.x = vel.x - 2 * dotProduct * nx;
-        vel.y = vel.y - 2 * dotProduct * ny;
-        
-        // Apply bounce factor
-        vel.x *= bounce;
-        vel.y *= bounce;
-
-        // Ensure minimum velocity after bounce to prevent sticking
-        const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y);
-        if (speed < minBounceVelocity) {
-            const scale = minBounceVelocity / speed;
-            vel.x *= scale;
-            vel.y *= scale;
-        }
-
-        // Add a small offset in the direction of the bounce to prevent sticking
-        pos.x += nx * collisionOffset;
-        pos.y += ny * collisionOffset;
-    }
-
-    // Helper function to check if ball is between two x coordinates
-    function isBallBetween(x1: number, x2: number, ballX: number): boolean {
-        const minX = Math.min(x1, x2);
-        const maxX = Math.max(x1, x2);
-        return ballX >= minX && ballX <= maxX;
-    }
-
-    // Helper function to check if a point has crossed a line segment
-    function hasPointCrossedLine(prevX: number, prevY: number, currX: number, currY: number, 
-                               lineX1: number, lineY1: number, lineX2: number, lineY2: number): boolean {
-        // Check if the line segments intersect
-        const denominator = ((currX - prevX) * (lineY2 - lineY1) - (currY - prevY) * (lineX2 - lineX1));
-        if (denominator === 0) return false;
-        
-        const ua = ((lineX2 - lineX1) * (prevY - lineY1) - (lineY2 - lineY1) * (prevX - lineX1)) / denominator;
-        const ub = ((currX - prevX) * (prevY - lineY1) - (currY - prevY) * (prevX - lineX1)) / denominator;
-        
-        return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
-    }
-
-    function animate(currentTime = performance.now()) {
-        const deltaTime = currentTime - lastTime;
-
-        if (deltaTime >= frameTime) {
-            lastTime = currentTime - (deltaTime % frameTime);
-            
-            if (isShooting) {
-                // Store previous position for collision resolution
-                const prevX = pos.x + ballRadius;
-                const prevY = pos.y + ballRadius;
-
-                // Physics simulation
-                vel.y += gravity;
-                pos.x += vel.x;
-                pos.y += vel.y;
-
-                // Get net positions
-                const containerRect = gameContainer.getBoundingClientRect();
-                const hoopRect = hoop.getBoundingClientRect();
-                const netLeftRect = netLeft.getBoundingClientRect();
-                const netRightRect = netRight.getBoundingClientRect();
-                
-                // Calculate net line segments relative to container
-                const leftNetX1 = netLeftRect.left - containerRect.left;
-                const leftNetY1 = netLeftRect.top - containerRect.top;
-                const leftNetX2 = leftNetX1 + Math.sin(netAngle * Math.PI / 180) * netHeight;
-                const leftNetY2 = leftNetY1 + Math.cos(netAngle * Math.PI / 180) * netHeight;
-                
-                const rightNetX1 = netRightRect.left - containerRect.left;
-                const rightNetY1 = netRightRect.top - containerRect.top;
-                const rightNetX2 = rightNetX1 - Math.sin(netAngle * Math.PI / 180) * netHeight;
-                const rightNetY2 = rightNetY1 + Math.cos(netAngle * Math.PI / 180) * netHeight;
-
-                // Ball center position
-                const ballCenterX = pos.x + ballRadius;
-                const ballCenterY = pos.y + ballRadius;
-
-                // Check for scoring
-                if (currentTime - lastScoreTime > scoreCooldown) {
-                    // Define scoring line (just below the bottom of the net)
-                    const scoreY = Math.max(leftNetY2, rightNetY2) + scoreZoneOffset;
-                    const scoreX1 = leftNetX2;
-                    const scoreX2 = rightNetX2;
-
-                    // Check if ball has crossed the scoring line from above
-                    if (prevY < scoreY && ballCenterY >= scoreY && 
-                        isBallBetween(scoreX1, scoreX2, ballCenterX) && 
-                        vel.y > 0) { // Only count if ball is moving downward
-                        score+=2;
-                        lastScoreTime = currentTime;
-                        scoreElement.textContent = `Score: ${score}`;
-                        
-                        // Add score animation
-                        scoreElement.style.transform = 'scale(1.2)';
-                        setTimeout(() => {
-                            scoreElement.style.transform = 'scale(1)';
-                        }, 200);
-                    }
-                }
-
-                // Check for collisions with net sides
-                const leftCollision = checkLineCollision(ballCenterX, ballCenterY, leftNetX1, leftNetY1, leftNetX2, leftNetY2);
-                const rightCollision = checkLineCollision(ballCenterX, ballCenterY, rightNetX1, rightNetY1, rightNetX2, rightNetY2);
-
-                // Handle only one collision per frame, prioritize the one with higher velocity impact
-                if (leftCollision || rightCollision) {
-                    // Calculate line vectors for both nets
-                    const leftDx = leftNetX2 - leftNetX1;
-                    const leftDy = leftNetY2 - leftNetY1;
-                    const rightDx = rightNetX2 - rightNetX1;
-                    const rightDy = rightNetY2 - rightNetY1;
-                    
-                    const leftLength = Math.sqrt(leftDx * leftDx + leftDy * leftDy);
-                    const rightLength = Math.sqrt(rightDx * rightDx + rightDy * rightDy);
-                    
-                    const leftDot = leftCollision ? Math.abs(vel.x * (-leftDy / leftLength) + vel.y * (leftDx / leftLength)) : 0;
-                    const rightDot = rightCollision ? Math.abs(vel.x * (-rightDy / rightLength) + vel.y * (rightDx / rightLength)) : 0;
-
-                    if (leftCollision && (!rightCollision || leftDot > rightDot)) {
-                        handleNetCollision(leftNetX1, leftNetY1, leftNetX2, leftNetY2);
-                    } else if (rightCollision) {
-                        handleNetCollision(rightNetX1, rightNetY1, rightNetX2, rightNetY2);
-                    }
-                }
-
-                // Container boundaries
-                if (pos.y > containerHeight - ballSize) {
-                    // Ball has touched the ground - reset to starting position
-                    resetBallPosition();
-                }
-                else if (pos.x > containerWidth - ballSize) {
-                    pos.x = containerWidth - ballSize;
-                    vel.x = -vel.x * bounce;
-                }
-                else if (pos.x < 0) {
-                    pos.x = 0;
-                    vel.x = -vel.x * bounce;
-                }
-                else if (pos.y < 0) {
-                    pos.y = 0;
-                    vel.y = -vel.y * bounce;
-                }
-                else {
-                    // Apply friction
-                    vel.x *= friction;
-                    vel.y *= friction;
-                }
+    function createWalls() {
+        const wallOptions = {
+            isStatic: true,
+            render: {
+                visible: false
             }
+        };
 
-            if (ball) {
-                ball.style.left = `${pos.x}px`;
-                ball.style.top = `${pos.y}px`;
+        return [
+            // Ground
+            Matter.Bodies.rectangle(containerWidth / 2, containerHeight + 30, containerWidth, 60, wallOptions),
+            // Left wall
+            Matter.Bodies.rectangle(-30, containerHeight / 2, 60, containerHeight, wallOptions),
+            // Right wall
+            Matter.Bodies.rectangle(containerWidth + 30, containerHeight / 2, 60, containerHeight, wallOptions),
+            // Ceiling
+            Matter.Bodies.rectangle(containerWidth / 2, -30, containerWidth, 60, wallOptions)
+        ];
+    }
+
+    function resetBall() {
+        Matter.Body.setPosition(ball, {
+            x: DEFAULT_X,
+            y: containerHeight - DEFAULT_Y - BALL_RADIUS
+        });
+        Matter.Body.setVelocity(ball, { x: 0, y: 0 });
+        Matter.Body.setAngularVelocity(ball, 0);
+    }
+
+    function resetGame() {
+        score = 0;
+        resetBall();
+    }
+
+    function checkScoring() {
+        const currentTime = performance.now();
+        if (currentTime - lastScoreTime > SCORE_COOLDOWN) {
+            const ballPos = ball.position;
+            const rimPos = rim.position;
+            const netLeftPos = leftNet.position;
+            const netRightPos = rightNet.position;
+
+            // Check if ball is between nets and below rim
+            if (ballPos.x > netLeftPos.x && 
+                ballPos.x < netRightPos.x && 
+                ballPos.y > rimPos.y && 
+                ballPos.y < rimPos.y + NET_HEIGHT && 
+                ball.velocity.y > 0) {
                 
-                // Add rotation based on horizontal velocity
-                ball.style.transform = `rotate(${vel.x * 5}deg)`;
+                score += 2;
+                lastScoreTime = currentTime;
+                scoreElement.textContent = `Score: ${score}`;
+                
+                // Add score animation
+                scoreElement.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    scoreElement.style.transform = 'scale(1)';
+                }, 200);
             }
         }
+    }
 
-        animationFrame = requestAnimationFrame(animate);
+    function updateAimLine(mouseX: number, mouseY: number) {
+        if (!isDragging) return;
+
+        const dx = startPos.x - mouseX;
+        const dy = startPos.y - mouseY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        
+        aimLine.style.width = `${Math.min(distance * 2, 150)}px`;
+        aimLine.style.transform = `rotate(${angle}deg)`;
+        
+        const powerRatio = Math.min(distance / 150, 1);
+        const r = Math.floor(255 * powerRatio);
+        const g = Math.floor(255 * (1 - powerRatio));
+        aimLine.style.backgroundColor = `rgb(${r}, ${g}, 0)`;
     }
 
     function handleMouseDown(event: MouseEvent) {
-        if (isShooting) return; // Don't allow new shots while ball is in motion
-        
-        const ballRect = ball.getBoundingClientRect();
-        const containerRect = gameContainer.getBoundingClientRect();
-        
-        // Convert mouse coordinates to be relative to the container
-        const relativeX = event.clientX - containerRect.left;
-        const relativeY = event.clientY - containerRect.top;
-        
-        // Check if click is within the ball
-        if (
-            relativeX >= ballRect.left - containerRect.left &&
-            relativeX <= ballRect.right - containerRect.left &&
-            relativeY >= ballRect.top - containerRect.top &&
-            relativeY <= ballRect.bottom - containerRect.top
-        ) {
-            event.preventDefault();
+        const ballPos = ball.position;
+        const mousePos = Matter.Vector.create(
+            event.clientX - gameContainer.getBoundingClientRect().left,
+            event.clientY - gameContainer.getBoundingClientRect().top
+        );
+
+        if (Matter.Vector.magnitude(Matter.Vector.sub(mousePos, ballPos)) < BALL_RADIUS * 2) {
             isDragging = true;
-            startPos = { 
-                x: ballRect.left - containerRect.left + ballRect.width / 2, 
-                y: ballRect.top - containerRect.top + ballRect.height / 2 
-            };
+            startPos = { x: ballPos.x, y: ballPos.y };
             
-            // Show aim line
             aimLine.style.display = 'block';
             aimLine.style.left = `${startPos.x}px`;
             aimLine.style.top = `${startPos.y}px`;
             aimLine.style.width = '0';
             aimLine.style.transform = 'rotate(0deg)';
+
+            // Disable mouse constraint and make ball static while aiming
+            Matter.World.remove(world, mouseConstraint);
+            Matter.Body.setStatic(ball, true);
         }
     }
 
     function handleMouseMove(event: MouseEvent) {
         if (isDragging) {
-            event.preventDefault();
-            
             const containerRect = gameContainer.getBoundingClientRect();
-            const relativeX = event.clientX - containerRect.left;
-            const relativeY = event.clientY - containerRect.top;
-            
-            // Calculate direction and power
-            const dx = startPos.x - relativeX;
-            const dy = startPos.y - relativeY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-            
-            // Limit the maximum power
-            const power = Math.min(distance, maxPower / powerFactor);
-            
-            // Update aim line
-            aimLine.style.width = `${power * 2}px`;
-            aimLine.style.transform = `rotate(${angle}deg)`;
-            
-            // Update power indicator color based on power level
-            const powerRatio = power / (maxPower / powerFactor);
-            const r = Math.floor(255 * powerRatio);
-            const g = Math.floor(255 * (1 - powerRatio));
-            aimLine.style.backgroundColor = `rgb(${r}, ${g}, 0)`;
+            const mouseX = event.clientX - containerRect.left;
+            const mouseY = event.clientY - containerRect.top;
+            updateAimLine(mouseX, mouseY);
         }
     }
 
     function handleMouseUp(event: MouseEvent) {
         if (isDragging) {
-            event.preventDefault();
-            isDragging = false;
-            
             const containerRect = gameContainer.getBoundingClientRect();
-            const relativeX = event.clientX - containerRect.left;
-            const relativeY = event.clientY - containerRect.top;
+            const mouseX = event.clientX - containerRect.left;
+            const mouseY = event.clientY - containerRect.top;
             
-            // Calculate velocity based on pull distance and direction
-            const dx = startPos.x - relativeX;
-            const dy = startPos.y - relativeY;
+            const dx = startPos.x - mouseX;
+            const dy = startPos.y - mouseY;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            // Limit the maximum power
-            const power = Math.min(distance * powerFactor, maxPower);
+            // Make ball dynamic again before applying velocity
+            Matter.Body.setStatic(ball, false);
             
-            // Set velocity based on pull direction and power
-            vel.x = dx * powerFactor;
-            vel.y = dy * powerFactor;
+            // Apply velocity to the ball
+            const power = Math.min(distance * 0.2, 30);
+            const velocityX = (dx / distance) * power;
+            const velocityY = (dy / distance) * power;
             
-            // Hide aim line
+            Matter.Body.setVelocity(ball, {
+                x: velocityX,
+                y: velocityY
+            });
+            
+            isDragging = false;
             aimLine.style.display = 'none';
+
+            // Re-enable mouse constraint
+            Matter.World.add(world, mouseConstraint);
+        }
+    }
+
+    function drawBasketballLines(render: Matter.Render) {
+        const context = render.context;
+        Matter.Events.on(render, 'afterRender', () => {
+            const pos = ball.position;
+            const angle = ball.angle;
             
-            // Start the shot
-            isShooting = true;
-        }
-    }
-
-    function resetGame() {
-        score = 0;
-        resetBallPosition();
-    }
-
-    function updateContainerDimensions() {
-        if (gameContainer) {
-            const rect = gameContainer.getBoundingClientRect();
-            containerWidth = rect.width;
-            containerHeight = rect.height;
-            resetBallPosition();
-        }
+            context.save();
+            context.translate(pos.x, pos.y);
+            context.rotate(angle);
+            
+            // Draw the lines
+            context.beginPath();
+            context.strokeStyle = '#c65200';
+            context.lineWidth = 2;
+            
+            // Horizontal line
+            context.moveTo(-BALL_RADIUS, 0);
+            context.lineTo(BALL_RADIUS, 0);
+            
+            // Vertical line
+            context.moveTo(0, -BALL_RADIUS);
+            context.lineTo(0, BALL_RADIUS);
+            
+            // Curved lines
+            context.moveTo(-BALL_RADIUS * 0.7, -BALL_RADIUS * 0.7);
+            context.quadraticCurveTo(0, -BALL_RADIUS * 0.2, BALL_RADIUS * 0.7, -BALL_RADIUS * 0.7);
+            
+            context.moveTo(-BALL_RADIUS * 0.7, BALL_RADIUS * 0.7);
+            context.quadraticCurveTo(0, BALL_RADIUS * 0.2, BALL_RADIUS * 0.7, BALL_RADIUS * 0.7);
+            
+            context.stroke();
+            context.restore();
+        });
     }
 
     onMount(() => {
         if (!isMobile()) {
-            lastTime = performance.now();
-            
-            // Get container dimensions
-            updateContainerDimensions();
-            
-            // Position ball at starting position
-            resetBallPosition();
-            
-            animate();
-            
+            const containerRect = gameContainer.getBoundingClientRect();
+            containerWidth = containerRect.width;
+            containerHeight = containerRect.height;
+
+            // Create engine and world
+            engine = Matter.Engine.create({
+                enableSleeping: false,
+                gravity: { x: 0, y: 0.98 }
+            });
+            world = engine.world;
+
+            // Create renderer
+            render = Matter.Render.create({
+                element: gameContainer,
+                engine: engine,
+                options: {
+                    width: containerWidth,
+                    height: containerHeight,
+                    wireframes: false,
+                    background: 'transparent',
+                    pixelRatio: window.devicePixelRatio
+                }
+            });
+
+            // Create game objects
+            ball = createBall(DEFAULT_X, containerHeight - DEFAULT_Y);
+            const [rimBody, backboard] = createRim(containerWidth - 150, 250);
+            rim = rimBody;
+            leftNet = createNet(containerWidth - 150 - RIM_WIDTH/2, 250 + NET_HEIGHT/2, -NET_ANGLE);
+            rightNet = createNet(containerWidth - 150 + RIM_WIDTH/2, 250 + NET_HEIGHT/2, NET_ANGLE);
+
+            // Create the platform
+            const platform = createPlatform(DEFAULT_X, containerHeight - DEFAULT_Y + BALL_RADIUS * 2 - 40);
+
+            // Add all bodies to the world
+            Matter.World.add(world, [
+                ball,
+                rim,
+                backboard,
+                leftNet,
+                rightNet,
+                ...platform,
+                ...createWalls()
+            ]);
+
+            // Add mouse control
+            const mouse = Matter.Mouse.create(render.canvas);
+            mouseConstraint = Matter.MouseConstraint.create(engine, {
+                mouse: mouse,
+                constraint: {
+                    stiffness: 0.2,
+                    render: {
+                        visible: false
+                    }
+                }
+            });
+            Matter.World.add(world, mouseConstraint);
+
+            // Keep the mouse in sync with rendering
+            render.mouse = mouse;
+
+            // Start the engine and renderer
+            runner = Matter.Runner.create({
+                isFixed: true,
+                delta: 1000/60
+            });
+            Matter.Runner.run(runner, engine);
+            Matter.Render.run(render);
+
+            // Setup basketball appearance
+            drawBasketballLines(render);
+
             // Add event listeners
             window.addEventListener('mousedown', handleMouseDown);
             window.addEventListener('mousemove', handleMouseMove);
             window.addEventListener('mouseup', handleMouseUp);
-            window.addEventListener('resize', updateContainerDimensions);
+            window.addEventListener('resize', () => {
+                const newRect = gameContainer.getBoundingClientRect();
+                containerWidth = newRect.width;
+                containerHeight = newRect.height;
+                
+                Matter.Render.setPixelRatio(render, window.devicePixelRatio);
+                render.canvas.width = containerWidth;
+                render.canvas.height = containerHeight;
+                render.options.width = containerWidth;
+                render.options.height = containerHeight;
+            });
+
+            // Add collision detection for scoring
+            Matter.Events.on(engine, 'afterUpdate', checkScoring);
+
+            // Add ground collision detection for resetting ball
+            Matter.Events.on(engine, 'collisionStart', (event) => {
+                event.pairs.forEach((pair) => {
+                    if ((pair.bodyA === ball || pair.bodyB === ball) &&
+                        ((pair.bodyA.position.y > containerHeight - 50) || 
+                         (pair.bodyB.position.y > containerHeight - 50))) {
+                        resetBall();
+                    }
+                });
+            });
         }
 
         return () => {
             if (!isMobile()) {
-                if (animationFrame) {
-                    cancelAnimationFrame(animationFrame);
-                }
-                
-                // Clean up event listeners
+                // Clean up Matter.js
+                Matter.Runner.stop(runner);
+                Matter.World.clear(world, false);
+                Matter.Engine.clear(engine);
+                Matter.Render.stop(render);
+                render.canvas.remove();
+                render.canvas = null;
+                render.context = null;
+                render.textures = {};
+
+                // Remove event listeners
                 window.removeEventListener('mousedown', handleMouseDown);
                 window.removeEventListener('mousemove', handleMouseMove);
                 window.removeEventListener('mouseup', handleMouseUp);
-                window.removeEventListener('resize', updateContainerDimensions);
             }
         };
     });
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-5xl">
-  <div class="text-center mb-8">
-    <h1 class="text-4xl font-bold mb-4">
-      <span class="bg-gradient-to-r from-amber-700 to-amber-600 text-white px-4 py-2 rounded-lg shadow-md inline-block">
-        Basketball Challenge
-      </span>
-    </h1>
-  </div>
-
-  <div class="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl p-6 shadow-lg border border-zinc-700 mb-8">
-    <div class="game-container" bind:this={gameContainer}>
-      <div class="score" bind:this={scoreElement}>
-        Score: {score}
-      </div>
-
-      {#if !isMobile()}
-        <button class="reset-button" on:click={resetGame}>Reset Game</button>
-        
-        <div class="instructions">
-          Click and pull back on the ball to shoot!
-        </div>
-        
-        <div class="basketball-hoop" bind:this={hoop}>
-          <div class="rim" bind:this={rim}></div>
-          <div class="net-container">
-            <div class="net-side net-left" bind:this={netLeft}></div>
-            <div class="net-side net-right" bind:this={netRight}></div>
-          </div>
-        </div>
-
-        <div 
-          class="basketball"
-          bind:this={ball}
-          style="left: {pos.x}px; top: {pos.y}px;"
-        >
-          🏀
-        </div>
-        
-        <div class="aim-line" bind:this={aimLine}></div>
-      {:else}
-        <div class="mobile-message">
-          Sorry, this game is only available on desktop devices.
-        </div>
-      {/if}
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-4">
+            <span class="bg-gradient-to-r from-amber-700 to-amber-600 text-white px-4 py-2 rounded-lg shadow-md inline-block">
+                Basketball Challenge
+            </span>
+        </h1>
     </div>
-  </div>
+
+    <div class="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl p-6 shadow-lg border border-zinc-700 mb-8">
+        <div class="game-container" bind:this={gameContainer}>
+            <div class="score" bind:this={scoreElement}>
+                Score: {score}
+            </div>
+
+            {#if !isMobile()}
+                <button class="reset-button" on:click={resetGame}>Reset Game</button>
+                
+                <div class="instructions">
+                    Click and pull back on the ball to shoot!
+                </div>
+                
+                <div class="aim-line" bind:this={aimLine}></div>
+            {:else}
+                <div class="mobile-message">
+                    Sorry, this game is only available on desktop devices.
+                </div>
+            {/if}
+        </div>
+    </div>
 </div>
 
 <style>
@@ -478,6 +498,7 @@
         padding: 10px 20px;
         border-radius: 20px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        z-index: 1000;
     }
 
     .reset-button {
@@ -499,24 +520,6 @@
         background: #92400e;
     }
 
-    .basketball {
-        position: absolute;
-        width: 40px;
-        height: 40px;
-        cursor: grab;
-        user-select: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 50px;
-        z-index: 1000;
-        transition: transform 0.1s linear;
-    }
-
-    .basketball:active {
-        cursor: grabbing;
-    }
-
     .aim-line {
         position: absolute;
         height: 4px;
@@ -526,56 +529,6 @@
         z-index: 900;
         border-radius: 2px;
         box-shadow: 0 0 5px rgba(245, 158, 11, 0.7);
-    }
-
-    .basketball-hoop {
-        position: absolute;
-        right: 100px;
-        top: 200px;
-        width: 120px;
-        height: 100px;
-        z-index: 900;
-    }
-
-    .rim {
-        position: absolute;
-        right: 15px;
-        top: 40px;
-        width: 120px;
-        height: 5px;
-        background: #f59e0b;
-        border: 2px solid #b45309;
-        border-radius: 3px;
-        box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-
-    .net-container {
-        position: absolute;
-        right: 15px;
-        top: 45px;
-        width: 120px;
-        height: 80px;
-        overflow: visible;
-    }
-
-    .net-side {
-        position: absolute;
-        width: 5px;
-        height: 80px;
-        background-color: rgba(255, 255, 255, 0.2);
-        z-index: 899;
-    }
-
-    .net-left {
-        left: 0;
-        transform: rotate(-10deg);
-        transform-origin: top left;
-    }
-
-    .net-right {
-        right: 0;
-        transform: rotate(10deg);
-        transform-origin: top right;
     }
 
     .mobile-message {
