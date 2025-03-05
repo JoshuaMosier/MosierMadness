@@ -1,11 +1,11 @@
 <script>
   import { onMount } from 'svelte';
-  import { user } from '$lib/stores/user';
+  import { supabase } from '$lib/supabase';
   import { goto } from '$app/navigation';
   
   onMount(async () => {
     try {
-      const { error } = await user.signOut();
+      const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Error signing out:', error);
       }

@@ -123,7 +123,7 @@
   <meta name="description" content="View the live March Madness tournament bracket" />
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
+<div class="max-w-7xl mx-auto px-4 py-8">
   <div class="text-center mb-8">
     <h1 class="text-4xl font-bold text-amber-600 mb-2">Live Tournament Bracket</h1>
     <p class="text-xl text-zinc-400">Follow the tournament progress in real-time</p>
