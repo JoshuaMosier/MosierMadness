@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
   import BracketView from '$lib/components/BracketView.svelte';
+  import { fade } from 'svelte/transition';
 
   let loading = true;
   let error = null;
@@ -399,15 +400,20 @@
 
 <div class="max-w-7xl mx-auto px-4 py-8">
   {#if loading}
-    <div class="flex justify-center items-center min-h-[200px]">
-      <div class="text-amber-600">Loading your bracket...</div>
+    <div class="flex justify-center items-center min-h-[600px]" in:fade={{ duration: 100 }}>
+      <div class="flex flex-col items-center gap-3">
+        <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+        <div class="text-amber-600 font-medium">Loading your bracket...</div>
+      </div>
     </div>
   {:else if error}
-    <div class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center">
+    <div class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center" 
+         in:fade={{ duration: 100, delay: 100 }}>
       {error}
     </div>
   {:else if !user}
-    <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center">
+    <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center"
+         in:fade={{ duration: 100, delay: 100 }}>
       <p class="text-zinc-300 mb-4">Please log in to view or submit your bracket.</p>
       <a 
         href="/login" 
@@ -417,7 +423,8 @@
       </a>
     </div>
   {:else if bracket}
-    <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"
+         in:fade={{ duration: 300, delay: 100 }}>
       <!-- Header Section -->
       <div class="border-b border-zinc-800 bg-zinc-900/50">
         <div class="p-6">
@@ -496,7 +503,8 @@
       </div>
     </div>
   {:else}
-    <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center">
+    <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center"
+         in:fade={{ duration: 100, delay: 100 }}>
       <p class="text-zinc-300 mb-4">You haven't created a bracket yet.</p>
       <button 
         class="px-6 py-2 bg-gradient-to-r from-amber-700 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-500 transition-all duration-200 disabled:opacity-50"
