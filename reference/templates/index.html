@@ -1,0 +1,130 @@
+{% extends 'layout.html' %}
+{% block body %}
+{% if order %}
+  <div class="leaderboard center">
+    <table id="leaderboard" class="table table-dark sortable">
+      <thead class = "thead-light">
+        <tr>
+          <th class="cell sorttable_nosort"><span class="col-header">Rank</span></th>
+          <th class="cell"><span class="col-header">Score</span></th>
+          <th class="cell-left" style='text-align:center;'><span class="col-header">Username</span></th>
+          <th title="Round of 64" class="lower-padding cell"><span class="col-header">R64</span></th>
+          <th title="Round of 32" class="lower-padding cell"><span class="col-header">R32</span></th>
+          <th title="Sweet Sixteen" class="lower-padding cell"><span class="col-header">S16</span></th>
+          <th title="Elite Eight" class="lower-padding cell"><span class="col-header">E8</span></th>
+          <th title="Final Four" class="lower-padding cell"><span class="col-header">F4</span></th>
+          <th title="National Championship Game" class="lower-padding cell"><span class="col-header">NCG</span></th>
+          <th title="Potential Remaining Score" class="lower-padding cell"><span class="col-header">Pot.</span></th>
+          <th class="cell-left sorttable_nosort"><span class="col-header">Final Four</span></th>
+          <th class="cell-left sorttable_nosort"><span class="col-header">Finals</span></th>
+          <th class="cell-left sorttable_nosort" style='text-align:center;'><span class="col-header">Champ</span></th>
+          <th title="Total Correct Games" class="cell"><span class="col-header">Games</span></th>
+        </tr>
+      </thead>
+
+
+    <!-- Scoring  Output-->
+    <tbody>
+      {% for item in order %}
+        {% if users[item].round1 != "\"" %}
+        {% if row_id[0] == users[item].firstname and row_id[1] == users[item].lastname %}
+        <tr style="background-color:#ac9437;">
+        {% else %}
+        <tr>
+        {% endif %}
+          <td class="cell">{{rank[loop.index-1]}}</td>
+          <td class="cell">{{score[item][6]}}</td>
+          {% if row_id[0] == users[item].firstname and row_id[1] == users[item].lastname %}
+            <td>
+              <a href="{{ url_for('entries',id=users[item].id)}}">
+                <div class="button -regular nav-center entries-btn-hover color-9">
+                  {{users[item].firstname}} {{users[item].lastname}}
+                </div>
+              </a>
+            </td>
+          {% else %}
+            <td>
+              <a href="{{ url_for('entries',id=users[item].id)}}">
+                <div class="button -regular nav-center entries-btn-hover color-8">
+                  {{users[item].firstname}} {{users[item].lastname}}
+                </div>
+              </a>
+            </td>
+          {% endif %}
+
+
+          <td class="lower-padding cell">{{score[item][0]}}</td>
+          <td class="lower-padding cell">{{score[item][1]}}</td>
+          <td class="lower-padding cell">{{score[item][2]}}</td>
+          <td class="lower-padding cell">{{score[item][3]}}</td>
+          <td class="lower-padding cell">{{score[item][4]}}</td>
+          <td class="lower-padding cell">{{score[item][5]}}</td>
+          <td class="lower-padding cell">{{potential[item]}}</td>
+          <td class="scoreboard-img" style="position: relative; left: 0; top: 0;">
+            <img title="{{seo[end_rounds[item][0]| replace('.png', '')]}}" src="static/team_images/2024/pngs/{{seo[end_rounds[item][0]| replace('.png', '')]}}.png" class="images float-left">
+            <img title="{{seo[end_rounds[item][1]| replace('.png', '')]}}" src="static/team_images/2024/pngs/{{seo[end_rounds[item][1]| replace('.png', '')]}}.png" class="images float-left">
+            <img title="{{seo[end_rounds[item][2]| replace('.png', '')]}}" src="static/team_images/2024/pngs/{{seo[end_rounds[item][2]| replace('.png', '')]}}.png" class="images float-left">
+            <img title="{{seo[end_rounds[item][3]| replace('.png', '')]}}" src="static/team_images/2024/pngs/{{seo[end_rounds[item][3]| replace('.png', '')]}}.png" class="images float-left">
+                      <!-- Winner -->
+              {% if (end_rounds[item][0] | replace('.png', '')) == master[56] %}
+                <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left" />
+              {% elif (end_rounds[item][0] | replace('.png', '')) in elim%}
+                <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left" />
+              {% endif %}
+
+              {% if (end_rounds[item][1] | replace('.png', '')) == master[57] %}
+                <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay2 float-left" />
+              {% elif (end_rounds[item][1] | replace('.png', '')) in elim%}
+                <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay2 float-left" />
+              {% endif %}
+
+              {% if (end_rounds[item][2] | replace('.png', '')) == master[58] %}
+                <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay3 float-left" />
+              {% elif (end_rounds[item][2] | replace('.png', '')) in elim%}
+                <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay3 float-left" />
+              {% endif %}
+
+              {% if (end_rounds[item][3] | replace('.png', '')) == master[59] %}
+                <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay4 float-left" />
+              {% elif (end_rounds[item][3] | replace('.png', '')) in elim%}
+                <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay4 float-left" />
+              {% endif %}
+          </td>
+          <td class="scoreboard-img" style="position: relative; left: 0; top: 0;">
+            <img title="{{seo[end_rounds[item][4]| replace('.png', '')]}}" src="static/team_images/2024/pngs/{{seo[end_rounds[item][4]| replace('.png', '')]}}.png" class="images float-left">
+            <img title="{{seo[end_rounds[item][5]| replace('.png', '')]}}" src="static/team_images/2024/pngs/{{seo[end_rounds[item][5]| replace('.png', '')]}}.png" class="images float-left">
+            <!-- Winner -->
+            {% if (end_rounds[item][4] | replace('.png', '')) == master[60] %}
+              <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left" />
+            {% elif (end_rounds[item][4] | replace('.png', ''))  in elim%}
+              <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left" />
+            {% endif %}
+
+            {% if (end_rounds[item][5] | replace('.png', '')) == master[61] %}
+              <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay2 float-left" />
+            {% elif (end_rounds[item][5] | replace('.png', ''))  in elim%}
+              <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay2 float-left" />
+            {% endif %}
+          </td>
+          <td class="scoreboard-img" style="position: relative; left: 0; top: 0;">
+            <img title="{{seo[end_rounds[item][6]| replace('.png', '')]}}" src="static/team_images/2024/pngs/{{seo[end_rounds[item][6]| replace('.png', '')]}}.png" class="images float-left champ-center">
+
+            <!-- Winner -->
+            {% if (end_rounds[item][6] | replace('.png', '')) == master[62] %}
+              <img src="static/{{ 'winner.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left champ-center" />
+            {% elif (end_rounds[item][6] | replace('.png', '')) in elim%}
+              <img src="static/{{ 'loser.png' | default('NCAA_logo.svg') }}" class="overlay1 float-left champ-center" />
+            {% endif %}      
+          </td>
+          <td class="cell">{{score[item][7]}}</td>
+          </tr>
+      
+          {% endif %}
+
+        
+      {% endfor %}
+    </tbody>
+      {% endif %}
+    </table>
+  </div>
+{% endblock %}

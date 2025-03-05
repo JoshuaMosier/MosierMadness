@@ -1,15 +1,23 @@
+node_modules
 
-app/chromedriver.exe
-app/__pycache__/master_bracket.cpython-37.pyc
-app/__pycache__/score_scraper.cpython-37.pyc
-app/__pycache__/scoring.cpython-37.pyc
-*.zip
-app/migrations/__pycache__/env.cpython-37.pyc
-app/migrations/alembic.ini
-app/migrations/env.py
-app/migrations/README
-app/migrations/script.py.mako
-app/migrations/versions/391f666a7215_users_table.py
-app/migrations/versions/__pycache__/391f666a7215_users_table.cpython-37.pyc
-*.db
-.vscode/settings.json
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
