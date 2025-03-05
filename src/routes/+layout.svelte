@@ -20,9 +20,9 @@
 <div class="flex flex-col min-h-screen">
   <Navbar />
   
-  <div class="container mx-auto px-4 py-2">
+  <!-- <div class="container mx-auto px-4">
     <ScoreTicker />
-  </div>
+  </div> -->
   
   <main class="flex-grow">
     <slot />

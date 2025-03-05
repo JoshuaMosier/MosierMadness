@@ -132,19 +132,43 @@
     if (isSelected) {
       classes.push('bg-amber-800/90 font-medium cursor-pointer');
     } else if (highlightWinners && isWinningTeam) {
-      classes.push('bg-amber-800/90 font-medium');
+      if (team?.color) {
+        classes.push(`font-medium`);
+        // We'll apply the color directly in the style attribute
+      } else {
+        classes.push('bg-amber-800/90 font-medium');
+      }
     } else if (!team?.name || team?.name === 'TBD') {
       // Make unfilled games more distinct with a dashed border and lighter background
       classes.push('bg-stone-900 border border-dashed border-amber-300/50');
     } else {
-      classes.push('bg-zinc-800/80');
+      if (team?.color) {
+        classes.push('');
+        // We'll apply the color directly in the style attribute
+      } else {
+        classes.push('bg-zinc-800/80');
+      }
     }
     
-    if (!isSelected && mode === 'live') {
-      classes.push('line-through');
-    }
+    // if (!isSelected && mode === 'live') {
+    //   classes.push('line-through');
+    // }
     
     return classes.join(' ');
+  }
+
+  // Helper function to get team background style
+  function getTeamStyle(team, isWinningTeam) {
+    if (team?.color) {
+      const opacity = 0.8;
+      // Convert hex to RGB
+      const hex = team.color.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      return `background-color: rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+    return '';
   }
 </script>
 
@@ -211,8 +235,8 @@
         ${round.id === 2 ? 'left: 115px; width: 720px' : ''}
         ${round.id === 3 ? 'left: 230px; width: 490px' : ''}
         ${round.id === 4 ? 'left: 345px; width: 260px' : ''}
-        ${round.id === 5 ? 'left: 280px; width: 380px' : ''}
-        ${round.id === 6 ? 'left: 395px; width: 150px' : ''}
+        ${round.id === 5 ? 'left: 285px; width: 380px' : ''}
+        ${round.id === 6 ? 'left: 400px; width: 150px' : ''}
       `}>
         {#each regions as region}
           <div class="region{region.id}">
@@ -238,6 +262,7 @@
                     <div class="border border-zinc-700 rounded-sm overflow-hidden">
                       <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200
                                 ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
+                           style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
                            on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
                            on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                            role="button"
@@ -252,6 +277,7 @@
                       </div>
                       <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200
                                 ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
+                           style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
                            on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
                            on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                            role="button"
@@ -286,6 +312,7 @@
                     <!-- Team A -->
                     <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
                                 ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
+                         style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
                          on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
                          on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                          role="button"
@@ -302,6 +329,7 @@
                     <!-- Team B -->
                     <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
                                 ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
+                         style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
                          on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
                          on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                          role="button"
@@ -325,7 +353,7 @@
 
     <!-- Champion Trophy (only show in live mode or when there's a winner) -->
     {#if mode === 'live' || bracketData?.champion}
-      <div class="absolute left-0 right-0 mx-auto top-[330px] w-[145px] left-[-10px]">
+      <div class="absolute left-0 right-0 mx-auto top-[330px] w-[145px]">
         <div class="text-white text-center bg-amber-700/90 py-3 px-4 rounded-md font-semibold shadow-md">
           <div class="text-xs uppercase tracking-wider mb-1">Champion</div>
           <div class="flex items-center justify-center">

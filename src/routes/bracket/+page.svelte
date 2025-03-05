@@ -13,49 +13,72 @@
   let showResetModal = false;
   let teamSelectionSaving = false; // Separate saving state for team selections
   let bracketActionSaving = false; // Separate saving state for major bracket actions
+  let firstRoundTeams = []; // Will be populated dynamically
 
-  // Sample first round teams
-  const firstRoundTeams = [
-    // South Region (1-16)
-    { name: "Houston", seed: 1 }, { name: "N Kentucky", seed: 16 },
-    { name: "Iowa", seed: 8 }, { name: "Auburn", seed: 9 },
-    { name: "Miami FL", seed: 5 }, { name: "Drake", seed: 12 },
-    { name: "Indiana", seed: 4 }, { name: "Kent State", seed: 13 },
-    { name: "Iowa State", seed: 6 }, { name: "Pittsburgh", seed: 11 },
-    { name: "Xavier", seed: 3 }, { name: "Kennesaw St", seed: 14 },
-    { name: "Texas A&M", seed: 7 }, { name: "Penn State", seed: 10 },
-    { name: "Texas", seed: 2 }, { name: "Colgate", seed: 15 },
+  // Function to fetch and format teams from NCAA API
+  async function fetchBracketTeams() {
+    try {
+      // Fetch teams from our server endpoint
+      const response = await fetch('/api/bracket-teams');
+      if (!response.ok) {
+        throw new Error(`Error fetching teams: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      firstRoundTeams = data;
+      
+    } catch (err) {
+      console.error('Error fetching bracket teams:', err);
+      error = err.message;
+      
+      // Fallback to using sample data if API fails
+      firstRoundTeams = [
+        // South Region (1-16)
+        { name: "Houston", seed: 1, seoName: "houston" , color: "#0C2340"}, { name: "N Kentucky", seed: 16, seoName: "n-kentucky", color: "#0C2340" },
+        { name: "Iowa", seed: 8, seoName: "iowa" }, { name: "Auburn", seed: 9, seoName: "auburn" },
+        { name: "Miami FL", seed: 5, seoName: "miami-fl" }, { name: "Drake", seed: 12, seoName: "drake" },
+        { name: "Indiana", seed: 4, seoName: "indiana" }, { name: "Kent State", seed: 13, seoName: "kent-st" },
+        { name: "Iowa State", seed: 6, seoName: "iowa-st" }, { name: "Pittsburgh", seed: 11, seoName: "pittsburgh" },
+        { name: "Xavier", seed: 3, seoName: "xavier" }, { name: "Kennesaw St", seed: 14, seoName: "kennesaw-st" },
+        { name: "Texas A&M", seed: 7, seoName: "texas-am" }, { name: "Penn State", seed: 10, seoName: "penn-st" },
+        { name: "Texas", seed: 2, seoName: "texas" }, { name: "Colgate", seed: 15, seoName: "colgate" },
 
-    // East Region (17-32)
-    { name: "Purdue", seed: 1 }, { name: "F Dickinson", seed: 16 },
-    { name: "Memphis", seed: 8 }, { name: "FAU", seed: 9 },
-    { name: "Duke", seed: 5 }, { name: "Oral Roberts", seed: 12 },
-    { name: "Tennessee", seed: 4 }, { name: "Louisiana", seed: 13 },
-    { name: "Kentucky", seed: 6 }, { name: "Providence", seed: 11 },
-    { name: "Kansas St", seed: 3 }, { name: "Montana St", seed: 14 },
-    { name: "Michigan St", seed: 7 }, { name: "USC", seed: 10 },
-    { name: "Marquette", seed: 2 }, { name: "Vermont", seed: 15 },
+        // East Region (17-32)
+        { name: "Purdue", seed: 1, seoName: "purdue" }, { name: "F Dickinson", seed: 16, seoName: "fairleigh-dickinson" },
+        { name: "Memphis", seed: 8, seoName: "memphis" }, { name: "FAU", seed: 9, seoName: "fau" },
+        { name: "Duke", seed: 5, seoName: "duke" }, { name: "Oral Roberts", seed: 12, seoName: "oral-roberts" },
+        { name: "Tennessee", seed: 4, seoName: "tennessee" }, { name: "Louisiana", seed: 13, seoName: "louisiana" },
+        { name: "Kentucky", seed: 6, seoName: "kentucky" }, { name: "Providence", seed: 11, seoName: "providence" },
+        { name: "Kansas St", seed: 3, seoName: "kansas-st" }, { name: "Montana St", seed: 14, seoName: "montana-st" },
+        { name: "Michigan St", seed: 7, seoName: "michigan-st" }, { name: "USC", seed: 10, seoName: "southern-california" },
+        { name: "Marquette", seed: 2, seoName: "marquette" }, { name: "Vermont", seed: 15, seoName: "vermont" },
 
-    // Midwest Region (33-48)
-    { name: "Alabama", seed: 1 }, { name: "Texas A&M CC", seed: 16 },
-    { name: "Maryland", seed: 8 }, { name: "West Virginia", seed: 9 },
-    { name: "San Diego St", seed: 5 }, { name: "Charleston", seed: 12 },
-    { name: "Virginia", seed: 4 }, { name: "Furman", seed: 13 },
-    { name: "Creighton", seed: 6 }, { name: "NC State", seed: 11 },
-    { name: "Baylor", seed: 3 }, { name: "UCSB", seed: 14 },
-    { name: "Missouri", seed: 7 }, { name: "Utah State", seed: 10 },
-    { name: "Arizona", seed: 2 }, { name: "Princeton", seed: 15 },
+        // Midwest Region (33-48)
+        { name: "Alabama", seed: 1, seoName: "alabama" }, { name: "Texas A&M CC", seed: 16, seoName: "texas-am-cc" },
+        { name: "Maryland", seed: 8, seoName: "maryland" }, { name: "West Virginia", seed: 9, seoName: "west-virginia" },
+        { name: "San Diego St", seed: 5, seoName: "san-diego-st" }, { name: "Charleston", seed: 12, seoName: "charleston" },
+        { name: "Virginia", seed: 4, seoName: "virginia" }, { name: "Furman", seed: 13, seoName: "furman" },
+        { name: "Creighton", seed: 6, seoName: "creighton" }, { name: "NC State", seed: 11, seoName: "nc-state" },
+        { name: "Baylor", seed: 3, seoName: "baylor" }, { name: "UCSB", seed: 14, seoName: "uc-santa-barbara" },
+        { name: "Missouri", seed: 7, seoName: "missouri" }, { name: "Utah State", seed: 10, seoName: "utah-st" },
+        { name: "Arizona", seed: 2, seoName: "arizona" }, { name: "Princeton", seed: 15, seoName: "princeton" },
 
-    // West Region (49-64)
-    { name: "Kansas", seed: 1 }, { name: "Howard", seed: 16 },
-    { name: "Arkansas", seed: 8 }, { name: "Illinois", seed: 9 },
-    { name: "Saint Mary's", seed: 5 }, { name: "VCU", seed: 12 },
-    { name: "UConn", seed: 4 }, { name: "Iona", seed: 13 },
-    { name: "TCU", seed: 6 }, { name: "Arizona St", seed: 11 },
-    { name: "Gonzaga", seed: 3 }, { name: "Grand Canyon", seed: 14 },
-    { name: "Northwestern", seed: 7 }, { name: "Boise State", seed: 10 },
-    { name: "UCLA", seed: 2 }, { name: "UNC Asheville", seed: 15 }
-  ];
+        // West Region (49-64)
+        { name: "Kansas", seed: 1, seoName: "kansas" }, { name: "Howard", seed: 16, seoName: "howard" },
+        { name: "Arkansas", seed: 8, seoName: "arkansas" }, { name: "Illinois", seed: 9, seoName: "illinois" },
+        { name: "Saint Mary's", seed: 5, seoName: "saint-marys-ca" }, { name: "VCU", seed: 12, seoName: "vcu" },
+        { name: "UConn", seed: 4, seoName: "connecticut" }, { name: "Iona", seed: 13, seoName: "iona" },
+        { name: "TCU", seed: 6, seoName: "tcu" }, { name: "Arizona St", seed: 11, seoName: "arizona-st" },
+        { name: "Gonzaga", seed: 3, seoName: "gonzaga" }, { name: "Grand Canyon", seed: 14, seoName: "grand-canyon" },
+        { name: "Northwestern", seed: 7, seoName: "northwestern" }, { name: "Boise State", seed: 10, seoName: "boise-st" },
+        { name: "UCLA", seed: 2, seoName: "ucla" }, { name: "UNC Asheville", seed: 15, seoName: "unc-asheville" }
+      ];
+    }
+  }
 
   // Function to transform bracket data into the format expected by BracketView
   function transformBracketData(bracketData) {
@@ -338,6 +361,7 @@
     }
   }
 
+  // Modified onMount to fetch teams first
   onMount(async () => {
     try {
       // Get current user
@@ -349,6 +373,9 @@
         return;
       }
 
+      // Fetch teams first
+      await fetchBracketTeams();
+
       // Fetch user's bracket
       const { data, error: bracketError } = await supabase
         .from('brackets')
@@ -359,7 +386,7 @@
       if (bracketError && bracketError.code !== 'PGRST116') throw bracketError;
       bracket = data;
     } catch (err) {
-      console.error('Error fetching bracket:', err);
+      console.error('Error in initialization:', err);
       error = err.message;
     } finally {
       loading = false;

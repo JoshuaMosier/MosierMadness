@@ -9,14 +9,16 @@
 
   // Sample teams data - replace with actual data later
   const teams = [
-    { name: "UConn", seed: 1, score: 85 },
-    { name: "Purdue", seed: 2, score: 75 },
-    { name: "Houston", seed: 1, score: 82 },
-    { name: "Tennessee", seed: 2, score: 68 },
-    { name: "Alabama", seed: 4, score: 72 },
-    { name: "Illinois", seed: 3, score: 79 },
-    { name: "Duke", seed: 4, score: 78 },
-    { name: "Iowa State", seed: 2, score: 73 }
+    { name: "UConn", seed: 1, score: 85, color: "#0C2340" }, // Navy blue
+    { name: "Purdue", seed: 2, score: 75, color: "#CEB888" }, // Old gold
+    { name: "Houston", seed: 1, score: 82, color: "#C8102E" }, // Red
+    { name: "Tennessee", seed: 2, score: 68, color: "#FF8200" }, // Orange
+    { name: "Alabama", seed: 4, score: 72, color: "#9E1B32" }, // Crimson
+    { name: "Illinois", seed: 3, score: 79, color: "#E84A27" }, // Orange
+    { name: "Duke", seed: 4, score: 78, color: "#003087" }, // Duke blue
+    { name: "Iowa State", seed: 2, score: 73, color: "#C8102E" }, // Cardinal
+    { name: "Kansas", seed: 1, score: 80, color: "#0047AB" }, // Navy blue
+    { name: "Michigan", seed: 2, score: 76, color: "#002E62" }, // Blue
   ];
 
   // Function to get a random team with a score
