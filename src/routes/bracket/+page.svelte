@@ -435,7 +435,7 @@
               </h2>
               <div class="flex items-center gap-4 mt-1">
                 <p class="text-sm text-zinc-400">
-                  Last updated: {new Date(bracket.updated_at).toLocaleDateString()}
+                  Last updated: {new Date(bracket.updated_at).toLocaleString()}
                 </p>
                 {#if bracket.is_submitted}
                   <div class="flex items-center gap-2">

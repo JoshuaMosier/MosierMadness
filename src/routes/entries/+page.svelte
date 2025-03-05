@@ -103,7 +103,7 @@
                   </td>
                   <td class="px-6 py-4 text-zinc-400 text-sm">
                     {#if bracket}
-                      {new Date(bracket.updated_at).toLocaleDateString()}
+                      {new Date(bracket.updated_at).toLocaleString()}
                     {:else}
                       -
                     {/if}
