@@ -9,6 +9,9 @@
   let user = null;
   let bracket = null;
   let saving = false;
+  let showResetModal = false;
+  let teamSelectionSaving = false; // Separate saving state for team selections
+  let bracketActionSaving = false; // Separate saving state for major bracket actions
 
   // Sample first round teams
   const firstRoundTeams = [
@@ -116,13 +119,13 @@
 
   // Handle team selection
   async function handleTeamSelect(event) {
-    if (saving || bracket.is_submitted) return;
+    if (teamSelectionSaving || bracket.is_submitted) return;
 
     const { matchId, teamIndex, team } = event.detail;
-    if (!team) return; // Don't handle clicks on empty slots
+    if (!team) return;
     
     try {
-      saving = true;
+      teamSelectionSaving = true;
       
       // Create new selections array
       const newSelections = [...(bracket.selections || new Array(63).fill(null))];
@@ -132,7 +135,7 @@
       
       // If we're selecting the team that's already selected, do nothing
       if (currentMatchData.winner === teamIndex) {
-        saving = false;
+        teamSelectionSaving = false;
         return;
       }
       
@@ -203,16 +206,16 @@
       console.error('Error updating bracket:', err);
       error = err.message;
     } finally {
-      saving = false;
+      teamSelectionSaving = false;
     }
   }
 
   // Reset bracket selections
   async function resetBracket() {
-    if (saving || bracket.is_submitted) return;
+    if (bracketActionSaving || bracket.is_submitted) return;
     
     try {
-      saving = true;
+      bracketActionSaving = true;
       
       // Update the bracket in the database with empty selections
       const { error: updateError } = await supabase
@@ -235,41 +238,40 @@
       console.error('Error resetting bracket:', err);
       error = err.message;
     } finally {
-      saving = false;
+      bracketActionSaving = false;
+      showResetModal = false;
     }
   }
 
   // Submit bracket
   async function submitBracket() {
-    if (saving || bracket.is_submitted) return;
+    if (bracketActionSaving || bracket.is_submitted) return;
 
     try {
-      saving = true;
+      bracketActionSaving = true;
       
-      // Update the bracket in the database
+      // Update the bracket in the database - removed submitted_at
       const { error: updateError } = await supabase
         .from('brackets')
         .update({
           is_submitted: true,
-          submitted_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq('id', bracket.id);
 
       if (updateError) throw updateError;
 
-      // Update local state
+      // Update local state - removed submitted_at
       bracket = {
         ...bracket,
         is_submitted: true,
-        submitted_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
     } catch (err) {
       console.error('Error submitting bracket:', err);
       error = err.message;
     } finally {
-      saving = false;
+      bracketActionSaving = false;
     }
   }
 
@@ -299,6 +301,36 @@
       bracket = data;
     } catch (err) {
       console.error('Error creating bracket:', err);
+      error = err.message;
+    } finally {
+      saving = false;
+    }
+  }
+
+  // Add this new function near your other bracket functions
+  async function unlockBracket() {
+    if (saving) return;
+    
+    try {
+      saving = true;
+      
+      const { error: updateError } = await supabase
+        .from('brackets')
+        .update({
+          is_submitted: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bracket.id);
+
+      if (updateError) throw updateError;
+
+      bracket = {
+        ...bracket,
+        is_submitted: false,
+        updated_at: new Date().toISOString()
+      };
+    } catch (err) {
+      console.error('Error unlocking bracket:', err);
       error = err.message;
     } finally {
       saving = false;
@@ -339,12 +371,33 @@
   <meta name="description" content="Fill out your March Madness bracket" />
 </svelte:head>
 
-<div class="max-w-7xl mx-auto px-4 py-8">
-  <div class="text-center mb-8">
-    <h1 class="text-4xl font-bold text-amber-600 mb-2">Your Bracket</h1>
-    <p class="text-xl text-zinc-400">View and manage your March Madness bracket</p>
+{#if showResetModal}
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 max-w-md mx-4">
+      <h3 class="text-xl font-semibold text-zinc-200 mb-2">Reset Bracket?</h3>
+      <p class="text-zinc-400 mb-6">
+        This will remove all of your selections and cannot be undone. Are you sure you want to continue?
+      </p>
+      <div class="flex justify-end gap-3">
+        <button
+          class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-700 transition-all duration-200"
+          on:click={() => showResetModal = false}
+        >
+          Cancel
+        </button>
+        <button
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-all duration-200"
+          on:click={resetBracket}
+          disabled={bracketActionSaving}
+        >
+          {bracketActionSaving ? 'Resetting...' : 'Reset Bracket'}
+        </button>
+      </div>
+    </div>
   </div>
+{/if}
 
+<div class="max-w-7xl mx-auto px-4 py-8">
   {#if loading}
     <div class="flex justify-center items-center min-h-[200px]">
       <div class="text-amber-600">Loading your bracket...</div>
@@ -364,58 +417,97 @@
       </a>
     </div>
   {:else if bracket}
-    <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl">
-      <div class="flex justify-between items-center mb-6">
-        <div class="flex items-center gap-4">
-          <h2 class="text-2xl font-semibold text-zinc-200">
-            {bracket.is_submitted ? 'Submitted Bracket' : 'Draft Bracket'}
-          </h2>
-          {#if !bracket.is_submitted}
-            <button 
-              class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-700 transition-all duration-200 disabled:opacity-50 text-sm"
-              on:click={resetBracket}
-              disabled={saving}
-            >
-              Reset Bracket Selections
-            </button>
-          {/if}
-        </div>
-        <div class="text-sm text-zinc-400">
-          Last updated: {new Date(bracket.updated_at).toLocaleDateString()}
-        </div>
-      </div>
-
-      {#if bracket.is_submitted}
-        <div class="bg-green-950/50 border border-green-900 text-green-500 p-4 rounded-lg mb-6">
-          Your bracket has been submitted! Good luck! 🍀
-        </div>
-      {:else}
-        <div class="bg-amber-950/50 border border-amber-900 text-amber-500 p-4 rounded-lg mb-6">
-          <div class="flex justify-between items-center">
-            <p>Your bracket is still in draft mode. Don't forget to submit before the tournament starts!</p>
-            <button 
-              class="px-6 py-2 bg-gradient-to-r from-amber-700 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-500 transition-all duration-200 disabled:opacity-50"
-              on:click={submitBracket}
-              disabled={saving || bracket.selections.filter(Boolean).length < 63}
-            >
-              {saving ? 'Submitting...' : 'Submit Bracket'}
-            </button>
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <!-- Header Section -->
+      <div class="border-b border-zinc-800 bg-zinc-900/50">
+        <div class="p-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 class="text-2xl font-semibold text-zinc-200">
+                {bracket.is_submitted ? 'Submitted Bracket' : 'Draft Bracket'}
+              </h2>
+              <p class="text-sm text-zinc-400 mt-1">
+                Last updated: {new Date(bracket.updated_at).toLocaleDateString()}
+              </p>
+            </div>
+            <div class="flex items-center gap-3">
+              {#if bracket.is_submitted}
+                <button 
+                  class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-700 transition-all duration-200 disabled:opacity-50 text-sm"
+                  on:click={unlockBracket}
+                  disabled={bracketActionSaving}
+                >
+                  {bracketActionSaving ? 'Unlocking...' : 'Unlock for Edits'}
+                </button>
+              {:else}
+                <button 
+                  class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-700 transition-all duration-200 disabled:opacity-50 text-sm"
+                  on:click={() => showResetModal = true}
+                  disabled={bracketActionSaving}
+                >
+                  Reset Selections
+                </button>
+                <div class="relative group">
+                  <button 
+                    class="px-6 py-2 bg-gradient-to-r from-amber-700 to-amber-600 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+                           {bracket.selections.filter(Boolean).length < 63 ? 'hover:from-amber-700 hover:to-amber-600' : 'hover:from-amber-600 hover:to-amber-500'}"
+                    on:click={submitBracket}
+                    disabled={bracketActionSaving || bracket.selections.filter(Boolean).length < 63}
+                  >
+                    {bracketActionSaving ? 'Submitting...' : 'Submit Bracket'}
+                  </button>
+                </div>
+              {/if}
+            </div>
           </div>
         </div>
-      {/if}
-
-      <div class="text-zinc-300 mb-4">
-        <p>Selected Teams: {bracket.selections.filter(Boolean).length} / 63</p>
       </div>
 
-      <!-- Bracket View Component -->
-      <BracketView
-        mode={bracket.is_submitted ? 'view' : 'select'}
-        bracketData={transformBracketData(bracket)}
-        isLocked={bracket.is_submitted}
-        showScores={false}
-        on:teamSelect={handleTeamSelect}
-      />
+      <!-- Status Section -->
+      <div class="border-b border-zinc-800">
+        {#if bracket.is_submitted}
+          <div class="bg-green-950/50 p-6">
+            <div class="flex items-center gap-3">
+              <div class="bg-green-500/20 p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-green-500 font-medium">Bracket Submitted</h3>
+                <p class="text-green-500/70 text-sm">Your picks are locked in. Good luck! 🍀</p>
+              </div>
+            </div>
+          </div>
+        {:else}
+          <div class="bg-amber-950/50 p-6">
+            <div class="flex items-center gap-3">
+              <div class="bg-amber-500/20 p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-amber-500 font-medium">Draft Mode</h3>
+                <p class="text-amber-500/70 text-sm">
+                  Selected Teams: {bracket.selections.filter(Boolean).length} / 63
+                </p>
+              </div>
+            </div>
+          </div>
+        {/if}
+      </div>
+
+      <!-- Bracket View -->
+      <div class="p-6">
+        <BracketView
+          mode={bracket.is_submitted ? 'view' : 'select'}
+          bracketData={transformBracketData(bracket)}
+          isLocked={bracket.is_submitted}
+          showScores={false}
+          on:teamSelect={handleTeamSelect}
+        />
+      </div>
     </div>
   {:else}
     <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center">

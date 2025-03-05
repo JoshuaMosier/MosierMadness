@@ -135,7 +135,7 @@
       classes.push('bg-amber-800/90 font-medium');
     } else if (!team?.name || team?.name === 'TBD') {
       // Make unfilled games more distinct with a dashed border and lighter background
-      classes.push('bg-zinc-800/20 border border-dashed border-amber-300/50');
+      classes.push('bg-yellow-500/10 border border-dashed border-amber-300/50');
     } else {
       classes.push('bg-zinc-800/80');
     }
@@ -263,11 +263,11 @@
                 {:else}
                   <div class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs 
                               ${mode === 'select' && !isLocked ? 'cursor-pointer' : ''} 
-                              ${round.id == 3 ? 'h-[90px] justify-between' : 'h-[40px]'}
-                              ${round.id == 4 ? 'h-[220px] justify-between' : 'h-[40px]'}
-                              ${round.id == 5 ? 'h-[120px] justify-between' : 'h-[40px]'}
+                              ${round.id === 3 ? 'h-[90px] justify-between' : 'h-[40px]'}
+                              ${round.id === 4 ? 'h-[218px] justify-between' : 'h-[40px]'}
+                              ${round.id === 5 ? 'h-[115px] justify-between' : 'h-[40px]'}
                               flex flex-col rounded-sm transition-all duration-200
-                              ${round.id >= 5 ? 'top-[425px]' : ''}
+                              // ${round.id > 4 ? 'top-[425px]' : ''}
                               ${round.id === 2 ? 'mt-[24px]' : ''}
                               ${round.id === 3 ? 'mt-[50px]' : ''}
                               ${round.id === 4 ? 'mt-[85px]' : ''}
