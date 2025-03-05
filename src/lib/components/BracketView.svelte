@@ -149,7 +149,7 @@
 </script>
 
 <!-- Bracket -->
-<div class="bg-gradient-to-b from-neutral-900/95 to-neutral-950/95 text-center w-full max-w-[1140px] mx-auto mt-[30px] pl-0 rounded-lg shadow-2xl p-4 overflow-x-auto">
+<div class="bg-gradient-to-b from-neutral-950/30 to-neutral-950/95 text-center w-full max-w-[1140px] mx-auto pl-0 rounded-lg shadow-2xl p-4 overflow-x-auto">
   <div class="flex justify-center w-full">
     <!-- Table Dates -->
     <table class="text-xs border-collapse mx-auto w-[950px] rounded-lg overflow-hidden shadow-lg">
