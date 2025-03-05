@@ -135,7 +135,7 @@
       classes.push('bg-amber-800/90 font-medium');
     } else if (!team?.name || team?.name === 'TBD') {
       // Make unfilled games more distinct with a dashed border and lighter background
-      classes.push('bg-yellow-500/10 border border-dashed border-amber-300/50');
+      classes.push('bg-zinc-900 border border-dashed border-amber-300/50');
     } else {
       classes.push('bg-zinc-800/80');
     }
@@ -235,8 +235,8 @@
                 <!-- Special styling for championship game -->
                 {#if round.id === 6}
                   <div class="absolute text-white p-0 w-[150px] text-xs left-0 right-0 mx-auto top-[445px]">
-                    <div class="border border-zinc-700 rounded-sm overflow-hidden">
-                      <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 border-b border-zinc-700
+                    <div class="border border-zinc-700 rounded-sm overflow-hidden [&>div]:bg-opacity-10">
+                      <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200
                                 ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
                            on:click={() => handleTeamClick(matchId, 'A', match.teamA)}>
                         <span class="inline-block w-[16px] text-center bg-zinc-700/90 mr-1 text-[10px] font-bold">
@@ -267,7 +267,7 @@
                               ${round.id === 4 ? 'h-[218px] justify-between' : 'h-[40px]'}
                               ${round.id === 5 ? 'h-[115px] justify-between' : 'h-[40px]'}
                               flex flex-col rounded-sm transition-all duration-200
-                              // ${round.id > 4 ? 'top-[425px]' : ''}
+                              ${round.id > 4 ? '[&>div]:bg-opacity-10 top-[425px]' : ''}
                               ${round.id === 2 ? 'mt-[24px]' : ''}
                               ${round.id === 3 ? 'mt-[50px]' : ''}
                               ${round.id === 4 ? 'mt-[85px]' : ''}
