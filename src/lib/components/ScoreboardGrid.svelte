@@ -96,7 +96,7 @@
     {:else}
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {#each sortedMatches as game, index (game[0][6] + game[1][6])}
-          <div class="game-box bg-gradient-to-br from-stone-900/95 to-stone-950/95 rounded-xl p-5 border border-white/10 hover:border-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02] hover:from-zinc-700/90 hover:to-zinc-800/90">
+          <div class="game-box bg-gradient-to-br from-stone-950/90 to-black/90 rounded-xl p-5 border border-white/10 hover:border-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02] hover:from-zinc-700/90 hover:to-zinc-800/90">
             <div class="game-date flex justify-between items-center mb-3">
               <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
               <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 py-1 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
@@ -107,7 +107,7 @@
               <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
                 <div class="flex items-center flex-1 min-w-0">
                   <div class="relative w-10 h-10 mr-4">
-                    <img class="w-full h-full object-contain transition-transform group-hover:scale-110" 
+                    <img class="w-full h-full object-contain" 
                          alt="{game[0][0]} logo" 
                          src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
                          on:error={handleImageError}>
@@ -126,7 +126,7 @@
               <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
                 <div class="flex items-center flex-1 min-w-0">
                   <div class="relative w-10 h-10 mr-4">
-                    <img class="w-full h-full object-contain transition-transform group-hover:scale-110" 
+                    <img class="w-full h-full object-contain" 
                          alt="{game[1][0]} logo" 
                          src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
                          on:error={handleImageError}>
