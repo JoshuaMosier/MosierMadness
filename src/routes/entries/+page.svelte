@@ -41,7 +41,7 @@
   <meta name="description" content="View all tournament entries and their current status" />
 </svelte:head>
 
-<div class="max-w-7xl mx-auto px-4 py-8">
+<div class="max-w-4xl mx-auto px-4 py-8">
   <div class="text-center mb-8" in:fade={{ duration: 100 }}>
     <h1 class="text-4xl font-bold text-amber-600 mb-2">Tournament Entries</h1>
     <p class="text-xl text-zinc-400">View all bracket submissions and their status</p>
