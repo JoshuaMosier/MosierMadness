@@ -337,23 +337,14 @@
       transform: translateX(0); 
     }
     100% { 
-      transform: translateX(calc(-50% - 1.5rem)); /* Adjust for the extra items */
+      transform: translateX(calc(-100% - 1rem)); /* Adjusted to account for full width */
     }
   }
   
   .animate-marquee {
     white-space: nowrap;
     will-change: transform;
-    animation: marquee 20s linear infinite;
+    animation: marquee 40s linear infinite;
   }
   
-  /* Add smooth transition when animation restarts */
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  .animate-marquee > a {
-    animation: fadeIn 0.5s ease-in-out;
-  }
 </style> 

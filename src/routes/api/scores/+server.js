@@ -45,7 +45,7 @@ function getCurrentScoreboardUrl() {
   
   // Default to the most recent phase or return a fallback URL
   // This is useful for testing outside of tournament dates
-  return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/21/scoreboard.json";
+  return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/05/scoreboard.json";
 }
 
 /**
@@ -73,7 +73,7 @@ async function getScoreTicker() {
     for (const game of data.games) {
       // Skip non-tournament games if needed
       // Uncomment this line during tournament to only show tournament games
-      if (game.game.bracketId === "") continue;
+      // if (game.game.bracketId === "") continue;
       
       const gm = [];
       
