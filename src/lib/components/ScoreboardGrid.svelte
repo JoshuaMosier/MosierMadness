@@ -26,8 +26,8 @@
   // Set up auto-refresh
   onMount(() => {
     fetchScores();
-    // Refresh scores every 30 seconds
-    interval = setInterval(fetchScores, 30000);
+    // Refresh scores every 10 seconds
+    interval = setInterval(fetchScores, 10000);
   });
   
   onDestroy(() => {
@@ -72,11 +72,11 @@
   }
 </script>
 
-<div class="min-h-screen bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
-  <div class="max-w-[1600px] mx-auto">
+<div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold text-white">Live Scoreboard</h1>
-      <div class="text-sm text-gray-400">Auto-updates every 30 seconds</div>
+      <div class="text-sm text-gray-400">Auto-updates every 10 seconds</div>
     </div>
 
     {#if loading && matches.length === 0}
@@ -94,45 +94,55 @@
         No games scheduled at this time.
       </div>
     {:else}
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {#each sortedMatches as game, index (game[0][6] + game[1][6])}
-          <div class="game-box bg-black bg-opacity-30 rounded-lg p-4 border border-white/10 hover:border-white/30 transition-all">
-            <div class="game-date flex justify-between items-center mb-2">
-              <span class="text-sm text-gray-400">{game[3] || ''}</span>
-              <span class="game-prog {getStatusColor(game[2])} font-semibold">{game[2].toUpperCase()}</span>
+          <div class="game-box bg-gradient-to-br from-zinc-800/90 to-zinc-900/90 rounded-xl p-5 border border-white/10 hover:border-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02] hover:from-zinc-700/90 hover:to-zinc-800/90">
+            <div class="game-date flex justify-between items-center mb-3">
+              <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
+              <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 py-1 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
             </div>
             
-            <div class="game-teams space-y-3">
+            <div class="game-teams space-y-4">
               <!-- Away Team -->
-              <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''}">
+              <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
                 <div class="flex items-center flex-1 min-w-0">
-                  <img width="32" height="32" class="mr-3" alt="{game[0][0]} logo" 
-                       src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
-                       on:error={handleImageError}>
+                  <div class="relative w-10 h-10 mr-4">
+                    <img class="w-full h-full object-contain transition-transform group-hover:scale-110" 
+                         alt="{game[0][0]} logo" 
+                         src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
+                         on:error={handleImageError}>
+                  </div>
                   <div class="truncate">
-                    <span class="rank text-xs bg-gray-800 text-white px-1 rounded mr-1">{game[0][2]}</span>
-                    <span class="text-lg {isWinner(game[0]) ? '' : isWinner(game[1]) ? 'line-through opacity-75' : ''}">{game[0][0]}</span>
+                    {#if game[0][2]}
+                      <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
+                    {/if}
+                    <span class="text-lg {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors">{game[0][0]}</span>
                   </div>
                 </div>
-                <span class="score-value text-2xl font-semibold ml-3">{game[0][1]}</span>
+                <span class="score-value text-3xl font-bold ml-4 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
               </div>
               
               <!-- Home Team -->
-              <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''}">
+              <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
                 <div class="flex items-center flex-1 min-w-0">
-                  <img width="32" height="32" class="mr-3" alt="{game[1][0]} logo" 
-                       src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
-                       on:error={handleImageError}>
+                  <div class="relative w-10 h-10 mr-4">
+                    <img class="w-full h-full object-contain transition-transform group-hover:scale-110" 
+                         alt="{game[1][0]} logo" 
+                         src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
+                         on:error={handleImageError}>
+                  </div>
                   <div class="truncate">
-                    <span class="rank text-xs bg-gray-800 text-white px-1 rounded mr-1">{game[1][2]}</span>
-                    <span class="text-lg {isWinner(game[1]) ? '' : isWinner(game[0]) ? 'line-through opacity-75' : ''}">{game[1][0]}</span>
+                    {#if game[1][2]}
+                      <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
+                    {/if}
+                    <span class="text-lg {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors">{game[1][0]}</span>
                   </div>
                 </div>
-                <span class="score-value text-2xl font-semibold ml-3">{game[1][1]}</span>
+                <span class="score-value text-3xl font-bold ml-4 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
               </div>
             </div>
             
-            <div class="mt-3 text-sm text-gray-400 text-center">
+            <div class="mt-4 text-sm text-gray-400 text-center font-medium border-t border-white/5 pt-3">
               {game[0][5]} vs {game[1][5]}
             </div>
           </div>
@@ -141,7 +151,3 @@
     {/if}
   </div>
 </div>
-
-<style>
-  /* Add any component-specific styles here */
-</style> 

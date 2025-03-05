@@ -192,13 +192,6 @@
     background: rgba(255, 255, 255, 0.15);
   }
 
-  /* Responsive adjustments */
-  @media (min-width: 1024px) {
-    .max-w-7xl {
-      max-width: 1440px;
-    }
-  }
-
   @media (max-width: 1280px) {
     .nav-link {
       width: 160px;

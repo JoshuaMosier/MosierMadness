@@ -83,7 +83,7 @@
     No games scheduled at this time.
   </div>
 {:else}
-  <div class="w-full overflow-hidden bg-black bg-opacity-20 backdrop-blur-sm rounded-lg shadow-lg border border-white/10">
+  <div class="w-full bg-black bg-opacity-20 backdrop-blur-sm rounded-lg shadow-lg border border-white/10">
     <!-- Featured mode for 1-4 games - show in a static layout -->
     {#if displayMode === 'featured'}
       <div class="p-2">
