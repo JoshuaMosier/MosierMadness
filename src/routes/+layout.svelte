@@ -19,11 +19,9 @@
 
 <div class="flex flex-col min-h-screen">
   <Navbar />
-  
   <div class="container mx-auto px-4">
     <ScoreTicker />
   </div>
-  
   <main class="flex-grow">
     <slot />
   </main>

@@ -78,7 +78,10 @@
       const r = parseInt(hex.substring(0, 2), 16);
       const g = parseInt(hex.substring(2, 4), 16);
       const b = parseInt(hex.substring(4, 6), 16);
-      return `background-color: rgba(${r}, ${g}, ${b}, ${opacity})`;
+      return `background: linear-gradient(to right, 
+        rgba(${r}, ${g}, ${b}, ${opacity}) 0%,
+        rgba(${r}, ${g}, ${b}, ${0.6}) 100%
+      )`;
     }
     return 'background-color: rgba(39, 39, 42, 0.8)'; // Default background for teams without colors
   }
@@ -169,7 +172,7 @@
         <!-- View All Scores Button -->
         <div class="absolute -top-10 right-0">
           <a href="/scores" class="bg-black/40 hover:bg-black/60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border border-white/10 hover:border-white/30 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02]">
-            <span>View All Games</span>
+            <span>View All Scores</span>
           </a>
         </div>
 

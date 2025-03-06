@@ -21,10 +21,12 @@ function getFirstRoundUrls() {
 function findTeamColor(teamData) {
   // Use the display name (short name) for matching
   const displayName = teamData.names.short;
-  const teamColor = teamColors[displayName]?.primary_color;
+  const colors = teamColors[displayName];
   
-  // Return the color if found, otherwise return a default gray
-  return teamColor || '#666666';
+  return {
+    primary_color: colors?.primary_color || '#666666',
+    secondary_color: colors?.secondary_color
+  };
 }
 
 /**
@@ -49,23 +51,27 @@ async function getBracketTeams() {
         const index = parseInt(game.game.bracketId.slice(1)) - 1;
         
         // Format away team
+        const awayTeamColors = findTeamColor(game.game.away);
         const awayTeam = {
           name: game.game.away.names.short.length < 20 ? 
                 game.game.away.names.short : 
                 game.game.away.names.char6,
           seed: parseInt(game.game.away.seed),
           seoName: game.game.away.names.seo,
-          color: findTeamColor(game.game.away)
+          color: awayTeamColors.primary_color,
+          secondaryColor: awayTeamColors.secondary_color
         };
         
         // Format home team
+        const homeTeamColors = findTeamColor(game.game.home);
         const homeTeam = {
           name: game.game.home.names.short.length < 20 ? 
                 game.game.home.names.short : 
                 game.game.home.names.char6,
           seed: parseInt(game.game.home.seed),
           seoName: game.game.home.names.seo,
-          color: findTeamColor(game.game.home)
+          color: homeTeamColors.primary_color,
+          secondaryColor: homeTeamColors.secondary_color
         };
         
         // Place teams in correct order based on seed

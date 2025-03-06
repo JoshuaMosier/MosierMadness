@@ -125,10 +125,6 @@
   function getTeamClass(team, isWinningTeam, isSelected) {
     const classes = [];
     
-    if (mode === 'select' && !isLocked && !isSelected) {
-      classes.push('cursor-pointer hover:bg-yellow-800');
-    }
-    
     if (isSelected) {
       classes.push('bg-amber-800/90 font-medium cursor-pointer');
     } else if (highlightWinners && isWinningTeam) {
@@ -161,12 +157,17 @@
   function getTeamStyle(team, isWinningTeam) {
     if (team?.color) {
       const opacity = 0.8;
-      // Convert hex to RGB
+      // Convert hex to RGB for primary color
       const hex = team.color.replace('#', '');
       const r = parseInt(hex.substring(0, 2), 16);
       const g = parseInt(hex.substring(2, 4), 16);
       const b = parseInt(hex.substring(4, 6), 16);
-      return `background-color: rgba(${r}, ${g}, ${b}, ${opacity})`;
+      
+      return `background: linear-gradient(to right, 
+        rgba(${r}, ${g}, ${b}, ${opacity}) 0%,
+        rgba(${r}, ${g}, ${b}, ${0.6}) 100%
+      )`;
+
     }
     return '';
   }

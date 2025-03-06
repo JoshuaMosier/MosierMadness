@@ -82,7 +82,10 @@
       const r = parseInt(hex.substring(0, 2), 16);
       const g = parseInt(hex.substring(2, 4), 16);
       const b = parseInt(hex.substring(4, 6), 16);
-      return `background-color: rgba(${r}, ${g}, ${b}, ${opacity})`;
+      return `background: linear-gradient(to right, 
+        rgba(${r}, ${g}, ${b}, ${opacity}) 0%,
+        rgba(${r}, ${g}, ${b}, ${0.6}) 100%
+      )`;
     }
     return 'background-color: rgba(39, 39, 42, 0.8)'; // Default background for teams without colors
   }
