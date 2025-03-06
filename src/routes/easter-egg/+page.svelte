@@ -21,7 +21,13 @@
     let lastBallPosY = 0;
     let hasPassedRimTop = false;
     let isScoring = false;
-
+    let shotsRemaining = 10;
+    let gameActive = true;
+    let shotTaken = false;
+    let finalScoreMessage = 'Test';
+    let madeShots = 0;
+    let showModal = false;
+    
     // Constants
     const BALL_RADIUS = 25;
     const RIM_WIDTH = 120;
@@ -405,41 +411,52 @@
         });
         Matter.Body.setVelocity(ball, { x: 0, y: 0 });
         Matter.Body.setAngularVelocity(ball, 0);
+        
+        // Check if game is over after ball has been reset
+        if (shotsRemaining <= 0 && gameActive) {
+            // Small delay to ensure the ball is visibly reset before showing modal
+            setTimeout(() => {
+                gameActive = false;
+                showGameOverModal();
+            }, 300);
+        }
     }
 
     function resetGame() {
         score = 0;
-        scoreElement.textContent = `Score: ${score}`;
+        shotsRemaining = 10;
+        gameActive = true;
+        finalScoreMessage = '';
+        shotTaken = false;
+        madeShots = 0;
+        showModal = false;
+        scoreElement.textContent = `Score: ${score} | Shots: ${shotsRemaining}`;
         resetBall();
     }
+
 
     function checkScoring() {
         const currentTime = performance.now();
         const ballPos = ball.position;
         const rimPos = rim.position;
         
-        // Store the ball's vertical position to track direction
         const ballMovingDown = ballPos.y > lastBallPosY;
         
-        // Check if ball is above rim
         if (ballPos.y < rimPos.y) {
             hasPassedRimTop = true;
         }
         
-        // Reset scoring state if ball moves above rim again or is far from rim
         if (ballPos.y < rimPos.y - BALL_RADIUS || 
             Math.abs(ballPos.x - rimPos.x) > RIM_WIDTH) {
             hasPassedRimTop = false;
             isScoring = false;
         }
         
-        // Only check for scoring if enough time has passed since last score
         if (currentTime - lastScoreTime > SCORE_COOLDOWN && 
             !isScoring && 
             hasPassedRimTop && 
             ballMovingDown) {
             
-            // Check if ball is passing through rim area
             if (ballPos.x > rimPos.x - RIM_WIDTH/2 && 
                 ballPos.x < rimPos.x + RIM_WIDTH/2 && 
                 ballPos.y > rimPos.y && 
@@ -447,21 +464,19 @@
                 
                 isScoring = true;
                 score += 2;
+                madeShots++;
                 lastScoreTime = currentTime;
-                scoreElement.textContent = `Score: ${score}`;
+                scoreElement.textContent = `Score: ${score} | Shots: ${shotsRemaining}`;
                 
-                // Add score animation
                 scoreElement.style.transform = 'scale(1.5)';
                 setTimeout(() => {
                     scoreElement.style.transform = 'scale(1)';
                 }, 300);
 
-                // Add a visual effect for scoring
                 createScoreEffect(ballPos.x, ballPos.y);
             }
         }
         
-        // Update last ball position
         lastBallPosY = ballPos.y;
     }
 
@@ -497,7 +512,10 @@
         aimLine.style.backgroundColor = `rgb(${r}, ${g}, 0)`;
     }
 
+
     function handleMouseDown(event: MouseEvent) {
+        if (!gameActive) return;
+        
         const ballPos = ball.position;
         const mousePos = Matter.Vector.create(
             event.clientX - gameContainer.getBoundingClientRect().left,
@@ -507,6 +525,7 @@
         if (Matter.Vector.magnitude(Matter.Vector.sub(mousePos, ballPos)) < BALL_RADIUS * 2) {
             isDragging = true;
             startPos = { x: ballPos.x, y: ballPos.y };
+            shotTaken = false;
             
             aimLine.style.display = 'block';
             aimLine.style.left = `${startPos.x}px`;
@@ -514,12 +533,10 @@
             aimLine.style.width = '0';
             aimLine.style.transform = 'rotate(0deg)';
 
-            // Disable mouse constraint and make ball static while aiming
             Matter.World.remove(world, mouseConstraint);
             Matter.Body.setStatic(ball, true);
         }
     }
-
     function handleMouseMove(event: MouseEvent) {
         if (isDragging) {
             const containerRect = gameContainer.getBoundingClientRect();
@@ -530,7 +547,7 @@
     }
 
     function handleMouseUp(event: MouseEvent) {
-        if (isDragging) {
+        if (isDragging && gameActive) {
             const containerRect = gameContainer.getBoundingClientRect();
             const mouseX = event.clientX - containerRect.left;
             const mouseY = event.clientY - containerRect.top;
@@ -539,10 +556,8 @@
             const dy = startPos.y - mouseY;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            // Make ball dynamic again before applying velocity
             Matter.Body.setStatic(ball, false);
             
-            // Apply velocity to the ball
             const power = Math.min(distance * 0.2, 30);
             const velocityX = (dx / distance) * power;
             const velocityY = (dy / distance) * power;
@@ -552,13 +567,25 @@
                 y: velocityY
             });
             
+            if (!shotTaken) {
+                shotsRemaining--;
+                shotTaken = true;
+                scoreElement.textContent = `Score: ${score} | Remaining: ${shotsRemaining}`;
+                
+                // No longer checking game over condition here
+            }
+            
             isDragging = false;
             aimLine.style.display = 'none';
-
-            // Re-enable mouse constraint
             Matter.World.add(world, mouseConstraint);
         }
     }
+
+
+    function showGameOverModal() {
+        showModal = true;
+    }
+
 
     function drawBasketballLines(render: Matter.Render) {
         const context = render.context;
@@ -724,6 +751,11 @@
                         ((pair.bodyA.position.y > containerHeight - 50) || 
                          (pair.bodyB.position.y > containerHeight - 50))) {
                         resetBall();
+                        // Check if game should be over after ball reset
+                        if (shotsRemaining <= 0 && gameActive) {
+                            gameActive = false;
+                            showGameOverModal();
+                        }
                     }
                 });
             });
@@ -760,7 +792,7 @@
     </div>
 
     <div class="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl p-6 shadow-lg border border-zinc-700 mb-8">
-        <div class="game-container" bind:this={gameContainer}>
+        <div class="game-container relative" bind:this={gameContainer}>
             <div class="score" bind:this={scoreElement}>
                 Score: {score}
             </div>
@@ -776,6 +808,36 @@
             {:else}
                 <div class="mobile-message">
                     Sorry, this game is only available on desktop devices.
+                </div>
+            {/if}
+
+            {#if showModal}
+                <div class="absolute inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl border-2 border-amber-600 shadow-xl max-w-md w-full mx-4">
+                        <h2 class="text-4xl font-bold text-amber-500 mb-6 text-center">Game Over!</h2>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div class="flex justify-between items-center bg-black/20 p-3 rounded-lg">
+                                <span class="text-gray-300">Final Score:</span>
+                                <span class="text-2xl font-bold text-amber-500">{score}</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-black/20 p-3 rounded-lg">
+                                <span class="text-gray-300">Made Shots:</span>
+                                <span class="text-2xl font-bold text-amber-500">{madeShots} / 10</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-black/20 p-3 rounded-lg">
+                                <span class="text-gray-300">Shooting %:</span>
+                                <span class="text-2xl font-bold text-amber-500">{((madeShots / 10) * 100).toFixed(1)}%</span>
+                            </div>
+                        </div>
+                        
+                        <button 
+                            on:click={resetGame}
+                            class="w-full bg-gradient-to-r from-amber-700 to-amber-600 text-white py-3 px-6 rounded-lg font-bold text-lg uppercase tracking-wide shadow-lg hover:from-amber-600 hover:to-amber-500 transform hover:-translate-y-0.5 transition-all duration-150"
+                        >
+                            Play Again
+                        </button>
+                    </div>
                 </div>
             {/if}
         </div>
