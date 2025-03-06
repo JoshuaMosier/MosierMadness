@@ -5,6 +5,16 @@
   import { supabase } from '$lib/supabase'
   import { invalidate } from '$app/navigation'
   import { onMount } from 'svelte'
+  import { page } from '$app/stores'
+
+  // Define routes where ScoreTicker should be hidden
+  const hideScoreTickerRoutes = [
+    '/scores',
+
+  ];
+
+  // Reactive statement to determine if ScoreTicker should be visible
+  $: showScoreTicker = !hideScoreTickerRoutes.includes($page.url.pathname);
 
   onMount(() => {
     const {
@@ -20,7 +30,9 @@
 <div class="flex flex-col min-h-screen">
   <Navbar />
   <div class="container mx-auto px-4">
-    <ScoreTicker />
+    {#if showScoreTicker}
+      <ScoreTicker />
+    {/if}
   </div>
   <main class="flex-grow">
     <slot />
