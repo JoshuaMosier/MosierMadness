@@ -238,80 +238,130 @@
         ${round.id === 5 ? 'left: 285px; width: 380px' : ''}
         ${round.id === 6 ? 'left: 400px; width: 150px' : ''}
       `}>
-        {#each regions as region}
-          <div class="region{region.id}">
-            <!-- Region headers for first round -->
-            {#if round.id === 1}
-              <h4 class={`uppercase text-amber-300/90 pt-[15px] font-bold ${region.id === 1 || region.id === 2 ? 
-                          'absolute left-[170px] block w-[150px]' : 
-                          'absolute right-[170px] block text-right w-[150px]'} 
-                          ${region.id === 2 || region.id === 4 ? 'top-[715px]' : 'top-[165px]'}`}>
-                {region.name}
-              </h4>
-            {/if}
+        {#if round.id < 5}
+          {#each regions as region}
+            <div class="region{region.id}">
+              <!-- Region headers for first round -->
+              {#if round.id === 1}
+                <h4 class={`uppercase text-amber-300/90 pt-[15px] font-bold ${region.id === 1 || region.id === 2 ? 
+                            'absolute left-[170px] block w-[150px]' : 
+                            'absolute right-[170px] block text-right w-[150px]'} 
+                            ${region.id === 2 || region.id === 4 ? 'top-[715px]' : 'top-[165px]'}`}>
+                  {region.name}
+                </h4>
+              {/if}
 
-            <!-- Render matches for this round/region -->
-            {#each Array(getMatchesPerRound(round.id)) as _, matchIndex}
-              {#if bracketData?.matches?.[getMatchId(round.id, region.id, matchIndex)]}
-                {@const match = bracketData.matches[getMatchId(round.id, region.id, matchIndex)]}
-                {@const matchId = getMatchId(round.id, region.id, matchIndex)}
-                
-                <!-- Special styling for championship game -->
-                {#if round.id === 6}
-                  <div class="absolute text-white p-0 w-[150px] text-xs left-0 right-0 mx-auto top-[445px]">
-                    <div class="border border-zinc-700/40 rounded-sm overflow-hidden">
-                      <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
-                                ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
-                           style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
-                           on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
-                           on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
-                           role="button"
-                           tabindex="0">
+              <!-- Render matches for this round/region -->
+              {#each Array(getMatchesPerRound(round.id)) as _, matchIndex}
+                {#if bracketData?.matches?.[getMatchId(round.id, region.id, matchIndex)]}
+                  {@const match = bracketData.matches[getMatchId(round.id, region.id, matchIndex)]}
+                  {@const matchId = getMatchId(round.id, region.id, matchIndex)}
+                  
+                  <!-- Special styling for championship game -->
+                  {#if round.id === 6}
+                    <div class="absolute text-white p-0 w-[150px] text-xs left-0 right-0 mx-auto top-[445px]">
+                      <div class="border border-zinc-700/40 rounded-sm overflow-hidden">
+                        <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
+                                  ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
+                             style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
+                             on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
+                             on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
+                             role="button"
+                             tabindex="0">
+                          <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
+                            {match.teamA?.seed || '-'}
+                          </span>
+                          <span class="truncate">{match.teamA?.name || 'TBD'}</span>
+                          {#if showScores && match.teamA?.score !== undefined}
+                            <span class="ml-auto text-gray-200">{match.teamA.score}</span>
+                          {/if}
+                        </div>
+                        <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
+                                  ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
+                             style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
+                             on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
+                             on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
+                             role="button"
+                             tabindex="0">
+                          <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
+                            {match.teamB?.seed || '-'}
+                          </span>
+                          <span class="truncate">{match.teamB?.name || 'TBD'}</span>
+                          {#if showScores && match.teamB?.score !== undefined}
+                            <span class="ml-auto text-gray-200">{match.teamB.score}</span>
+                          {/if}
+                        </div>
+                      </div>
+                    </div>
+                  {:else}
+                    <div class={`absolute text-white border border-zinc-700/40 p-0 w-[115px] text-xs 
+                                ${mode === 'select' && !isLocked ? 'cursor-pointer' : ''} 
+                                ${round.id === 3 ? 'h-[90px]' : 
+                                  round.id === 4 ? 'h-[220px]' : 
+                                  round.id === 5 ? 'h-[115px]' : 
+                                  'h-[40px]'} justify-between
+                                flex flex-col rounded-sm transition-all duration-200
+                                ${round.id === 2 ? 'mt-[24px]' : ''}
+                                ${round.id === 3 ? 'mt-[50px]' : ''}
+                                ${round.id === 4 ? 'mt-[85px]' : ''}
+                                ${round.id < 5 ? (region.id === 1 || region.id === 2 ? 'border-l-0' : 'border-r-0') : 
+                                 (matchIndex === 0 ? 'border-l-0' : 'border-r-0')}`}
+                         style={`top: ${getMatchTopPosition(round.id, region.id, matchIndex)}px; 
+                                ${round.id < 5 ? (region.id === 1 || region.id === 2 ? 'left: 0;' : 'right: 0;') : 
+                                (matchIndex === 0 ? 'left: 0;' : 'right: 0;')}`}>
+                      
+                      <!-- Team A -->
+                      <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
+                                  ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
+                               style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
+                               on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
+                               on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
+                               role="button"
+                               tabindex="0">
                         <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                           {match.teamA?.seed || '-'}
                         </span>
                         <span class="truncate">{match.teamA?.name || 'TBD'}</span>
                         {#if showScores && match.teamA?.score !== undefined}
-                          <span class="ml-auto text-gray-200">{match.teamA.score}</span>
+                          <span class="ml-auto mr-1 text-gray-200">{match.teamA.score}</span>
                         {/if}
                       </div>
-                      <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
-                                ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
-                           style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
-                           on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
-                           on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
-                           role="button"
-                           tabindex="0">
+                      
+                      <!-- Team B -->
+                      <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
+                                  ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
+                               style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
+                               on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
+                               on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
+                               role="button"
+                               tabindex="0">
                         <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                           {match.teamB?.seed || '-'}
                         </span>
                         <span class="truncate">{match.teamB?.name || 'TBD'}</span>
                         {#if showScores && match.teamB?.score !== undefined}
-                          <span class="ml-auto text-gray-200">{match.teamB.score}</span>
+                          <span class="ml-auto mr-1 text-gray-200">{match.teamB.score}</span>
                         {/if}
                       </div>
                     </div>
-                  </div>
-                {:else}
-                  <div class={`absolute text-white border border-zinc-700/40 p-0 w-[115px] text-xs 
-                              ${mode === 'select' && !isLocked ? 'cursor-pointer' : ''} 
-                              ${round.id === 3 ? 'h-[90px]' : 
-                                round.id === 4 ? 'h-[220px]' : 
-                                round.id === 5 ? 'h-[115px]' : 
-                                'h-[40px]'} justify-between
-                              flex flex-col rounded-sm transition-all duration-200
-                              ${round.id === 2 ? 'mt-[24px]' : ''}
-                              ${round.id === 3 ? 'mt-[50px]' : ''}
-                              ${round.id === 4 ? 'mt-[85px]' : ''}
-                              ${round.id < 5 ? (region.id === 1 || region.id === 2 ? 'border-l-0' : 'border-r-0') : 
-                               (matchIndex === 0 ? 'border-l-0' : 'border-r-0')}`}
-                       style={`top: ${getMatchTopPosition(round.id, region.id, matchIndex)}px; 
-                              ${round.id < 5 ? (region.id === 1 || region.id === 2 ? 'left: 0;' : 'right: 0;') : 
-                              (matchIndex === 0 ? 'left: 0;' : 'right: 0;')}`}>
-                    
-                    <!-- Team A -->
-                    <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
-                                ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
+                  {/if}
+                {/if}
+              {/each}
+            </div>
+          {/each}
+        {:else}
+          <!-- Render rounds 5-6 only once, outside the regions loop -->
+          {#each Array(getMatchesPerRound(round.id)) as _, matchIndex}
+            {#if bracketData?.matches?.[getMatchId(round.id, 1, matchIndex)]}
+              {@const match = bracketData.matches[getMatchId(round.id, 1, matchIndex)]}
+              {@const matchId = getMatchId(round.id, 1, matchIndex)}
+              
+              <!-- Special styling for championship game -->
+              {#if round.id === 6}
+                <div class="absolute text-white p-0 w-[150px] text-xs left-0 right-0 mx-auto top-[445px]">
+                  <div class="border border-zinc-700/40 rounded-sm overflow-hidden">
+                    <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
+                              ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
                          style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
                          on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
                          on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
@@ -322,13 +372,11 @@
                       </span>
                       <span class="truncate">{match.teamA?.name || 'TBD'}</span>
                       {#if showScores && match.teamA?.score !== undefined}
-                        <span class="ml-auto mr-1 text-gray-200">{match.teamA.score}</span>
+                        <span class="ml-auto text-gray-200">{match.teamA.score}</span>
                       {/if}
                     </div>
-                    
-                    <!-- Team B -->
-                    <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
-                                ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
+                    <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
+                              ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
                          style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
                          on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
                          on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
@@ -339,15 +387,66 @@
                       </span>
                       <span class="truncate">{match.teamB?.name || 'TBD'}</span>
                       {#if showScores && match.teamB?.score !== undefined}
-                        <span class="ml-auto mr-1 text-gray-200">{match.teamB.score}</span>
+                        <span class="ml-auto text-gray-200">{match.teamB.score}</span>
                       {/if}
                     </div>
                   </div>
-                {/if}
+                </div>
+              {:else}
+                <div class={`absolute text-white border border-zinc-700/40 p-0 w-[115px] text-xs 
+                            ${mode === 'select' && !isLocked ? 'cursor-pointer' : ''} 
+                            ${round.id === 3 ? 'h-[90px]' : 
+                              round.id === 4 ? 'h-[220px]' : 
+                              round.id === 5 ? 'h-[115px]' : 
+                              'h-[40px]'} justify-between
+                            flex flex-col rounded-sm transition-all duration-200
+                            ${round.id === 2 ? 'mt-[24px]' : ''}
+                            ${round.id === 3 ? 'mt-[50px]' : ''}
+                            ${round.id === 4 ? 'mt-[85px]' : ''}
+                            ${round.id < 5 ? (region.id === 1 || region.id === 2 ? 'border-l-0' : 'border-r-0') : 
+                             (matchIndex === 0 ? 'border-l-0' : 'border-r-0')}`}
+                     style={`top: ${getMatchTopPosition(round.id, 1, matchIndex)}px; 
+                            ${round.id < 5 ? (region.id === 1 || region.id === 2 ? 'left: 0;' : 'right: 0;') : 
+                            (matchIndex === 0 ? 'left: 0;' : 'right: 0;')}`}>
+                  
+                  <!-- Team A -->
+                  <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
+                              ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
+                                   style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
+                                   on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
+                                   on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
+                                   role="button"
+                                   tabindex="0">
+                    <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
+                      {match.teamA?.seed || '-'}
+                    </span>
+                    <span class="truncate">{match.teamA?.name || 'TBD'}</span>
+                    {#if showScores && match.teamA?.score !== undefined}
+                      <span class="ml-auto mr-1 text-gray-200">{match.teamA.score}</span>
+                    {/if}
+                  </div>
+                  
+                  <!-- Team B -->
+                  <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
+                              ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
+                                   style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
+                                   on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
+                                   on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
+                                   role="button"
+                                   tabindex="0">
+                    <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
+                      {match.teamB?.seed || '-'}
+                    </span>
+                    <span class="truncate">{match.teamB?.name || 'TBD'}</span>
+                    {#if showScores && match.teamB?.score !== undefined}
+                      <span class="ml-auto mr-1 text-gray-200">{match.teamB.score}</span>
+                    {/if}
+                  </div>
+                </div>
               {/if}
-            {/each}
-          </div>
-        {/each}
+            {/if}
+          {/each}
+        {/if}
       </div>
     {/each}
 
