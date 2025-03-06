@@ -1,5 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
+  import teamColors from '$lib/ncaa_team_colors.json';
   
   let matches = [];
   let loading = true;
@@ -66,6 +67,21 @@
   function handleImageError(event) {
     event.target.src = '/images/placeholder-team.svg';
   }
+  
+  // Helper function to get team background style
+  function getTeamStyle(teamName) {
+    if (teamName && teamColors[teamName]) {
+      const color = teamColors[teamName].primary_color;
+      const opacity = 0.8;
+      // Convert hex to RGB
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      return `background-color: rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+    return 'background-color: rgba(39, 39, 42, 0.8)'; // Default background for teams without colors
+  }
 </script>
 
 {#if loading && matches.length === 0}
@@ -102,7 +118,7 @@
                     <div class="flex items-center flex-1 min-w-0">
                       <div class="relative w-8 h-8 mr-3">
                         <img class="w-full h-full object-contain transition-transform" 
-                             alt="{game[0][0]} logo" 
+                             alt="{game[0][4]} logo" 
                              src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
                              on:error={handleImageError}>
                       </div>
@@ -110,7 +126,10 @@
                         {#if game[0][2]}
                           <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
                         {/if}
-                        <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors">{game[0][0]}</span>
+                        <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors px-2 py-0.5 rounded-sm"
+                              style={getTeamStyle(game[0][4])}>
+                          {game[0][4]}
+                        </span>
                       </div>
                     </div>
                     <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
@@ -121,7 +140,7 @@
                     <div class="flex items-center flex-1 min-w-0">
                       <div class="relative w-8 h-8 mr-3">
                         <img class="w-full h-full object-contain transition-transform" 
-                             alt="{game[1][0]} logo" 
+                             alt="{game[1][4]} logo" 
                              src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
                              on:error={handleImageError}>
                       </div>
@@ -129,7 +148,10 @@
                         {#if game[1][2]}
                           <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
                         {/if}
-                        <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors">{game[1][0]}</span>
+                        <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors px-2 py-0.5 rounded-sm"
+                              style={getTeamStyle(game[1][4])}>
+                          {game[1][4]}
+                        </span>
                       </div>
                     </div>
                     <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
@@ -168,7 +190,7 @@
                       <div class="flex items-center flex-1 min-w-0">
                         <div class="relative w-8 h-8 mr-3">
                           <img class="w-full h-full object-contain transition-transform" 
-                               alt="{game[0][0]} logo" 
+                               alt="{game[0][4]} logo" 
                                src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
                                on:error={handleImageError}>
                         </div>
@@ -176,7 +198,10 @@
                           {#if game[0][2]}
                             <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
                           {/if}
-                          <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors">{game[0][0]}</span>
+                          <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors px-2 py-0.5 rounded-sm"
+                                style={getTeamStyle(game[0][4])}>
+                            {game[0][4]}
+                          </span>
                         </div>
                       </div>
                       <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
@@ -187,7 +212,7 @@
                       <div class="flex items-center flex-1 min-w-0">
                         <div class="relative w-8 h-8 mr-3">
                           <img class="w-full h-full object-contain transition-transform" 
-                               alt="{game[1][0]} logo" 
+                               alt="{game[1][4]} logo" 
                                src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
                                on:error={handleImageError}>
                         </div>
@@ -195,7 +220,10 @@
                           {#if game[1][2]}
                             <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
                           {/if}
-                          <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors">{game[1][0]}</span>
+                          <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors px-2 py-0.5 rounded-sm"
+                                style={getTeamStyle(game[1][4])}>
+                            {game[1][4]}
+                          </span>
                         </div>
                       </div>
                       <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
@@ -227,7 +255,7 @@
                         <div class="flex items-center flex-1 min-w-0">
                           <div class="relative w-8 h-8 mr-3">
                             <img class="w-full h-full object-contain transition-transform" 
-                                 alt="{game[0][0]} logo" 
+                                 alt="{game[0][4]} logo" 
                                  src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
                                  on:error={handleImageError}>
                           </div>
@@ -235,7 +263,10 @@
                             {#if game[0][2]}
                               <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
                             {/if}
-                            <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors">{game[0][0]}</span>
+                            <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors px-2 py-0.5 rounded-sm"
+                                  style={getTeamStyle(game[0][4])}>
+                              {game[0][4]}
+                            </span>
                           </div>
                         </div>
                         <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
@@ -246,7 +277,7 @@
                         <div class="flex items-center flex-1 min-w-0">
                           <div class="relative w-8 h-8 mr-3">
                             <img class="w-full h-full object-contain transition-transform" 
-                                 alt="{game[1][0]} logo" 
+                                 alt="{game[1][4]} logo" 
                                  src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
                                  on:error={handleImageError}>
                           </div>
@@ -254,7 +285,10 @@
                             {#if game[1][2]}
                               <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
                             {/if}
-                            <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors">{game[1][0]}</span>
+                            <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors px-2 py-0.5 rounded-sm"
+                                  style={getTeamStyle(game[1][4])}>
+                              {game[1][4]}
+                            </span>
                           </div>
                         </div>
                         <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
@@ -279,7 +313,7 @@
                         <div class="flex items-center flex-1 min-w-0">
                           <div class="relative w-8 h-8 mr-3">
                             <img class="w-full h-full object-contain transition-transform" 
-                                 alt="{game[0][0]} logo" 
+                                 alt="{game[0][4]} logo" 
                                  src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
                                  on:error={handleImageError}>
                           </div>
@@ -287,7 +321,10 @@
                             {#if game[0][2]}
                               <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
                             {/if}
-                            <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors">{game[0][0]}</span>
+                            <span class="text-base {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'line-through opacity-75' : ''} transition-colors px-2 py-0.5 rounded-sm"
+                                  style={getTeamStyle(game[0][4])}>
+                              {game[0][4]}
+                            </span>
                           </div>
                         </div>
                         <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
@@ -298,7 +335,7 @@
                         <div class="flex items-center flex-1 min-w-0">
                           <div class="relative w-8 h-8 mr-3">
                             <img class="w-full h-full object-contain transition-transform" 
-                                 alt="{game[1][0]} logo" 
+                                 alt="{game[1][4]} logo" 
                                  src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
                                  on:error={handleImageError}>
                           </div>
@@ -306,7 +343,10 @@
                             {#if game[1][2]}
                               <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
                             {/if}
-                            <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors">{game[1][0]}</span>
+                            <span class="text-base {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'line-through opacity-75' : ''} transition-colors px-2 py-0.5 rounded-sm"
+                                  style={getTeamStyle(game[1][4])}>
+                              {game[1][4]}
+                            </span>
                           </div>
                         </div>
                         <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
