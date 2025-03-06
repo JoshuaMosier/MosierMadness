@@ -72,7 +72,7 @@
   function getTeamStyle(teamName) {
     if (teamName && teamColors[teamName]) {
       const color = teamColors[teamName].primary_color;
-      const opacity = 0.8;
+      const opacity = 0.6;
       // Convert hex to RGB
       const hex = color.replace('#', '');
       const r = parseInt(hex.substring(0, 2), 16);

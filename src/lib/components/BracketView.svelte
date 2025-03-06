@@ -259,8 +259,8 @@
                 <!-- Special styling for championship game -->
                 {#if round.id === 6}
                   <div class="absolute text-white p-0 w-[150px] text-xs left-0 right-0 mx-auto top-[445px]">
-                    <div class="border border-zinc-700 rounded-sm overflow-hidden">
-                      <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200
+                    <div class="border border-zinc-700/40 rounded-sm overflow-hidden">
+                      <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                                 ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
                            style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
                            on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
@@ -275,7 +275,7 @@
                           <span class="ml-auto text-gray-200">{match.teamA.score}</span>
                         {/if}
                       </div>
-                      <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200
+                      <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                                 ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
                            style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
                            on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
@@ -293,7 +293,7 @@
                     </div>
                   </div>
                 {:else}
-                  <div class={`absolute text-white border border-zinc-700 p-0 w-[115px] text-xs 
+                  <div class={`absolute text-white border border-zinc-700/40 p-0 w-[115px] text-xs 
                               ${mode === 'select' && !isLocked ? 'cursor-pointer' : ''} 
                               ${round.id === 3 ? 'h-[90px]' : 
                                 round.id === 4 ? 'h-[220px]' : 
@@ -310,7 +310,7 @@
                               (matchIndex === 0 ? 'left: 0;' : 'right: 0;')}`}>
                     
                     <!-- Team A -->
-                    <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-tr-sm
+                    <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                                 ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
                          style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
                          on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
@@ -327,7 +327,7 @@
                     </div>
                     
                     <!-- Team B -->
-                    <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200
+                    <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                                 ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
                          style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
                          on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
@@ -356,9 +356,9 @@
       <div class="absolute left-0 right-0 mx-auto top-[330px] w-[145px]">
         <div class="text-white text-center">
           <div class="text-[11px] uppercase tracking-wider mb-2 text-amber-300/90 font-bold">Champion</div>
-          <div class="border border-zinc-700 rounded-sm overflow-hidden bg-zinc-800/80">
+          <div class="rounded-sm overflow-hidden">
             {#if bracketData?.champion}
-              <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center" style={getTeamStyle(bracketData.champion, true)}>
+              <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center rounded-lg" style={getTeamStyle(bracketData.champion, true)}>
                 <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                   {bracketData.champion.seed}
                 </span>
@@ -366,7 +366,7 @@
               </div>
             {:else}
               <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center bg-stone-900 border border-dashed border-amber-300/50">
-                <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">-</span>
+                <span class="inline-block w-[16px] text-center mr-1 text-[10px] font-bold">-</span>
                 <span class="truncate">TBD</span>
               </div>
             {/if}
