@@ -53,7 +53,7 @@
 
     // Game visual settings
     const BALL_COLOR = '#ff6b00';
-    const BALL_STROKE = '#c65200';
+    const BALL_STROKE = '#6e2f02';
     const RIM_COLOR = '#ad2411';
     const NET_COLOR = 'rgba(255, 255, 255, 0.4)';
     const BACKBOARD_COLOR = '#cbd5e1';
@@ -503,7 +503,7 @@
         const distance = Math.sqrt(dx * dx + dy * dy);
         const angle = Math.atan2(dy, dx) * (180 / Math.PI);
         
-        aimLine.style.width = `${Math.min(distance * 2, 150)}px`;
+        aimLine.style.width = `${Math.min(distance * 2, 250)}px`;
         aimLine.style.transform = `rotate(${angle}deg)`;
         
         const powerRatio = Math.min(distance / 150, 1);
@@ -522,6 +522,10 @@
             event.clientY - gameContainer.getBoundingClientRect().top
         );
 
+        if (shotsRemaining <= 0 && gameActive) {
+            resetBall();
+        }
+
         if (Matter.Vector.magnitude(Matter.Vector.sub(mousePos, ballPos)) < BALL_RADIUS * 2) {
             isDragging = true;
             startPos = { x: ballPos.x, y: ballPos.y };
@@ -537,6 +541,7 @@
             Matter.Body.setStatic(ball, true);
         }
     }
+
     function handleMouseMove(event: MouseEvent) {
         if (isDragging) {
             const containerRect = gameContainer.getBoundingClientRect();
@@ -567,6 +572,9 @@
                 y: velocityY
             });
             
+            const spinMultiplier = 0.01;  // Adjust this value to change spin intensity
+            Matter.Body.setAngularVelocity(ball, velocityX * spinMultiplier);
+
             if (!shotTaken) {
                 shotsRemaining--;
                 shotTaken = true;
@@ -622,27 +630,6 @@
         });
     }
 
-
-
-    function drawCourtMarkings(render: Matter.Render) {
-        const context = render.context;
-        Matter.Events.on(render, 'beforeRender', () => {
-            // Draw court floor
-            context.fillStyle = '#334155';
-            context.fillRect(0, containerHeight - 100, containerWidth, 100);
-            
-            // Draw free throw line
-            context.beginPath();
-            context.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            context.lineWidth = 2;
-            context.setLineDash([5, 5]);
-            context.moveTo(100, containerHeight - 100);
-            context.lineTo(containerWidth - 100, containerHeight - 100);
-            context.stroke();
-            context.setLineDash([]);
-        });
-    }
-
     onMount(() => {
         if (!isMobile()) {
             const containerRect = gameContainer.getBoundingClientRect();
@@ -652,7 +639,7 @@
             // Create engine and world
             engine = Matter.Engine.create({
                 enableSleeping: false,
-                gravity: { x: 0, y: 0.98 }
+                gravity: { x: 0, y: 0.99 }
             });
             world = engine.world;
 
@@ -672,6 +659,7 @@
             // Create game objects
             ball = createBall(DEFAULT_X, containerHeight - DEFAULT_Y);
             
+
             // Create rim with collision disabled
             const rimObjects = createRim(containerWidth - 150, 250);
             rim = rimObjects.rim;
@@ -723,7 +711,6 @@
 
             // Setup basketball appearance
             drawBasketballLines(render);
-            drawCourtMarkings(render);
 
             // Add event listeners
             window.addEventListener('mousedown', handleMouseDown);
