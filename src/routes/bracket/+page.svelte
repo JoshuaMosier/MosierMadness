@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
   import BracketView from '$lib/components/BracketView.svelte';
@@ -35,82 +35,33 @@
     } catch (err) {
       console.error('Error fetching bracket teams:', err);
       error = err.message;
-      
-      // Fallback to using sample data if API fails
-      firstRoundTeams = [
-        // South Region (1-16)
-        { name: "Houston", seed: 1, seoName: "houston" }, 
-        { name: "N Kentucky", seed: 16, seoName: "n-kentucky" },
-        { name: "Iowa", seed: 8, seoName: "iowa" }, 
-        { name: "Auburn", seed: 9, seoName: "auburn" },
-        { name: "Miami FL", seed: 5, seoName: "miami-fl" }, 
-        { name: "Drake", seed: 12, seoName: "drake" },
-        { name: "Indiana", seed: 4, seoName: "indiana" }, 
-        { name: "Kent State", seed: 13, seoName: "kent-st" },
-        { name: "Iowa State", seed: 6, seoName: "iowa-st" }, 
-        { name: "Pittsburgh", seed: 11, seoName: "pittsburgh" },
-        { name: "Xavier", seed: 3, seoName: "xavier" }, 
-        { name: "Kennesaw St", seed: 14, seoName: "kennesaw-st" },
-        { name: "Texas A&M", seed: 7, seoName: "texas-am" }, 
-        { name: "Penn State", seed: 10, seoName: "penn-st" },
-        { name: "Texas", seed: 2, seoName: "texas" }, 
-        { name: "Colgate", seed: 15, seoName: "colgate" },
-
-        // East Region (17-32)
-        { name: "Purdue", seed: 1, seoName: "purdue" }, 
-        { name: "F Dickinson", seed: 16, seoName: "fairleigh-dickinson" },
-        { name: "Memphis", seed: 8, seoName: "memphis" }, 
-        { name: "FAU", seed: 9, seoName: "fau" },
-        { name: "Duke", seed: 5, seoName: "duke" }, 
-        { name: "Oral Roberts", seed: 12, seoName: "oral-roberts" },
-        { name: "Tennessee", seed: 4, seoName: "tennessee" }, 
-        { name: "Louisiana", seed: 13, seoName: "louisiana" },
-        { name: "Kentucky", seed: 6, seoName: "kentucky" }, 
-        { name: "Providence", seed: 11, seoName: "providence" },
-        { name: "Kansas St", seed: 3, seoName: "kansas-st" }, 
-        { name: "Montana St", seed: 14, seoName: "montana-st" },
-        { name: "Michigan St", seed: 7, seoName: "michigan-st" }, 
-        { name: "USC", seed: 10, seoName: "southern-california" },
-        { name: "Marquette", seed: 2, seoName: "marquette" }, 
-        { name: "Vermont", seed: 15, seoName: "vermont" },
-
-        // Midwest Region (33-48)
-        { name: "Alabama", seed: 1, seoName: "alabama" }, 
-        { name: "Texas A&M CC", seed: 16, seoName: "texas-am-cc" },
-        { name: "Maryland", seed: 8, seoName: "maryland" }, 
-        { name: "West Virginia", seed: 9, seoName: "west-virginia" },
-        { name: "San Diego St", seed: 5, seoName: "san-diego-st" }, 
-        { name: "Charleston", seed: 12, seoName: "charleston" },
-        { name: "Virginia", seed: 4, seoName: "virginia" }, 
-        { name: "Furman", seed: 13, seoName: "furman" },
-        { name: "Creighton", seed: 6, seoName: "creighton" }, 
-        { name: "NC State", seed: 11, seoName: "nc-state" },
-        { name: "Baylor", seed: 3, seoName: "baylor" }, 
-        { name: "UCSB", seed: 14, seoName: "uc-santa-barbara" },
-        { name: "Missouri", seed: 7, seoName: "missouri" }, 
-        { name: "Utah State", seed: 10, seoName: "utah-st" },
-        { name: "Arizona", seed: 2, seoName: "arizona" }, 
-        { name: "Princeton", seed: 15, seoName: "princeton" },
-
-        // West Region (49-64)
-        { name: "Kansas", seed: 1, seoName: "kansas" }, 
-        { name: "Howard", seed: 16, seoName: "howard" },
-        { name: "Arkansas", seed: 8, seoName: "arkansas" }, 
-        { name: "Illinois", seed: 9, seoName: "illinois" },
-        { name: "Saint Mary's", seed: 5, seoName: "saint-marys-ca" }, 
-        { name: "VCU", seed: 12, seoName: "vcu" },
-        { name: "UConn", seed: 4, seoName: "connecticut" }, 
-        { name: "Iona", seed: 13, seoName: "iona" },
-        { name: "TCU", seed: 6, seoName: "tcu" }, 
-        { name: "Arizona St", seed: 11, seoName: "arizona-st" },
-        { name: "Gonzaga", seed: 3, seoName: "gonzaga" }, 
-        { name: "Grand Canyon", seed: 14, seoName: "grand-canyon" },
-        { name: "Northwestern", seed: 7, seoName: "northwestern" }, 
-        { name: "Boise State", seed: 10, seoName: "boise-st" },
-        { name: "UCLA", seed: 2, seoName: "ucla" }, 
-        { name: "UNC Asheville", seed: 15, seoName: "unc-asheville" }
-      ];
     }
+  }
+
+  // Helper function to format team string (e.g., "1 Houston")
+  function formatTeamString(team) {
+    if (!team) return null;
+    return `${team.seed} ${team.name}`;
+  }
+
+  // Helper function to parse team string back to an object
+  function parseTeamString(teamString) {
+    if (!teamString) return null;
+    
+    const spaceIndex = teamString.indexOf(' ');
+    if (spaceIndex === -1) return null;
+    
+    const seed = parseInt(teamString.substring(0, spaceIndex));
+    const name = teamString.substring(spaceIndex + 1);
+    
+    // Find the team in firstRoundTeams to get the seoName
+    const teamData = firstRoundTeams.find(t => t.seed === seed && t.name === name);
+    
+    return {
+      seed,
+      name,
+      seoName: teamData?.seoName || ''
+    };
   }
 
   // Function to transform bracket data into the format expected by BracketView
@@ -125,7 +76,7 @@
       matches[i + 1] = {
         teamA: firstRoundTeams[i * 2],
         teamB: firstRoundTeams[i * 2 + 1],
-        winner: selections[i] || null
+        winner: selections[i] ? (selections[i] === formatTeamString(firstRoundTeams[i * 2]) ? 'A' : 'B') : null
       };
     }
 
@@ -138,7 +89,7 @@
       const prevMatchA = matches[prevRoundMatchA];
       const prevMatchB = matches[prevRoundMatchB];
       
-      // Get the selected winners from previous matches
+      // Get the teams that advance from previous matches
       const winnerA = prevMatchA?.winner ? 
         (prevMatchA.winner === 'A' ? prevMatchA.teamA : prevMatchA.teamB) : 
         null;
@@ -147,10 +98,16 @@
         (prevMatchB.winner === 'A' ? prevMatchB.teamA : prevMatchB.teamB) : 
         null;
 
+      const teamAString = formatTeamString(winnerA);
+      const teamBString = formatTeamString(winnerB);
+      
       matches[i + 1] = {
         teamA: winnerA,
         teamB: winnerB,
-        winner: selections[i] || null
+        winner: selections[i] ? 
+          (selections[i] === teamAString ? 'A' : 
+           selections[i] === teamBString ? 'B' : null) : 
+          null
       };
     }
 
@@ -164,14 +121,6 @@
       matches,
       champion
     };
-  }
-
-  // Helper to get the previous round matches for a given match
-  function getPreviousMatches(matchId) {
-    if (matchId <= 32) return null; // First round matches have no previous matches
-    
-    const baseMatch = Math.floor((matchId - 33) * 2) + 1;
-    return [baseMatch, baseMatch + 1];
   }
 
   // Handle team selection
@@ -190,17 +139,22 @@
       // Get the current match data before making changes
       const currentMatchData = transformBracketData(bracket).matches[matchId];
       
+      // Format the selected team as "seed name"
+      const selectedTeam = teamIndex === 'A' ? currentMatchData.teamA : currentMatchData.teamB;
+      const selectedTeamString = formatTeamString(selectedTeam);
+      
       // If we're selecting the team that's already selected, do nothing
-      if (currentMatchData.winner === teamIndex) {
+      if ((currentMatchData.winner === 'A' && teamIndex === 'A') || 
+          (currentMatchData.winner === 'B' && teamIndex === 'B')) {
         teamSelectionSaving = false;
         return;
       }
       
       // Update the winner for this match
-      newSelections[matchId - 1] = teamIndex;
+      newSelections[matchId - 1] = selectedTeamString;
 
       // Identify the winning team and losing team
-      const winningTeam = teamIndex === 'A' ? currentMatchData.teamA : currentMatchData.teamB;
+      const winningTeam = selectedTeam;
       const losingTeam = currentMatchData.winner ? 
         (currentMatchData.winner === 'A' ? currentMatchData.teamA : currentMatchData.teamB) :
         (teamIndex === 'A' ? currentMatchData.teamB : currentMatchData.teamA);
@@ -212,35 +166,22 @@
         selections: [...newSelections]
       };
       
-      // We'll need to simulate the bracket with both the original team winning
-      // and the new team winning to identify exactly which matches to clear
-      
-      // First, let's create a selections array with the original winner
-      const originalSelections = [...bracket.selections];
-      
-      // Then let's run the transform function to see which matches would have the losing team
-      const originalBracket = transformBracketData({
-        ...bracket,
-        selections: originalSelections
-      });
-      
-      // Find the path where the losing team would have appeared
-      const matchesWithLosingTeam = new Set();
-      
-      // Check every match past the current one
-      for (let i = matchId + 1; i <= 63; i++) {
-        const match = originalBracket.matches[i];
+      // Find matches that need to be cleared (those that had the previous winning team)
+      for (let i = matchId; i < 63; i++) {
+        const laterMatchId = i + 1;
+        const matchData = transformBracketData(bracket).matches[laterMatchId];
         
-        // If this match contains the losing team, add it to our set
-        if (match?.teamA?.name === losingTeam?.name || match?.teamB?.name === losingTeam?.name) {
-          matchesWithLosingTeam.add(i);
+        // If this match has a winner
+        if (matchData.winner) {
+          const winningTeamInMatch = matchData.winner === 'A' ? matchData.teamA : matchData.teamB;
+          
+          // If the winning team is the one that no longer advances, clear this selection
+          if (winningTeamInMatch && losingTeam && winningTeamInMatch.name === losingTeam.name && 
+              winningTeamInMatch.seed === losingTeam.seed) {
+            newSelections[i] = null;
+          }
         }
       }
-      
-      // Now clear only those matches that had the losing team
-      matchesWithLosingTeam.forEach(matchId => {
-        newSelections[matchId - 1] = null;
-      });
 
       // Update the bracket in the database
       const { error: updateError } = await supabase
@@ -307,7 +248,7 @@
     try {
       bracketActionSaving = true;
       
-      // Update the bracket in the database - removed submitted_at
+      // Update the bracket in the database
       const { error: updateError } = await supabase
         .from('brackets')
         .update({
@@ -318,7 +259,7 @@
 
       if (updateError) throw updateError;
 
-      // Update local state - removed submitted_at
+      // Update local state
       bracket = {
         ...bracket,
         is_submitted: true,
@@ -344,7 +285,7 @@
         .from('brackets')
         .insert({
           user_id: user.id,
-          selections: new Array(126).fill(null), // Space for 63 matches * 2 teams
+          selections: new Array(63).fill(null), // Space for 63 matches
           is_submitted: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -364,7 +305,7 @@
     }
   }
 
-  // Add this new function near your other bracket functions
+  // Unlock bracket for editing
   async function unlockBracket() {
     if (saving) return;
     
