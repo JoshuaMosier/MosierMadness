@@ -1365,9 +1365,9 @@
         "tertiary_color": "#8A8D8F"
     },
     "Tennessee": {
-        "primary_color": "#4f2984",
-        "secondary_color": "#FFDD00",
-        "tertiary_color": null
+        "primary_color": "#ff8200",
+        "secondary_color": "#ffffff",
+        "tertiary_color": "#58595b"
     },
     "Tennessee St.": {
         "primary_color": "#00539F",
