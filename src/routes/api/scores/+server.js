@@ -45,7 +45,7 @@ function getCurrentScoreboardUrl() {
   
   // Default to the most recent phase or return a fallback URL
   // This is useful for testing outside of tournament dates
-  return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/06/scoreboard.json";
+  return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/02/28/scoreboard.json";
 }
 
 /**

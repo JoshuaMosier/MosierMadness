@@ -76,7 +76,7 @@
   function getTeamStyle(teamName) {
     if (teamName && teamColors[teamName]) {
       const color = teamColors[teamName].primary_color;
-      const opacity = 0.6;
+      const opacity = 0.8;
       // Convert hex to RGB
       const hex = color.replace('#', '');
       const r = parseInt(hex.substring(0, 2), 16);
@@ -132,7 +132,7 @@
                     {#if game[0][2]}
                       <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
                     {/if}
-                    <span class="text-lg inline-flex items-center px-3 py-1.5 rounded-md min-w-[120px] bg-opacity-60 {isWinner(game[0]) ? 'text-white font-medium' : isWinner(game[1]) ? 'line-through opacity-75' : 'text-white'} transition-all duration-200 shadow-sm"
+                    <span class="text-md inline-flex items-center px-3 py-1.5 rounded-md min-w-[120px] {isWinner(game[0]) ? 'text-white font-medium' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                           style={getTeamStyle(game[0][4])}>
                       {game[0][4]}
                     </span>
@@ -154,7 +154,7 @@
                     {#if game[1][2]}
                       <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
                     {/if}
-                    <span class="text-lg inline-flex items-center px-3 py-1.5 rounded-md min-w-[120px] bg-opacity-60 {isWinner(game[1]) ? 'text-white font-medium' : isWinner(game[0]) ? 'line-through opacity-75' : 'text-white'} transition-all duration-200 shadow-sm"
+                    <span class="text-md inline-flex items-center px-3 py-1.5 rounded-md min-w-[120px] {isWinner(game[1]) ? 'text-white font-medium' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                           style={getTeamStyle(game[1][4])}>
                       {game[1][4]}
                     </span>

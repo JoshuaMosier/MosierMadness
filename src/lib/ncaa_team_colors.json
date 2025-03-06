@@ -29,7 +29,7 @@
         "secondary_color": "#000000",
         "tertiary_color": null
     },
-    "Albany": {
+    "UAlbany": {
         "primary_color": "#461660",
         "secondary_color": "#eeb211",
         "tertiary_color": "#461660"
@@ -44,7 +44,7 @@
         "secondary_color": "#003366",
         "tertiary_color": "#003366"
     },
-    "Appalachian St.": {
+    "App State": {
         "primary_color": "#222222",
         "secondary_color": "#ffcc00",
         "tertiary_color": "#222222"
@@ -89,7 +89,7 @@
         "secondary_color": "#E87722",
         "tertiary_color": "#0C2340"
     },
-    "Austin Peay Governors": {
+    "Austin Peay": {
         "primary_color": "#C41E3A",
         "secondary_color": "#ffffff",
         "tertiary_color": "#ADAFAA"
@@ -164,7 +164,7 @@
         "secondary_color": "#003865",
         "tertiary_color": "#FFFFFF"
     },
-    "Buffalo Bulls": {
+    "Buffalo": {
         "primary_color": "#005BBB",
         "secondary_color": null,
         "tertiary_color": null
@@ -219,17 +219,17 @@
         "secondary_color": "#ffba00",
         "tertiary_color": null
     },
-    "Central Arkansas": {
+    "Central Ark.": {
         "primary_color": "#4f2d7f",
         "secondary_color": "#818a8f",
         "tertiary_color": "#ffffff"
     },
-    "Central Michigan": {
+    "Central Mich.": {
         "primary_color": "#6A0032",
         "secondary_color": "#FFC82E",
         "tertiary_color": "#6A0032"
     },
-    "Charleston Buccaneers": {
+    "Charleston So.": {
         "primary_color": "#A8996E",
         "secondary_color": "#002855",
         "tertiary_color": "#ffffff"
@@ -374,7 +374,7 @@
         "secondary_color": "#BA0C2F",
         "tertiary_color": "#041E42"
     },
-    "E. Kentucky Colonels": {
+    "Eastern Ky.": {
         "primary_color": "#8a0039",
         "secondary_color": "#ffffff",
         "tertiary_color": null
@@ -389,12 +389,12 @@
         "secondary_color": "#FDC82F",
         "tertiary_color": "#592A8A"
     },
-    "Eastern Illinois": {
+    "Eastern Ill.": {
         "primary_color": "#919295",
         "secondary_color": "#004b83",
         "tertiary_color": "#ffffff"
     },
-    "Eastern Michigan": {
+    "Eastern Mich.": {
         "primary_color": "#006633",
         "secondary_color": null,
         "tertiary_color": null
@@ -409,7 +409,7 @@
         "secondary_color": "#f36f21",
         "tertiary_color": null
     },
-    "F. Dickinson": {
+    "FDU": {
         "primary_color": "#28334A",
         "secondary_color": "#72293C",
         "tertiary_color": null
@@ -439,17 +439,17 @@
         "secondary_color": "#FA4616",
         "tertiary_color": "#0021A5"
     },
-    "Florida Gulf Coast": {
+    "FGCU": {
         "primary_color": "#002D72",
         "secondary_color": "#007749",
         "tertiary_color": "#B9975B"
     },
-    "Florida State Seminoles": {
+    "Florida St.": {
         "primary_color": "#782F40",
         "secondary_color": "#CEB888",
         "tertiary_color": "#FFFFFF"
     },
-    "Fordham Rams": {
+    "Fordham": {
         "primary_color": "#860038",
         "secondary_color": null,
         "tertiary_color": null
@@ -459,32 +459,32 @@
         "secondary_color": "#000000",
         "tertiary_color": "#63666A"
     },
-    "Fresno State Bulldogs": {
+    "Fresno St.": {
         "primary_color": "#db0032",
         "secondary_color": "#002e6d",
         "tertiary_color": "#007934"
     },
-    "Furman Paladins": {
+    "Furman": {
         "primary_color": "#201547",
         "secondary_color": "#582c83",
         "tertiary_color": "#A7A8AA"
     },
-    "Gardner-Webb Bulldogs": {
+    "Gardner-Webb": {
         "primary_color": "#BF2F37",
         "secondary_color": "#ffffff",
         "tertiary_color": "#000000"
     },
-    "George Mason Patriots": {
+    "George Mason": {
         "primary_color": "#006633",
         "secondary_color": "#FFCC33",
         "tertiary_color": null
     },
-    "George Washington Colonials": {
+    "George Washington": {
         "primary_color": "#e2cb92",
         "secondary_color": "#002654",
         "tertiary_color": null
     },
-    "Georgetown Hoyas": {
+    "Georgetown": {
         "primary_color": "#041E42",
         "secondary_color": "#8D817B",
         "tertiary_color": "#041E42"
@@ -504,7 +504,7 @@
         "secondary_color": "#C60C30",
         "tertiary_color": "#000000"
     },
-    "Georgia Tech ": {
+    "Georgia Tech": {
         "primary_color": "#B3A369",
         "secondary_color": "#A28D5B",
         "tertiary_color": "#003057"
@@ -540,8 +540,8 @@
         "tertiary_color": null
     },
     "Harvard": {
-        "primary_color": "#000000",
-        "secondary_color": "#808285",
+        "primary_color": "#A51C30",
+        "secondary_color": "#000000",
         "tertiary_color": "#B6B6B6"
     },
     "Hawaii": {
@@ -564,7 +564,7 @@
         "secondary_color": "#FFFFFF",
         "tertiary_color": "#000000"
     },
-    "Houston Baptist": {
+    "Houston Christian": {
         "primary_color": "#1c4e9d",
         "secondary_color": "#f3652c",
         "tertiary_color": "#ffffff"
@@ -604,7 +604,7 @@
         "secondary_color": "#000000",
         "tertiary_color": null
     },
-    "Indiana Hoosiers": {
+    "Indiana": {
         "primary_color": "#990000",
         "secondary_color": "#EEEDEB",
         "tertiary_color": "#990000"
@@ -614,7 +614,7 @@
         "secondary_color": null,
         "tertiary_color": null
     },
-    "Iona Gaels": {
+    "Iona": {
         "primary_color": "#6F2C3F",
         "secondary_color": "#F2A900",
         "tertiary_color": null
@@ -629,7 +629,7 @@
         "secondary_color": "#F1BE48",
         "tertiary_color": "#C8102E"
     },
-    "J. State Gamecocks": {
+    "Jacksonville St.": {
         "primary_color": "#CC0000",
         "secondary_color": "#ffffff",
         "tertiary_color": "#000000"
@@ -664,7 +664,7 @@
         "secondary_color": "#d1d1d1",
         "tertiary_color": "#a7a7a7"
     },
-    "Kennesaw State": {
+    "Kennesaw St.": {
         "primary_color": "#FDBB30",
         "secondary_color": "#0B1315",
         "tertiary_color": "#C5C6C8"
@@ -714,7 +714,7 @@
         "secondary_color": "#000000",
         "tertiary_color": "#FFC72A"
     },
-    "Long Island Sharks": {
+    "LIU": {
         "primary_color": "#69B3E7",
         "secondary_color": "#FFC72C",
         "tertiary_color": "#ffffff"
@@ -724,12 +724,12 @@
         "secondary_color": "#999D9E",
         "tertiary_color": "#ffffff"
     },
-    "Louisiana Ragin' Cajuns": {
+    "Louisiana": {
         "primary_color": "#ce181e",
         "secondary_color": "#0a0203",
         "tertiary_color": "#c1c5c9"
     },
-    "Louisiana State": {
+    "LSU": {
         "primary_color": "#461D7C",
         "secondary_color": "#FDD023",
         "tertiary_color": "#461D7C"
@@ -739,7 +739,7 @@
         "secondary_color": null,
         "tertiary_color": null
     },
-    "Louisiana-Monroe": {
+    "ULM": {
         "primary_color": "#840029",
         "secondary_color": "#FDB913",
         "tertiary_color": "#840029"
@@ -789,7 +789,7 @@
         "secondary_color": "#888B8D",
         "tertiary_color": "#000000"
     },
-    "Maryland ": {
+    "Maryland": {
         "primary_color": "#E03a3e",
         "secondary_color": "#ffd520",
         "tertiary_color": "#000000"
@@ -964,7 +964,7 @@
         "secondary_color": "#DB9F11",
         "tertiary_color": "#5F6062"
     },
-    "North Carolina Aggies": {
+    "N.C. A&T": {
         "primary_color": "#f3b237",
         "secondary_color": "#003d6d",
         "tertiary_color": "#ffffff"
@@ -979,7 +979,7 @@
         "secondary_color": "#FFFFFF",
         "tertiary_color": "#13294B"
     },
-    "North Dakota Fighting Hawks": {
+    "North Dakota": {
         "primary_color": "#009A44",
         "secondary_color": "#AAAEAD",
         "tertiary_color": "#000000"
@@ -989,7 +989,7 @@
         "secondary_color": "#ffc72a",
         "tertiary_color": "#0A5640"
     },
-    "North Florida Ospreys": {
+    "North Florida": {
         "primary_color": "#00246B",
         "secondary_color": "#D9D9D9",
         "tertiary_color": null
@@ -999,7 +999,7 @@
         "secondary_color": "#00853E",
         "tertiary_color": null
     },
-    "Northeastern Huskies": {
+    "Northeastern": {
         "primary_color": "#D41B2C",
         "secondary_color": "#000000",
         "tertiary_color": "#ffffff"
@@ -1024,7 +1024,7 @@
         "secondary_color": null,
         "tertiary_color": null
     },
-    "Notre Dame Fighting Irish": {
+    "Notre Dame": {
         "primary_color": "#0C2340",
         "secondary_color": "#c99700",
         "tertiary_color": "#Ae9142"
@@ -1034,22 +1034,22 @@
         "secondary_color": null,
         "tertiary_color": null
     },
-    "Ohio Bobcats": {
+    "Ohio": {
         "primary_color": "#00694E",
         "secondary_color": "#CDA077",
         "tertiary_color": null
     },
-    "Ohio State Buckeyes": {
+    "Ohio St.": {
         "primary_color": "#BB0000",
         "secondary_color": "#666666",
         "tertiary_color": "#FFFFFF"
     },
-    "Oklahoma Sooners": {
+    "Oklahoma": {
         "primary_color": "#841617",
         "secondary_color": "#FDF9D8",
         "tertiary_color": "#841617"
     },
-    "Oklahoma State Cowboys": {
+    "Oklahoma St.": {
         "primary_color": "#FF7300",
         "secondary_color": "#000000",
         "tertiary_color": "#FF7300"
@@ -1090,8 +1090,8 @@
         "tertiary_color": "#D86018"
     },
     "Penn": {
-        "primary_color": "#990000",
-        "secondary_color": "#011F5B",
+        "primary_color": "#011F5B",
+        "secondary_color": "#990000",
         "tertiary_color": "#990000"
     },
     "Penn St.": {
@@ -1104,7 +1104,7 @@
         "secondary_color": "#ee7624",
         "tertiary_color": null
     },
-    "Pittsburgh ": {
+    "Pittsburgh": {
         "primary_color": "#003594",
         "secondary_color": "#FFB81C",
         "tertiary_color": "#1c2957"
@@ -1294,12 +1294,12 @@
         "secondary_color": "#000000",
         "tertiary_color": "#73000A"
     },
-    "South Carolina Upstate Spartans": {
+    "USC Upstate": {
         "primary_color": "#00703c",
         "secondary_color": null,
         "tertiary_color": null
     },
-    "South Dakota Coyotes": {
+    "South Dakota": {
         "primary_color": "#ad0000",
         "secondary_color": "#b4b4b4",
         "tertiary_color": "#000000"
@@ -1309,7 +1309,7 @@
         "secondary_color": "#FFD100",
         "tertiary_color": null
     },
-    "South Florida Bulls": {
+    "South Fla.": {
         "primary_color": "#006747",
         "secondary_color": "#CFC493",
         "tertiary_color": null
@@ -1324,22 +1324,22 @@
         "secondary_color": "#ffce34",
         "tertiary_color": null
     },
-    "Southern Miss Golden Eagles": {
+    "Southern Miss.": {
         "primary_color": "#000000",
         "secondary_color": "#FFAB00",
         "tertiary_color": null
     },
-    "St. Bonaventure Bonnies": {
+    "St. Bonaventure": {
         "primary_color": "#54261a",
         "secondary_color": "#fdb726",
         "tertiary_color": "#bdb6b0"
     },
-    "St. John's Red Storm": {
+    "St. John's (NY)": {
         "primary_color": "#BA0C2F",
         "secondary_color": "#041C2C",
         "tertiary_color": "#A7A8AA"
     },
-    "St. Joseph's Hawks": {
+    "Saint Joseph's": {
         "primary_color": "#9e1b32",
         "secondary_color": "#6c6f70",
         "tertiary_color": null
@@ -1354,7 +1354,7 @@
         "secondary_color": "#0072CE",
         "tertiary_color": "#A59C94"
     },
-    "St.Francis Red Flash": {
+    "Saint Francis": {
         "primary_color": "#bd1f25",
         "secondary_color": "#790000",
         "tertiary_color": "#8e908f"
@@ -1369,12 +1369,12 @@
         "secondary_color": "#84754E",
         "tertiary_color": "#ffffff"
     },
-    "Stanford Cardinal": {
+    "Stanford": {
         "primary_color": "#8C1515",
         "secondary_color": "#4D4F53",
         "tertiary_color": "#2e2d29"
     },
-    "Stephen F.A. Lumberjacks": {
+    "SFA": {
         "primary_color": "#613393",
         "secondary_color": "#ffffff",
         "tertiary_color": "#613393"
@@ -1384,12 +1384,12 @@
         "secondary_color": "#3B8729",
         "tertiary_color": "#FFFFFF"
     },
-    "Stony Brook Seawolves": {
+    "Stony Brook": {
         "primary_color": "#990000",
         "secondary_color": "#16243e",
         "tertiary_color": "#828282"
     },
-    "Syracuse Orange": {
+    "Syracuse": {
         "primary_color": "#F76900",
         "secondary_color": "#FFFFFF",
         "tertiary_color": "#000E54"
@@ -1414,7 +1414,7 @@
         "secondary_color": "#FFFFFF",
         "tertiary_color": "#500000"
     },
-    "Texas A&M-CC": {
+    "A&M-Corpus Christi": {
         "primary_color": "#0067C5",
         "secondary_color": "#007F3E",
         "tertiary_color": "#9EA2A4"
@@ -1444,7 +1444,7 @@
         "secondary_color": "#000000",
         "tertiary_color": "#FFFFFF"
     },
-    "Texas-Arlington": {
+    "UT Arlington": {
         "primary_color": "#f58025",
         "secondary_color": "#0064b1",
         "tertiary_color": null
@@ -1534,7 +1534,7 @@
         "secondary_color": "#C8102E",
         "tertiary_color": null
     },
-    "UMass": {
+    "Massachusetts": {
         "primary_color": "#971B2F",
         "secondary_color": "#572932",
         "tertiary_color": "#B1B3B3"
@@ -1549,7 +1549,7 @@
         "secondary_color": "#006666",
         "tertiary_color": "#FFD600"
     },
-    "UNCG": {
+    "UNC Greensboro": {
         "primary_color": "#0f2044",
         "secondary_color": "#ffb71b",
         "tertiary_color": "#bec0c2"
@@ -1559,7 +1559,7 @@
         "secondary_color": "#CAC8C8",
         "tertiary_color": "#000000"
     },
-    "USC": {
+    "Southern California": {
         "primary_color": "#990000",
         "secondary_color": "#FFC72C",
         "tertiary_color": "#990000"
@@ -1599,7 +1599,7 @@
         "secondary_color": "#000000",
         "tertiary_color": "#8e8c89"
     },
-    "VMI Keydets": {
+    "VMI": {
         "primary_color": "#a71f23",
         "secondary_color": "#ffd520",
         "tertiary_color": "#000000"
@@ -1624,12 +1624,12 @@
         "secondary_color": "#006666",
         "tertiary_color": "#FFD600"
     },
-    "Virginia Cavaliers": {
+    "Virginia": {
         "primary_color": "#232D4B",
         "secondary_color": null,
         "tertiary_color": null
     },
-    "Virginia Commonwealth": {
+    "VCU": {
         "primary_color": "#ffb300",
         "secondary_color": "#FFB300",
         "tertiary_color": null
@@ -1659,7 +1659,7 @@
         "secondary_color": null,
         "tertiary_color": null
     },
-    "West Virginia Mountaineers": {
+    "West Virginia": {
         "primary_color": "#002855",
         "secondary_color": "#EAAA00",
         "tertiary_color": "#002855"
@@ -1669,7 +1669,7 @@
         "secondary_color": "#C1A875",
         "tertiary_color": null
     },
-    "Western Illinois Leathernecks": {
+    "Western Illinois": {
         "primary_color": "#663399",
         "secondary_color": "#ffcc00",
         "tertiary_color": null
@@ -1679,7 +1679,7 @@
         "secondary_color": "#1E1E1E",
         "tertiary_color": "#A2A4A3"
     },
-    "Western Michigan": {
+    "Western Mich.": {
         "primary_color": "#6C4023",
         "secondary_color": "#B5A167",
         "tertiary_color": "#AAA8AA"
@@ -1689,7 +1689,7 @@
         "secondary_color": null,
         "tertiary_color": null
     },
-    "William & Mary Tribe": {
+    "William & Mary": {
         "primary_color": "#115740",
         "secondary_color": "#F0B323",
         "tertiary_color": null
