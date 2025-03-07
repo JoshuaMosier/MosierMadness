@@ -1,61 +1,32 @@
 import { json } from '@sveltejs/kit';
 
 /**
- * Gets the current NCAA tournament scoreboard URL
- * This function should be updated with the correct dates as the tournament progresses
- * @returns {string} The URL for the current tournament phase
+ * Gets the NCAA tournament scoreboard URL for a specific date
+ * @param {Date} date - The date to get scores for (defaults to current date in ET)
+ * @returns {string} The URL for the specified date
  */
-function getCurrentScoreboardUrl() {
-  const today = new Date();
+function getScoreboardUrl(date = new Date()) {
+  // Convert the date to ET
+  const etFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
   
-  // First Four: March 19-20, 2024
-  if (today >= new Date('2024-03-19') && today <= new Date('2024-03-20')) {
-    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/19/scoreboard.json";
-  }
-  
-  // First Round: March 21-22, 2024
-  if (today >= new Date('2024-03-21') && today <= new Date('2024-03-22')) {
-    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/21/scoreboard.json";
-  }
-  
-  // Second Round: March 23-24, 2024
-  if (today >= new Date('2024-03-23') && today <= new Date('2024-03-24')) {
-    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/23/scoreboard.json";
-  }
-  
-  // Sweet 16: March 28-29, 2024
-  if (today >= new Date('2024-03-28') && today <= new Date('2024-03-29')) {
-    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/28/scoreboard.json";
-  }
-  
-  // Elite Eight: March 30-31, 2024
-  if (today >= new Date('2024-03-30') && today <= new Date('2024-03-31')) {
-    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/30/scoreboard.json";
-  }
-  
-  // Final Four: April 6, 2024
-  if (today >= new Date('2024-04-06') && today <= new Date('2024-04-06')) {
-    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/04/06/scoreboard.json";
-  }
-  
-  // Championship: April 8, 2024
-  if (today >= new Date('2024-04-08') && today <= new Date('2024-04-08')) {
-    return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/04/08/scoreboard.json";
-  }
-  
-  // Default to the most recent phase or return a fallback URL
-  // This is useful for testing outside of tournament dates
-  return "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/06/scoreboard.json";
+  const [month, day, year] = etFormatter.format(date).split('/');
+  const formattedDate = `${year}/${month}/${day}`;
+  return `https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/${formattedDate}/scoreboard.json`;
 }
 
 /**
  * Fetches NCAA basketball scores from the NCAA API
+ * @param {Date} date - Optional date to get scores for (in ET)
  * @returns {Promise<Array>} Array of game data
  */
-async function getScoreTicker() {
+async function getScoreTicker(date = new Date()) {
   try {
-    // Get the appropriate URL for the current tournament phase
-    const scoreboardUrl = getCurrentScoreboardUrl();
+    const scoreboardUrl = getScoreboardUrl(date);
     const response = await fetch(scoreboardUrl);
     
     if (!response.ok) {
@@ -148,9 +119,21 @@ async function getScoreTicker() {
 /**
  * GET handler for /api/scores endpoint
  */
-export async function GET() {
+export async function GET({ url }) {
   try {
-    const scores = await getScoreTicker();
+    // Check for date parameter in query string (format: YYYY-MM-DD)
+    const dateParam = url.searchParams.get('date');
+    let date;
+    
+    if (dateParam) {
+      // If date parameter provided, interpret it as ET
+      date = new Date(`${dateParam}T00:00:00-04:00`);
+    } else {
+      // Get current date in ET
+      date = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    }
+    
+    const scores = await getScoreTicker(date);
     return json(scores);
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
