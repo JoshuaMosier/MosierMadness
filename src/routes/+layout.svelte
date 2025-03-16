@@ -10,7 +10,6 @@
   // Define routes where ScoreTicker should be hidden
   const hideScoreTickerRoutes = [
     '/scores',
-
   ];
 
   // Reactive statement to determine if ScoreTicker should be visible

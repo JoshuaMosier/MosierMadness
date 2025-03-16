@@ -129,7 +129,7 @@
                         {#if game[0][2]}
                           <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
                         {/if}
-                        <span class="text-sm inline-flex items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[0]) ? 'text-white font-medium' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
+                        <span class="text-sm inline-flex font-semibold items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[0]) ? 'text-white font-medium' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                               style={getTeamStyle(game[0][4])}>
                           {game[0][4]}
                         </span>
@@ -151,7 +151,7 @@
                         {#if game[1][2]}
                           <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
                         {/if}
-                        <span class="text-sm inline-flex items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[1]) ? 'text-white font-medium' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
+                        <span class="text-sm inline-flex font-semibold items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[1]) ? 'text-white font-medium' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                               style={getTeamStyle(game[1][4])}>
                           {game[1][4]}
                         </span>
@@ -201,7 +201,7 @@
                           {#if game[0][2]}
                             <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
                           {/if}
-                          <span class="text-sm inline-flex items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[0]) ? 'text-white font-medium' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
+                          <span class="text-sm inline-flex font-semibold items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[0]) ? 'text-white font-medium' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                 style={getTeamStyle(game[0][4])}>
                             {game[0][4]}
                           </span>
@@ -223,7 +223,7 @@
                           {#if game[1][2]}
                             <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
                           {/if}
-                          <span class="text-sm inline-flex items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[1]) ? 'text-white font-medium' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
+                          <span class="text-sm inline-flex font-semibold items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[1]) ? 'text-white font-medium' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                 style={getTeamStyle(game[1][4])}>
                             {game[1][4]}
                           </span>
@@ -266,7 +266,7 @@
                             {#if game[0][2]}
                               <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
                             {/if}
-                            <span class="text-sm inline-flex items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[0]) ? 'text-white font-medium' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
+                            <span class="text-sm inline-flex font-semibold items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[0]) ? 'text-white font-medium' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                   style={getTeamStyle(game[0][4])}>
                               {game[0][4]}
                             </span>
@@ -288,7 +288,7 @@
                             {#if game[1][2]}
                               <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
                             {/if}
-                            <span class="text-sm inline-flex items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[1]) ? 'text-white font-medium' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
+                            <span class="text-sm inline-flex font-semibold items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[1]) ? 'text-white font-medium' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                   style={getTeamStyle(game[1][4])}>
                               {game[1][4]}
                             </span>
@@ -324,7 +324,7 @@
                             {#if game[0][2]}
                               <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[0][2]}</span>
                             {/if}
-                            <span class="text-sm inline-flex items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[0]) ? 'text-white font-medium' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
+                            <span class="text-sm inline-flex font-semibold items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[0]) ? 'text-white font-medium' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                   style={getTeamStyle(game[0][4])}>
                               {game[0][4]}
                             </span>
@@ -346,7 +346,7 @@
                             {#if game[1][2]}
                               <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-medium">#{game[1][2]}</span>
                             {/if}
-                            <span class="text-sm inline-flex items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[1]) ? 'text-white font-medium' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
+                            <span class="text-sm inline-flex font-semibold items-center px-3 py-1 rounded-md min-w-[80px] {isWinner(game[1]) ? 'text-white font-medium' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                   style={getTeamStyle(game[1][4])}>
                               {game[1][4]}
                             </span>
