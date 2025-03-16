@@ -26,8 +26,7 @@
           data: {
             first_name: firstName.trim(),
             last_name: lastName.trim()
-          },
-          emailRedirectTo: `${window.location.origin}/login?registered=true`
+          }
         }
       })
 
@@ -37,7 +36,18 @@
       }
 
       if (data.user) {
-        goto('/login?registered=true')
+        // Sign in the user immediately after registration
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password.trim()
+        })
+
+        if (signInError) {
+          throw signInError
+        }
+
+        // Redirect to the desired page after successful registration and sign in
+        goto('/')  // or whatever path you want to redirect to
       } else {
         error = 'No user data returned from registration'
       }
