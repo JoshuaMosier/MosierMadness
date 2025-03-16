@@ -8,8 +8,8 @@ import teamColors from '$lib/ncaa_team_colors.json';
 function getFirstRoundUrls() {
   // First Round: March 21-22, 2024
   return [
-    "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/21/scoreboard.json",
-    "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/22/scoreboard.json"
+    "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/20/scoreboard.json",
+    "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/21/scoreboard.json"
   ];
 }
 

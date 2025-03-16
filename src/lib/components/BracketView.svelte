@@ -134,7 +134,7 @@
       } else {
         classes.push('bg-amber-800/90 font-medium');
       }
-    } else if (!team?.name || team?.name === 'TBD') {
+    } else if (!team?.name || team?.name === '') {
       // Make unfilled games more distinct with a dashed border and lighter background
       classes.push('bg-stone-900 border border-dashed border-amber-300/50');
     } else {
@@ -272,7 +272,7 @@
                           <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                             {match.teamA?.seed || '-'}
                           </span>
-                          <span class="truncate">{match.teamA?.name || 'TBD'}</span>
+                          <span class="truncate">{match.teamA?.name || ''}</span>
                           {#if showScores && match.teamA?.score !== undefined}
                             <span class="ml-auto text-gray-200">{match.teamA.score}</span>
                           {/if}
@@ -287,7 +287,7 @@
                           <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                             {match.teamB?.seed || '-'}
                           </span>
-                          <span class="truncate">{match.teamB?.name || 'TBD'}</span>
+                          <span class="truncate">{match.teamB?.name || ''}</span>
                           {#if showScores && match.teamB?.score !== undefined}
                             <span class="ml-auto text-gray-200">{match.teamB.score}</span>
                           {/if}
@@ -322,7 +322,7 @@
                         <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                           {match.teamA?.seed || '-'}
                         </span>
-                        <span class="truncate">{match.teamA?.name || 'TBD'}</span>
+                        <span class="truncate">{match.teamA?.name || ''}</span>
                         {#if showScores && match.teamA?.score !== undefined}
                           <span class="ml-auto mr-1 text-gray-200">{match.teamA.score}</span>
                         {/if}
@@ -339,7 +339,7 @@
                         <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                           {match.teamB?.seed || '-'}
                         </span>
-                        <span class="truncate">{match.teamB?.name || 'TBD'}</span>
+                        <span class="truncate">{match.teamB?.name || ''}</span>
                         {#if showScores && match.teamB?.score !== undefined}
                           <span class="ml-auto mr-1 text-gray-200">{match.teamB.score}</span>
                         {/if}
@@ -371,7 +371,7 @@
                       <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                         {match.teamA?.seed || '-'}
                       </span>
-                      <span class="truncate">{match.teamA?.name || 'TBD'}</span>
+                      <span class="truncate">{match.teamA?.name || ''}</span>
                       {#if showScores && match.teamA?.score !== undefined}
                         <span class="ml-auto text-gray-200">{match.teamA.score}</span>
                       {/if}
@@ -386,7 +386,7 @@
                       <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                         {match.teamB?.seed || '-'}
                       </span>
-                      <span class="truncate">{match.teamB?.name || 'TBD'}</span>
+                      <span class="truncate">{match.teamB?.name || ''}</span>
                       {#if showScores && match.teamB?.score !== undefined}
                         <span class="ml-auto text-gray-200">{match.teamB.score}</span>
                       {/if}
@@ -421,7 +421,7 @@
                     <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                       {match.teamA?.seed || '-'}
                     </span>
-                    <span class="truncate">{match.teamA?.name || 'TBD'}</span>
+                    <span class="truncate">{match.teamA?.name || ''}</span>
                     {#if showScores && match.teamA?.score !== undefined}
                       <span class="ml-auto mr-1 text-gray-200">{match.teamA.score}</span>
                     {/if}
@@ -438,7 +438,7 @@
                     <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                       {match.teamB?.seed || '-'}
                     </span>
-                    <span class="truncate">{match.teamB?.name || 'TBD'}</span>
+                    <span class="truncate">{match.teamB?.name || ''}</span>
                     {#if showScores && match.teamB?.score !== undefined}
                       <span class="ml-auto mr-1 text-gray-200">{match.teamB.score}</span>
                     {/if}
@@ -466,7 +466,6 @@
           {:else}
             <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center bg-stone-900 border border-dashed border-amber-300/50">
               <span class="inline-block w-[16px] text-center mr-1 text-[10px] font-bold">-</span>
-              <span class="truncate">TBD</span>
             </div>
           {/if}
         </div>

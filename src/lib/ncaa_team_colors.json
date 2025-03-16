@@ -874,6 +874,11 @@
         "secondary_color": "#53565A",
         "tertiary_color": null
     },
+    "Montana": {
+        "primary_color": "#660033",
+        "secondary_color": "#999999",
+        "tertiary_color": "#000000"
+    },
     "Montana St.": {
         "primary_color": "#00205B",
         "secondary_color": null,
@@ -1553,6 +1558,11 @@
         "primary_color": "#0f2044",
         "secondary_color": "#ffb71b",
         "tertiary_color": "#bec0c2"
+    },
+    "UNCW": {
+        "primary_color": "#003366",
+        "secondary_color": "#006666",
+        "tertiary_color": "#FFD600"
     },
     "UNLV": {
         "primary_color": "#CF0A2C",

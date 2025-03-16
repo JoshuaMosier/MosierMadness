@@ -1,6 +1,7 @@
 <script>
   import Leaderboard from '$lib/components/Leaderboard.svelte';
   import Countdown from '$lib/components/Countdown.svelte';
+  import TournamentCountdown from '$lib/components/TournamentCountdown.svelte';
 </script>
 
 <svelte:head>
@@ -10,5 +11,6 @@
 
 <div class="max-w-7xl mx-auto px-4 py-8">
     <!-- <Leaderboard /> -->
-    <Countdown />
+    <!-- <Countdown /> -->
+    <TournamentCountdown />
 </div>
