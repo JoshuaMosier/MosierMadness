@@ -1,123 +1,162 @@
 <script>
   import { onMount } from 'svelte';
-  import { supabase } from '$lib/supabase';
   import BracketView from '$lib/components/BracketView.svelte';
 
   let loading = true;
   let error = null;
   let bracketData = null;
+  let lastUpdated = null;
+  let debugData = {
+    rawApiResponse: null,
+    transformedTeams: null,
+    matchesCreated: 0,
+    apiError: null
+  };
 
-  // Sample teams data - replace with actual data later
-  const teams = [
-    { name: "UConn", seed: 1, score: 85, color: "#0C2340" }, // Navy blue
-    { name: "Purdue", seed: 2, score: 75, color: "#CEB888" }, // Old gold
-    { name: "Houston", seed: 1, score: 82, color: "#C8102E" }, // Red
-    { name: "Tennessee", seed: 2, score: 68, color: "#FF8200" }, // Orange
-    { name: "Alabama", seed: 4, score: 72, color: "#9E1B32" }, // Crimson
-    { name: "Illinois", seed: 3, score: 79, color: "#E84A27" }, // Orange
-    { name: "Duke", seed: 4, score: 78, color: "#003087" }, // Duke blue
-    { name: "Iowa State", seed: 2, score: 73, color: "#C8102E" }, // Cardinal
-    { name: "Kansas", seed: 1, score: 80, color: "#0047AB" }, // Navy blue
-    { name: "Michigan", seed: 2, score: 76, color: "#002E62" }, // Blue
-  ];
+  // Function to transform API data into BracketView format
+  function transformBracketData(games) {
+    console.log('Transforming games:', games);
+    debugData.transformedTeams = games;
 
-  // Function to get a random team with a score
-  function getRandomTeam(seedRange = [1, 16]) {
-    const team = teams[Math.floor(Math.random() * teams.length)];
-    return {
-      ...team,
-      seed: seedRange[0] + Math.floor(Math.random() * (seedRange[1] - seedRange[0] + 1)),
-      score: 60 + Math.floor(Math.random() * 30)
-    };
-  }
+    if (!games || !Array.isArray(games)) {
+      console.warn('Invalid games data:', games);
+      return null;
+    }
 
-  // Function to transform database data into the format expected by BracketView
-  function generateSampleBracketData() {
     const matches = {};
+    let matchCount = 0;
     
-    // First round - 32 matches (1-32)
-    for (let i = 0; i < 32; i++) {
-      const seedA = i % 8 + 1;
-      const seedB = 16 - seedA;
-      const teamA = getRandomTeam([seedA, seedA]);
-      const teamB = getRandomTeam([seedB, seedB]);
-      matches[i + 1] = {
-        teamA,
-        teamB,
-        winner: teamA.score > teamB.score ? 'A' : 'B'
-      };
-    }
+    // Process each game directly
+    games.forEach(game => {
+      if (!game.game?.bracketId || !game.game?.bracketRegion) {
+        console.warn('Game missing bracket information:', game);
+        return;
+      }
 
-    // Second round - 16 matches (33-48)
-    for (let i = 0; i < 16; i++) {
-      const teamA = getRandomTeam([1, 8]);
-      const teamB = getRandomTeam([1, 8]);
-      matches[i + 33] = {
-        teamA,
-        teamB,
-        winner: teamA.score > teamB.score ? 'A' : 'B'
-      };
-    }
+      // Parse bracketId to determine match position
+      // bracketId format: first digit is region (1-4), last two digits are position in region (00-15)
+      const bracketId = game.game.bracketId;
+      const regionNumber = parseInt(bracketId[0]);
+      const positionInRegion = parseInt(bracketId.slice(1));
+      
+      // Calculate the actual matchId based on round and region
+      let matchId;
+      if (positionInRegion < 8) {
+        // First round: matches 1-32 (8 per region)
+        matchId = (regionNumber - 1) * 8 + positionInRegion + 1;
+      } else if (positionInRegion < 12) {
+        // Second round: matches 33-48 (4 per region)
+        matchId = 32 + (regionNumber - 1) * 4 + (positionInRegion - 8) + 1;
+      } else if (positionInRegion < 14) {
+        // Sweet 16: matches 49-56 (2 per region)
+        matchId = 48 + (regionNumber - 1) * 2 + (positionInRegion - 12) + 1;
+      } else if (positionInRegion < 15) {
+        // Elite 8: matches 57-60 (1 per region)
+        matchId = 56 + regionNumber;
+      } else if (positionInRegion < 16) {
+        // Final Four: matches 61-62
+        matchId = 60 + Math.floor(regionNumber / 3) + 1;
+      } else {
+        // Championship: match 63
+        matchId = 63;
+      }
 
-    // Sweet 16 - 8 matches (49-56)
-    for (let i = 0; i < 8; i++) {
-      const teamA = getRandomTeam([1, 4]);
-      const teamB = getRandomTeam([1, 4]);
-      matches[i + 49] = {
-        teamA,
-        teamB,
-        winner: teamA.score > teamB.score ? 'A' : 'B'
-      };
-    }
+      console.log(`Processing game in ${game.game.bracketRegion} region, bracketId ${bracketId}, calculated matchId ${matchId}`);
 
-    // Elite 8 - 4 matches (57-60)
-    for (let i = 0; i < 4; i++) {
-      const teamA = getRandomTeam([1, 3]);
-      const teamB = getRandomTeam([1, 3]);
-      matches[i + 57] = {
-        teamA,
-        teamB,
-        winner: teamA.score > teamB.score ? 'A' : 'B'
+      // Format team data
+      const teamA = {
+        name: game.game.away.names.short,
+        seed: parseInt(game.game.away.seed),
+        seoName: game.game.away.names.seo,
+        color: game.game.away.color,
+        secondaryColor: game.game.away.secondaryColor,
+        score: parseInt(game.game.away.score) || null,
+        isWinner: game.game.away.winner
       };
-    }
 
-    // Final Four - 2 matches (61-62)
-    for (let i = 0; i < 2; i++) {
-      const teamA = getRandomTeam([1, 2]);
-      const teamB = getRandomTeam([1, 2]);
-      matches[i + 61] = {
-        teamA,
-        teamB,
-        winner: teamA.score > teamB.score ? 'A' : 'B'
+      const teamB = {
+        name: game.game.home.names.short,
+        seed: parseInt(game.game.home.seed),
+        seoName: game.game.home.names.seo,
+        color: game.game.home.color,
+        secondaryColor: game.game.home.secondaryColor,
+        score: parseInt(game.game.home.score) || null,
+        isWinner: game.game.home.winner
       };
-    }
 
-    // Championship - 1 match (63)
-    const championshipTeamA = getRandomTeam([1, 1]);
-    const championshipTeamB = getRandomTeam([1, 1]);
-    matches[63] = {
-      teamA: championshipTeamA,
-      teamB: championshipTeamB,
-      winner: championshipTeamA.score > championshipTeamB.score ? 'A' : 'B'
-    };
+      // Create the match with proper team ordering based on seeds
+      matches[matchId] = {
+        teamA: teamA.seed < teamB.seed ? teamA : teamB,
+        teamB: teamA.seed < teamB.seed ? teamB : teamA,
+        winner: teamA.isWinner ? 'A' : (teamB.isWinner ? 'B' : null)
+      };
+      matchCount++;
+    });
+
+    debugData.matchesCreated = matchCount;
+    console.log('Created matches:', matches);
+
+    // Find champion (winner of match 63)
+    const finalMatch = matches[63];
+    const champion = finalMatch?.winner ? 
+      (finalMatch.winner === 'A' ? finalMatch.teamA : finalMatch.teamB) : 
+      null;
 
     return {
       matches,
-      champion: championshipTeamA.score > championshipTeamB.score ? championshipTeamA : championshipTeamB
+      champion
     };
   }
 
-  onMount(() => {
+  async function fetchLiveBracket() {
     try {
-      // Generate sample data instead of fetching from database
-      bracketData = generateSampleBracketData();
+      loading = true;
+      error = null;
+      debugData.apiError = null;
+
+      console.log('Fetching live bracket data...');
+      const response = await fetch('/api/live-bracket');
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        debugData.apiError = `${response.status}: ${errorText}`;
+        throw new Error(`Error fetching live bracket: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Raw API response:', data);
+      debugData.rawApiResponse = data;
+
+      if (data.error) {
+        debugData.apiError = data.error;
+        throw new Error(data.error);
+      }
+
+      bracketData = transformBracketData(data.games);
+      lastUpdated = data.lastUpdated;
+      
+      console.log('Final bracket data:', bracketData);
     } catch (err) {
-      console.error('Error generating sample bracket:', err);
+      console.error('Error fetching live bracket:', err);
       error = err.message;
+      debugData.apiError = err.message;
     } finally {
       loading = false;
     }
+  }
+
+  // Fetch data initially and set up auto-refresh
+  onMount(() => {
+    fetchLiveBracket();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchLiveBracket, 30000);
+    
+    return () => clearInterval(interval);
   });
+
+  let showDebug = false;
 </script>
 
 <svelte:head>
@@ -126,24 +165,112 @@
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-4 py-8">
-  {#if loading}
-    <div class="flex justify-center items-center min-h-[200px]">
-      <div class="text-amber-600">Loading tournament bracket...</div>
+  <!-- Debug Panel Toggle -->
+  <button
+    class="fixed bottom-4 right-4 bg-amber-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-amber-500 transition-colors"
+    on:click={() => showDebug = !showDebug}
+  >
+    {showDebug ? 'Hide' : 'Show'} Debug Info
+  </button>
+
+  <!-- Debug Panel -->
+  {#if showDebug}
+    <div class="mb-8 bg-zinc-900 border border-zinc-800 rounded-xl p-6 overflow-x-auto">
+      <h3 class="text-lg font-semibold text-zinc-200 mb-4">Debug Information</h3>
+      
+      <div class="space-y-4">
+        <!-- API Status -->
+        <div>
+          <h4 class="text-sm font-medium text-zinc-400 mb-1">API Status</h4>
+          <div class="bg-zinc-800 p-3 rounded">
+            <p class="text-sm">
+              Loading: <span class="text-amber-400">{loading}</span><br>
+              Error: <span class="text-red-400">{debugData.apiError || 'None'}</span><br>
+              Last Updated: <span class="text-green-400">{lastUpdated || 'Never'}</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Raw API Response -->
+        <div>
+          <h4 class="text-sm font-medium text-zinc-400 mb-1">Raw API Response</h4>
+          <pre class="bg-zinc-800 p-3 rounded text-xs overflow-x-auto">
+            {JSON.stringify(debugData.rawApiResponse, null, 2)}
+          </pre>
+        </div>
+
+        <!-- Transformed Teams -->
+        <div>
+          <h4 class="text-sm font-medium text-zinc-400 mb-1">
+            Transformed Teams (Count: {debugData.transformedTeams?.length || 0})
+          </h4>
+          <pre class="bg-zinc-800 p-3 rounded text-xs overflow-x-auto">
+            {JSON.stringify(debugData.transformedTeams, null, 2)}
+          </pre>
+        </div>
+
+        <!-- Matches Created -->
+        <div>
+          <h4 class="text-sm font-medium text-zinc-400 mb-1">Matches Created</h4>
+          <div class="bg-zinc-800 p-3 rounded">
+            <p class="text-sm">Total Matches: <span class="text-amber-400">{debugData.matchesCreated}</span></p>
+          </div>
+        </div>
+
+        <!-- Final Bracket Data -->
+        <div>
+          <h4 class="text-sm font-medium text-zinc-400 mb-1">Final Bracket Data</h4>
+          <pre class="bg-zinc-800 p-3 rounded text-xs overflow-x-auto">
+            {JSON.stringify(bracketData, null, 2)}
+          </pre>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  {#if loading && !bracketData}
+    <div class="flex justify-center items-center min-h-[600px]">
+      <div class="flex flex-col items-center gap-3">
+        <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+        <div class="text-amber-600 font-medium">Loading tournament bracket...</div>
+      </div>
     </div>
   {:else if error}
     <div class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center">
       {error}
     </div>
   {:else}
-    <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl">
-      <!-- Live Bracket View Component -->
-      <BracketView
-        mode="live"
-        bracketData={bracketData}
-        isLocked={true}
-        highlightWinners={true}
-        showScores={true}
-      />
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <!-- Header Section -->
+      <div class="border-b border-zinc-800 bg-zinc-900/50 p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 class="text-2xl font-semibold text-zinc-200">Live Tournament Bracket</h2>
+            {#if lastUpdated}
+              <p class="text-sm text-zinc-400 mt-1">
+                Last updated: {new Date(lastUpdated).toLocaleString()}
+              </p>
+            {/if}
+          </div>
+          {#if loading}
+            <div class="flex items-center gap-2 text-amber-600">
+              <div class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+              <span class="text-sm">Updating...</span>
+            </div>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Bracket View -->
+      <div class="p-6">
+        <BracketView
+          mode="live"
+          bracketData={bracketData}
+          isLocked={true}
+          highlightWinners={true}
+          showScores={true}
+        />
+      </div>
     </div>
   {/if}
 </div>
