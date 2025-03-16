@@ -73,7 +73,9 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-zinc-800">
-              {#each entries as entry}
+              {#each entries.filter(entry => 
+                entry.brackets[0]?.selections?.filter(Boolean).length > 0
+              ) as entry}
                 {@const bracket = entry.brackets[0]}
                 <tr class="hover:bg-zinc-800/50 transition-colors">
                   <td class="px-6 py-4">
@@ -116,7 +118,9 @@
       </div>
 
       <div class="mt-4 text-center text-sm text-zinc-500">
-        Total Entries: {entries.length}
+        Total Active Entries: {entries.filter(entry => 
+          entry.brackets[0]?.selections?.filter(Boolean).length > 0
+        ).length}
       </div>
     </div>
   {/if}
