@@ -452,28 +452,26 @@
     {/each}
 
     <!-- Champion Trophy (only show in live mode or when there's a winner) -->
-    {#if mode === 'live' || bracketData?.champion}
-      <div class="absolute left-0 right-0 mx-auto top-[330px] w-[145px]">
-        <div class="text-white text-center">
-          <div class="text-[11px] uppercase tracking-wider mb-2 text-amber-300/90 font-bold">Champion</div>
-          <div class="rounded-sm overflow-hidden">
-            {#if bracketData?.champion}
-              <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center rounded-lg" style={getTeamStyle(bracketData.champion, true)}>
-                <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
-                  {bracketData.champion.seed}
-                </span>
-                <span class="truncate font-medium">{bracketData.champion.name}</span>
-              </div>
-            {:else}
-              <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center bg-stone-900 border border-dashed border-amber-300/50">
-                <span class="inline-block w-[16px] text-center mr-1 text-[10px] font-bold">-</span>
-                <span class="truncate">TBD</span>
-              </div>
-            {/if}
-          </div>
+    <div class="absolute left-0 right-0 mx-auto top-[330px] w-[145px]">
+      <div class="text-white text-center">
+        <div class="text-[11px] uppercase tracking-wider mb-2 text-amber-300/90 font-bold">Champion</div>
+        <div class="rounded-sm overflow-hidden">
+          {#if bracketData?.champion}
+            <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center rounded-lg" style={getTeamStyle(bracketData.champion, true)}>
+              <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
+                {bracketData.champion.seed}
+              </span>
+              <span class="truncate font-medium">{bracketData.champion.name}</span>
+            </div>
+          {:else}
+            <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center bg-stone-900 border border-dashed border-amber-300/50">
+              <span class="inline-block w-[16px] text-center mr-1 text-[10px] font-bold">-</span>
+              <span class="truncate">TBD</span>
+            </div>
+          {/if}
         </div>
       </div>
-    {/if}
+    </div>
   </div>
 </div>
 
