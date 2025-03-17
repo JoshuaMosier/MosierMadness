@@ -17,6 +17,8 @@
   $: showScoreTicker = !hideScoreTickerRoutes.includes($page.url.pathname);
 
   onMount(() => {
+    injectAnalytics();
+    
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(() => {
