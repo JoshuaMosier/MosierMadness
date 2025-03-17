@@ -175,7 +175,7 @@
 
 <!-- Bracket -->
 <div class="bg-gradient-to-b from-neutral-950/30 to-neutral-950/95 text-center w-full max-w-[1140px] mx-auto pl-0 rounded-lg shadow-2xl p-4 overflow-x-auto">
-  <div class="flex justify-center w-full">
+  <div class="flex justify-center w-full min-w-[950px]">
     <!-- Table Dates -->
     <table class="text-xs border-collapse mx-auto w-[950px] rounded-lg overflow-hidden shadow-lg">
       <tbody>
@@ -197,7 +197,7 @@
     </table>
   </div>
   
-  <div class="mt-[15px] h-[1000px] relative mx-auto max-w-[950px] left-0 right-0" id="bracket">
+  <div class="mt-[15px] h-[1000px] relative mx-auto min-w-[950px] w-[950px]" id="bracket">
     <!-- Connecting Lines -->
     <div class="absolute inset-0 pointer-events-none">
       <!-- Round 1 to 2 connectors -->
@@ -227,6 +227,27 @@
              style="top: {getMatchTopPosition(4, region.id, 0) + 55}px; 
                     height: 280px; width: 15px;"></div>
       {/each}
+    </div>
+    
+    <!-- Champion Trophy (only show in live mode or when there's a winner) -->
+    <div class="absolute left-[402.5px] top-[330px] w-[145px]">
+      <div class="text-white text-center">
+        <div class="text-[11px] uppercase tracking-wider mb-2 text-amber-300/90 font-bold">Champion</div>
+        <div class="rounded-sm overflow-hidden">
+          {#if bracketData?.champion}
+            <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center rounded-lg" style={getTeamStyle(bracketData.champion, true)}>
+              <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
+                {bracketData.champion.seed}
+              </span>
+              <span class="truncate font-medium">{bracketData.champion.name}</span>
+            </div>
+          {:else}
+            <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center bg-stone-900 border border-dashed border-amber-300/50">
+              <span class="inline-block w-[16px] text-center mr-1 text-[10px] font-bold">-</span>
+            </div>
+          {/if}
+        </div>
+      </div>
     </div>
     
     <!-- Render each round -->
@@ -450,27 +471,6 @@
         {/if}
       </div>
     {/each}
-
-    <!-- Champion Trophy (only show in live mode or when there's a winner) -->
-    <div class="absolute left-0 right-0 mx-auto top-[330px] w-[145px]">
-      <div class="text-white text-center">
-        <div class="text-[11px] uppercase tracking-wider mb-2 text-amber-300/90 font-bold">Champion</div>
-        <div class="rounded-sm overflow-hidden">
-          {#if bracketData?.champion}
-            <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center rounded-lg" style={getTeamStyle(bracketData.champion, true)}>
-              <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
-                {bracketData.champion.seed}
-              </span>
-              <span class="truncate font-medium">{bracketData.champion.name}</span>
-            </div>
-          {:else}
-            <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center bg-stone-900 border border-dashed border-amber-300/50">
-              <span class="inline-block w-[16px] text-center mr-1 text-[10px] font-bold">-</span>
-            </div>
-          {/if}
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
