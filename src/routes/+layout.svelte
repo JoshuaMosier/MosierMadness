@@ -6,7 +6,8 @@
   import { invalidate } from '$app/navigation'
   import { onMount } from 'svelte'
   import { page } from '$app/stores'
-
+  import { injectAnalytics } from '@vercel/analytics/sveltekit'
+  
   // Define routes where ScoreTicker should be hidden
   const hideScoreTickerRoutes = [
     '/scores',
