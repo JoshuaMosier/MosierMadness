@@ -20,12 +20,12 @@
   
   // Define rounds
   const rounds = [
-    { id: 1, name: "1st ROUND", dates: "March 16-17" },
-    { id: 2, name: "2nd ROUND", dates: "March 18-19" },
-    { id: 3, name: "SWEET 16", dates: "March 23-24" },
-    { id: 4, name: "ELITE EIGHT", dates: "March 25-26" },
-    { id: 5, name: "FINAL FOUR", dates: "April 1" },
-    { id: 6, name: "CHAMPION", dates: "April 3" }
+    { id: 1, name: "1st ROUND", dates: "March 20-21" },
+    { id: 2, name: "2nd ROUND", dates: "March 22-23" },
+    { id: 3, name: "SWEET 16", dates: "March 27-28" },
+    { id: 4, name: "ELITE EIGHT", dates: "March 29-30" },
+    { id: 5, name: "FINAL FOUR", dates: "April 5" },
+    { id: 6, name: "CHAMPION", dates: "April 7" }
   ];
 
   // Helper function to generate match IDs
