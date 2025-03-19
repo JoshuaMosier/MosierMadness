@@ -89,6 +89,13 @@
     }
     return 'background-color: rgba(39, 39, 42, 0.8)'; // Default background for teams without colors
   }
+
+  // Helper function to get appropriate team name based on length
+  function getDisplayName(team) {
+    const shortName = team[4];
+    const char6Name = team[0];
+    return shortName.length > 14 ? char6Name : shortName;
+  }
 </script>
 
 <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
@@ -137,7 +144,7 @@
                     {/if}
                     <span class="text-md inline-flex items-center px-3 py-1.5 rounded-md min-w-[120px] {isWinner(game[0]) ? 'text-white font-medium' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                           style={getTeamStyle(game[0][4])}>
-                      {game[0][4]}
+                      {getDisplayName(game[0])}
                     </span>
                   </div>
                 </div>
@@ -159,7 +166,7 @@
                     {/if}
                     <span class="text-md inline-flex items-center px-3 py-1.5 rounded-md min-w-[120px] {isWinner(game[1]) ? 'text-white font-medium' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                           style={getTeamStyle(game[1][4])}>
-                      {game[1][4]}
+                      {getDisplayName(game[1])}
                     </span>
                   </div>
                 </div>
