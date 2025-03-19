@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 
 async function getMasterBracket() {
     const master = Array(63).fill('');
+    const scores = Array(63).fill(null);
     
     // Fetch data from NCAA API for each round
     const rounds = [
@@ -53,6 +54,18 @@ async function getMasterBracket() {
                 
                 const index = gameNum - 1 + offset;
                 
+                // Store game state and scores
+                scores[index] = {
+                    gameState: game.game.gameState,
+                    period: game.game.currentPeriod,
+                    clock: game.game.contestClock,
+                    startTime: game.game.startTime,
+                    awayScore: game.game.away.score,
+                    homeScore: game.game.home.score,
+                    awayTeam: game.game.away.names.short,
+                    homeTeam: game.game.home.names.short
+                };
+                
                 // Handle Final Four and Championship games differently
                 if (roundNum >= 6) {
                     if (game.game.away.winner) {
@@ -76,7 +89,7 @@ async function getMasterBracket() {
             }
         }
     }
-    return master;
+    return { master, scores };
 }
 
 // Helper function to format team string (e.g., "1 Houston")
@@ -108,7 +121,7 @@ function getTeamFromStr(teamStr) {
 export async function GET(event) {
     try {
         // Get the winners array using the new getMasterBracket function
-        const WINNERS = await getMasterBracket();
+        const { master: WINNERS, scores: SCORES } = await getMasterBracket();
         
         // Fetch teams from bracket-teams endpoint
         const response = await event.fetch('/api/bracket-teams');
@@ -127,15 +140,35 @@ export async function GET(event) {
             const teamAStr = INITIAL_TEAMS[i * 2];
             const teamBStr = INITIAL_TEAMS[i * 2 + 1];
             const winnerStr = WINNERS[i];
+            const gameScores = SCORES[i];
             
             // Find team data for colors
             const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
             const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
             
+            const teamA = parseTeam(teamAStr, teamAData);
+            const teamB = parseTeam(teamBStr, teamBData);
+            
+            // Add scores if available - match by team name
+            if (gameScores) {
+                if (teamA) {
+                    const isAway = teamA.name === gameScores.awayTeam;
+                    teamA.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+                }
+                if (teamB) {
+                    const isAway = teamB.name === gameScores.awayTeam;
+                    teamB.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+                }
+            }
+            
             matches[i + 1] = {
-                teamA: parseTeam(teamAStr, teamAData),
-                teamB: parseTeam(teamBStr, teamBData),
-                winner: winnerStr === teamAStr ? 'A' : 'B'
+                teamA,
+                teamB,
+                winner: winnerStr === teamAStr ? 'A' : winnerStr === teamBStr ? 'B' : null,
+                gameState: gameScores?.gameState,
+                period: gameScores?.period,
+                clock: gameScores?.clock,
+                startTime: gameScores?.startTime
             };
         }
 
@@ -144,15 +177,35 @@ export async function GET(event) {
             const teamAStr = WINNERS[i * 2];
             const teamBStr = WINNERS[i * 2 + 1];
             const winnerStr = WINNERS[i + 32];
+            const gameScores = SCORES[i + 32];
             
             // Find team data for colors
             const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
             const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
             
+            const teamA = parseTeam(teamAStr, teamAData);
+            const teamB = parseTeam(teamBStr, teamBData);
+            
+            // Add scores if available - match by team name
+            if (gameScores) {
+                if (teamA) {
+                    const isAway = teamA.name === gameScores.awayTeam;
+                    teamA.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+                }
+                if (teamB) {
+                    const isAway = teamB.name === gameScores.awayTeam;
+                    teamB.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+                }
+            }
+            
             matches[i + 33] = {
-                teamA: parseTeam(teamAStr, teamAData),
-                teamB: parseTeam(teamBStr, teamBData),
-                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
+                teamA,
+                teamB,
+                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null,
+                gameState: gameScores?.gameState,
+                period: gameScores?.period,
+                clock: gameScores?.clock,
+                startTime: gameScores?.startTime
             };
         }
 
@@ -161,15 +214,35 @@ export async function GET(event) {
             const teamAStr = WINNERS[i * 2 + 32];
             const teamBStr = WINNERS[i * 2 + 33];
             const winnerStr = WINNERS[i + 48];
+            const gameScores = SCORES[i + 48];
             
             // Find team data for colors
             const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
             const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
             
+            const teamA = parseTeam(teamAStr, teamAData);
+            const teamB = parseTeam(teamBStr, teamBData);
+            
+            // Add scores if available - match by team name
+            if (gameScores) {
+                if (teamA) {
+                    const isAway = teamA.name === gameScores.awayTeam;
+                    teamA.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+                }
+                if (teamB) {
+                    const isAway = teamB.name === gameScores.awayTeam;
+                    teamB.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+                }
+            }
+            
             matches[i + 49] = {
-                teamA: parseTeam(teamAStr, teamAData),
-                teamB: parseTeam(teamBStr, teamBData),
-                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
+                teamA,
+                teamB,
+                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null,
+                gameState: gameScores?.gameState,
+                period: gameScores?.period,
+                clock: gameScores?.clock,
+                startTime: gameScores?.startTime
             };
         }
 
@@ -178,15 +251,35 @@ export async function GET(event) {
             const teamAStr = WINNERS[i * 2 + 48];
             const teamBStr = WINNERS[i * 2 + 49];
             const winnerStr = WINNERS[i + 56];
+            const gameScores = SCORES[i + 56];
             
             // Find team data for colors
             const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
             const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
             
+            const teamA = parseTeam(teamAStr, teamAData);
+            const teamB = parseTeam(teamBStr, teamBData);
+            
+            // Add scores if available - match by team name
+            if (gameScores) {
+                if (teamA) {
+                    const isAway = teamA.name === gameScores.awayTeam;
+                    teamA.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+                }
+                if (teamB) {
+                    const isAway = teamB.name === gameScores.awayTeam;
+                    teamB.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+                }
+            }
+            
             matches[i + 57] = {
-                teamA: parseTeam(teamAStr, teamAData),
-                teamB: parseTeam(teamBStr, teamBData),
-                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
+                teamA,
+                teamB,
+                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null,
+                gameState: gameScores?.gameState,
+                period: gameScores?.period,
+                clock: gameScores?.clock,
+                startTime: gameScores?.startTime
             };
         }
 
@@ -195,15 +288,35 @@ export async function GET(event) {
             const teamAStr = WINNERS[i * 2 + 56];
             const teamBStr = WINNERS[i * 2 + 57];
             const winnerStr = WINNERS[i + 60];
+            const gameScores = SCORES[i + 60];
             
             // Find team data for colors
             const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
             const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
             
+            const teamA = parseTeam(teamAStr, teamAData);
+            const teamB = parseTeam(teamBStr, teamBData);
+            
+            // Add scores if available - match by team name
+            if (gameScores) {
+                if (teamA) {
+                    const isAway = teamA.name === gameScores.awayTeam;
+                    teamA.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+                }
+                if (teamB) {
+                    const isAway = teamB.name === gameScores.awayTeam;
+                    teamB.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+                }
+            }
+            
             matches[i + 61] = {
-                teamA: parseTeam(teamAStr, teamAData),
-                teamB: parseTeam(teamBStr, teamBData),
-                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
+                teamA,
+                teamB,
+                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null,
+                gameState: gameScores?.gameState,
+                period: gameScores?.period,
+                clock: gameScores?.clock,
+                startTime: gameScores?.startTime
             };
         }
 
@@ -211,15 +324,35 @@ export async function GET(event) {
         const championshipTeamAStr = WINNERS[60];
         const championshipTeamBStr = WINNERS[61];
         const championStr = WINNERS[62];
+        const gameScores = SCORES[62];
         
         // Find team data for colors
         const teamAData = findTeamData(teams, championshipTeamAStr?.split(' ').slice(1).join(' '));
         const teamBData = findTeamData(teams, championshipTeamBStr?.split(' ').slice(1).join(' '));
         
+        const teamA = parseTeam(championshipTeamAStr, teamAData);
+        const teamB = parseTeam(championshipTeamBStr, teamBData);
+        
+        // Add scores if available - match by team name
+        if (gameScores) {
+            if (teamA) {
+                const isAway = teamA.name === gameScores.awayTeam;
+                teamA.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+            }
+            if (teamB) {
+                const isAway = teamB.name === gameScores.awayTeam;
+                teamB.score = isAway ? gameScores.awayScore : gameScores.homeScore;
+            }
+        }
+        
         matches[63] = {
-            teamA: parseTeam(championshipTeamAStr, teamAData),
-            teamB: parseTeam(championshipTeamBStr, teamBData),
-            winner: championStr ? (championStr === championshipTeamAStr ? 'A' : 'B') : null
+            teamA,
+            teamB,
+            winner: championStr ? (championStr === championshipTeamAStr ? 'A' : 'B') : null,
+            gameState: gameScores?.gameState,
+            period: gameScores?.period,
+            clock: gameScores?.clock,
+            startTime: gameScores?.startTime
         };
         
         return json({ matches });
