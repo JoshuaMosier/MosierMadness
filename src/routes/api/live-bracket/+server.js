@@ -12,9 +12,9 @@ async function getMasterBracket() {
         "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/28/scoreboard.json",
         "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/29/scoreboard.json",
         "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/30/scoreboard.json",
-        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/31/scoreboard.json",
-        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/04/06/scoreboard.json",
-        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/04/08/scoreboard.json"
+        // "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/31/scoreboard.json",
+        // "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/04/06/scoreboard.json",
+        // "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/04/08/scoreboard.json"
     ];
 
     const region = {"SOUTH":'2',"WEST":'1',"EAST":'3',"MIDWEST":'4'};
@@ -76,8 +76,6 @@ async function getMasterBracket() {
             }
         }
     }
-    
-    console.log(master);
     return master;
 }
 
@@ -87,12 +85,19 @@ function formatTeamString(team) {
     return `${team.seed} ${team.name}`;
 }
 
-function parseTeam(teamStr) {
+// Helper function to find team data from bracket teams
+function findTeamData(teams, teamName) {
+    return teams.find(team => team.name === teamName);
+}
+
+function parseTeam(teamStr, teamData) {
     if (!teamStr) return null;
     const [seed, ...nameParts] = teamStr.split(' ');
     return {
         seed: parseInt(seed),
-        name: nameParts.join(' ')
+        name: nameParts.join(' '),
+        color: teamData?.color,
+        secondaryColor: teamData?.secondaryColor
     };
 }
 
@@ -123,9 +128,13 @@ export async function GET(event) {
             const teamBStr = INITIAL_TEAMS[i * 2 + 1];
             const winnerStr = WINNERS[i];
             
+            // Find team data for colors
+            const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
+            const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
+            
             matches[i + 1] = {
-                teamA: parseTeam(teamAStr),
-                teamB: parseTeam(teamBStr),
+                teamA: parseTeam(teamAStr, teamAData),
+                teamB: parseTeam(teamBStr, teamBData),
                 winner: winnerStr === teamAStr ? 'A' : 'B'
             };
         }
@@ -136,9 +145,13 @@ export async function GET(event) {
             const teamBStr = WINNERS[i * 2 + 1];
             const winnerStr = WINNERS[i + 32];
             
+            // Find team data for colors
+            const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
+            const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
+            
             matches[i + 33] = {
-                teamA: getTeamFromStr(teamAStr),
-                teamB: getTeamFromStr(teamBStr),
+                teamA: parseTeam(teamAStr, teamAData),
+                teamB: parseTeam(teamBStr, teamBData),
                 winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
             };
         }
@@ -149,9 +162,13 @@ export async function GET(event) {
             const teamBStr = WINNERS[i * 2 + 33];
             const winnerStr = WINNERS[i + 48];
             
+            // Find team data for colors
+            const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
+            const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
+            
             matches[i + 49] = {
-                teamA: getTeamFromStr(teamAStr),
-                teamB: getTeamFromStr(teamBStr),
+                teamA: parseTeam(teamAStr, teamAData),
+                teamB: parseTeam(teamBStr, teamBData),
                 winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
             };
         }
@@ -162,9 +179,13 @@ export async function GET(event) {
             const teamBStr = WINNERS[i * 2 + 49];
             const winnerStr = WINNERS[i + 56];
             
+            // Find team data for colors
+            const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
+            const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
+            
             matches[i + 57] = {
-                teamA: getTeamFromStr(teamAStr),
-                teamB: getTeamFromStr(teamBStr),
+                teamA: parseTeam(teamAStr, teamAData),
+                teamB: parseTeam(teamBStr, teamBData),
                 winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
             };
         }
@@ -175,9 +196,13 @@ export async function GET(event) {
             const teamBStr = WINNERS[i * 2 + 57];
             const winnerStr = WINNERS[i + 60];
             
+            // Find team data for colors
+            const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
+            const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
+            
             matches[i + 61] = {
-                teamA: getTeamFromStr(teamAStr),
-                teamB: getTeamFromStr(teamBStr),
+                teamA: parseTeam(teamAStr, teamAData),
+                teamB: parseTeam(teamBStr, teamBData),
                 winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
             };
         }
@@ -187,9 +212,13 @@ export async function GET(event) {
         const championshipTeamBStr = WINNERS[61];
         const championStr = WINNERS[62];
         
+        // Find team data for colors
+        const teamAData = findTeamData(teams, championshipTeamAStr?.split(' ').slice(1).join(' '));
+        const teamBData = findTeamData(teams, championshipTeamBStr?.split(' ').slice(1).join(' '));
+        
         matches[63] = {
-            teamA: getTeamFromStr(championshipTeamAStr),
-            teamB: getTeamFromStr(championshipTeamBStr),
+            teamA: parseTeam(championshipTeamAStr, teamAData),
+            teamB: parseTeam(championshipTeamBStr, teamBData),
             winner: championStr ? (championStr === championshipTeamAStr ? 'A' : 'B') : null
         };
         

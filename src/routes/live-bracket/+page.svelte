@@ -68,8 +68,8 @@
         <BracketView
             mode="live"
             {bracketData}
-            highlightWinners={false}
-            showScores={false}
+            highlightWinners={true}
+            showScores={true}
         />
     {/if}
 </div>
