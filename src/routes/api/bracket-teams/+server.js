@@ -4,10 +4,10 @@ import teamColors from '$lib/ncaa_team_colors.json';
 // Add this configuration object at the top of the file after the imports
 const TEAM_OVERRIDES = {
   // Format: bracketPosition: { name: string, seed: number }
-  // 1: { name: "Ala. St/St. Francis", seed: 16 },
-  // 9: { name: "SDSU/UNC", seed: 11 },
-  // 33: { name: "AMER/Mt. SM", seed: 16 },
-  // 57: { name: "Texas/Xavier", seed: 11 },
+  1: { name: "Ala. St/St. Francis", seed: 16 },
+  9: { name: "SDSU/UNC", seed: 11 },
+  33: { name: "AMER/Mt. SM", seed: 16 },
+  57: { name: "Texas/Xavier", seed: 11 },
 };
 
 /**
@@ -17,8 +17,8 @@ const TEAM_OVERRIDES = {
 function getFirstRoundUrls() {
   // First Round: March 21-22, 2024
   return [
-    "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/21/scoreboard.json",
-    "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/22/scoreboard.json"
+    "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/20/scoreboard.json",
+    "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/21/scoreboard.json"
   ];
 }
 
