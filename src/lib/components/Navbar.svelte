@@ -129,8 +129,8 @@
           <a href="/bracket" class="mobile-nav-button" on:click={closeMenu}>Submit Bracket</a>
           <a href="/entries" class="mobile-nav-button" on:click={closeMenu}>Entries</a>
           <a href="/live-bracket" class="mobile-nav-button" on:click={closeMenu}>Live Bracket</a>
-          <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a>
-          <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a>
+          <!-- <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a> -->
+          <!-- <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a> -->
           <a href="/scenarios" class="mobile-nav-button" on:click={closeMenu}>Scenarios</a>
           {#if user}
             <button on:click={handleLogout} class="mobile-nav-button w-full">Logout</button>
