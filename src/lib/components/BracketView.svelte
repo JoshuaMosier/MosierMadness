@@ -154,7 +154,7 @@
   }
 
   // Helper function to get team background style
-  function getTeamStyle(team, isWinningTeam) {
+  function getTeamStyle(team) {
     if (team?.color) {
       const opacity = 0.8;
       // Convert hex to RGB for primary color
@@ -235,7 +235,7 @@
         <div class="text-[11px] uppercase tracking-wider mb-2 text-amber-300/90 font-bold">Champion</div>
         <div class="rounded-sm overflow-hidden">
           {#if bracketData?.champion}
-            <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center rounded-lg" style={getTeamStyle(bracketData.champion, true)}>
+            <div class="h-[25px] px-[6px] whitespace-nowrap flex items-center justify-center rounded-lg" style={getTeamStyle(bracketData.champion)}>
               <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                 {bracketData.champion.seed}
               </span>
@@ -285,7 +285,7 @@
                       <div class="border border-zinc-700/40 rounded-sm overflow-hidden">
                         <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                                   ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
-                             style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
+                             style={getTeamStyle(match.teamA)}
                              on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
                              on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                              role="button"
@@ -300,7 +300,7 @@
                         </div>
                         <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                                   ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
-                             style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
+                             style={getTeamStyle(match.teamB)}
                              on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
                              on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                              role="button"
@@ -335,7 +335,7 @@
                       <!-- Team A -->
                       <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                                   ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
-                               style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
+                               style={getTeamStyle(match.teamA)}
                                on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
                                on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                                role="button"
@@ -352,7 +352,7 @@
                       <!-- Team B -->
                       <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                                   ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
-                               style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
+                               style={getTeamStyle(match.teamB)}
                                on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
                                on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                                role="button"
@@ -384,7 +384,7 @@
                   <div class="border border-zinc-700/40 rounded-sm overflow-hidden">
                     <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                               ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
-                         style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
+                         style={getTeamStyle(match.teamA)}
                          on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
                          on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                          role="button"
@@ -399,7 +399,7 @@
                     </div>
                     <div class={`h-[25px] px-[6px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                               ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
-                         style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
+                         style={getTeamStyle(match.teamB)}
                          on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
                          on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                          role="button"
@@ -434,7 +434,7 @@
                   <!-- Team A -->
                   <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                               ${getTeamClass(match.teamA, isWinner(match.teamA, match.teamB), match.winner === 'A')}`}
-                                   style={getTeamStyle(match.teamA, isWinner(match.teamA, match.teamB))}
+                                   style={getTeamStyle(match.teamA)}
                                    on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
                                    on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                                    role="button"
@@ -451,7 +451,7 @@
                   <!-- Team B -->
                   <div class={`h-[20px] m-0 pl-[5px] whitespace-nowrap flex items-center transition-colors duration-200 rounded-sm
                               ${getTeamClass(match.teamB, isWinner(match.teamB, match.teamA), match.winner === 'B')}`}
-                                   style={getTeamStyle(match.teamB, isWinner(match.teamB, match.teamA))}
+                                   style={getTeamStyle(match.teamB)}
                                    on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
                                    on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                                    role="button"

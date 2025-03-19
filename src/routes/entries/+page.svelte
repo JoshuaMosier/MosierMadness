@@ -51,10 +51,3 @@
 {:else}
   <EntriesList {entries} {loading} {error} />
 {/if}
-
-<style>
-  :global(body) {
-    background-color: #18181b;
-    color: #f4f4f5;
-  }
-</style> 
