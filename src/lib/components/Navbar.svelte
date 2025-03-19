@@ -81,27 +81,21 @@
             <a href="/entries" class="nav-link">
               <div class="nav-button">Entries</div>
             </a>
-            <a href="/live-bracket" class="nav-link">
-              <div class="nav-button">Live Bracket</div>
-            </a>
           </div>
         </div>
 
         <!-- Center Logo -->
         <div class="flex-shrink-0 w-1/3 flex justify-center">
           <a href="/" class="block">
-            <img src="/images/ui/MM_logo.png" alt="Mosier Madness Logo" class="h-40 w-100 object-contain" />
+            <img src="/images/ui/mmi_madness.png" alt="MMI Madness Logo" class="h-40 w-100 object-contain" />
           </a>
         </div>
 
         <!-- Right Navigation Group -->
         <div class="flex-shrink-0 w-1/3 flex justify-start">
           <div class="flex items-center space-x-3">
-            <a href="/past-winners" class="nav-link">
-              <div class="nav-button">Past Winners</div>
-            </a>
-            <a href="/stats" class="nav-link">
-              <div class="nav-button">Statistics</div>
+            <a href="/live-bracket" class="nav-link">
+              <div class="nav-button">Live Bracket</div>
             </a>
             <a href="/scenarios" class="nav-link">
               <div class="nav-button">Scenarios</div>
@@ -123,7 +117,7 @@
     <!-- Mobile Logo - Only visible on small screens -->
     <div class="md:hidden flex justify-center py-2">
       <a href="/" class="block">
-        <img src="/images/ui/MM_logo.png" alt="Mosier Madness Logo" class="h-40 w-60 object-contain" />
+        <img src="/images/ui/mmi_madness.png" alt="MMI Madness Logo" class="h-40 w-60 object-contain" />
       </a>
     </div>
 

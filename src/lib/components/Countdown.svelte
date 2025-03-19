@@ -139,7 +139,7 @@
     
     <div class="mt-12 text-center space-y-4">
         <h2 class="text-2xl font-semibold text-white relative inline-block">
-            Get Ready for Mosier Madness!
+            Get Ready for MMI Madness!
             <div class="absolute -right-12 top-0">
                 🏀
             </div>
