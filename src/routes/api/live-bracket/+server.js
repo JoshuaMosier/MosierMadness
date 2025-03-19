@@ -1,133 +1,204 @@
 import { json } from '@sveltejs/kit';
-import teamColors from '$lib/ncaa_team_colors.json';
 
-/**
- * Gets URLs for all rounds of the 2024 NCAA tournament
- * @returns {Array<string>} Array of URLs for all tournament games
- */
-function getTournamentUrls() {
-  // Tournament Dates 2024:
-  // First Round: March 21-22
-  // Second Round: March 23-24
-  // Sweet 16: March 28-29
-  // Elite Eight: March 30-31
-  // Final Four: April 6
-  // Championship: April 8
-  const dates = [
-    "2024/03/21", // First Round Day 1
-    "2024/03/22", // First Round Day 2
-    "2024/03/23", // Second Round Day 1
-    "2024/03/24", // Second Round Day 2
-    "2024/03/28", // Sweet 16 Day 1
-    "2024/03/29", // Sweet 16 Day 2
-    "2024/03/30", // Elite Eight Day 1
-    "2024/03/31", // Elite Eight Day 2
-    "2024/04/06", // Final Four
-    "2024/04/08"  // Championship
-  ];
-
-  return dates.map(date => 
-    `https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/${date}/scoreboard.json`
-  );
-}
-
-/**
- * Helper function to find team color by matching the display name
- * @param {Object} teamData - The team data from NCAA API
- * @returns {string} The primary color for the team
- */
-function findTeamColor(teamData) {
-  // Use the display name (short name) for matching
-  const displayName = teamData.names.short;
-  const colors = teamColors[displayName];
-  
-  return {
-    primary_color: colors?.primary_color || '#666666',
-    secondary_color: colors?.secondary_color
-  };
-}
-
-/**
- * Fetches and formats bracket teams from NCAA API for all rounds
- */
-async function getBracketTeams() {
-  try {
-    const urls = getTournamentUrls();
-    const teams = new Map(); // Use Map to store unique teams
+async function getMasterBracket() {
+    const master = Array(63).fill('');
     
-    // Fetch all tournament games
-    const responses = await Promise.all(urls.map(url => fetch(url)));
-    const datas = await Promise.all(responses.map(res => res.json()));
-    
-    // Process all games from all rounds
-    for (const data of datas) {
-      if (!data.games) continue;
-      
-      for (const game of data.games) {
-        if (!game.game.bracketId) continue;
-        
-        // Process away team
-        const awayTeamColors = findTeamColor(game.game.away);
-        const awayTeam = {
-          name: game.game.away.names.short.length < 20 ? 
-                game.game.away.names.short : 
-                game.game.away.names.char6,
-          seed: parseInt(game.game.away.seed),
-          seoName: game.game.away.names.seo,
-          color: awayTeamColors.primary_color,
-          secondaryColor: awayTeamColors.secondary_color,
-          isWinner: game.game.away.winner,
-          score: game.game.away.score
-        };
-        
-        // Process home team
-        const homeTeamColors = findTeamColor(game.game.home);
-        const homeTeam = {
-          name: game.game.home.names.short.length < 20 ? 
-                game.game.home.names.short : 
-                game.game.home.names.char6,
-          seed: parseInt(game.game.home.seed),
-          seoName: game.game.home.names.seo,
-          color: homeTeamColors.primary_color,
-          secondaryColor: homeTeamColors.secondary_color,
-          isWinner: game.game.home.winner,
-          score: game.game.home.score
-        };
+    // Fetch data from NCAA API for each round
+    const rounds = [
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/21/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/22/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/23/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/24/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/28/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/29/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/30/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/03/31/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/04/06/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2024/04/08/scoreboard.json"
+    ];
 
-        // Store teams in Map using seoName as key to avoid duplicates
-        teams.set(awayTeam.seoName, awayTeam);
-        teams.set(homeTeam.seoName, homeTeam);
-      }
+    const region = {"SOUTH":'2',"WEST":'1',"EAST":'3',"MIDWEST":'4'};
+    
+    // First get the team region mapping from first round games
+    const round1Response = await fetch(rounds[0]);
+    const round1Games = await round1Response.json();
+    const round2Response = await fetch(rounds[1]);
+    const round2Games = await round2Response.json();
+    
+    // Build team region dictionary like in Python
+    const teamRegionDict = {};
+    for (const game of [...round1Games.games, ...round2Games.games]) {
+        if (game.game.bracketRegion !== "") {
+            teamRegionDict[game.game.away.names.short] = game.game.bracketRegion;
+            teamRegionDict[game.game.home.names.short] = game.game.bracketRegion;
+        }
     }
     
-    // Convert Map values to array and sort by seed
-    return Array.from(teams.values()).sort((a, b) => a.seed - b.seed);
+    // Process each round
+    for (const roundUrl of rounds) {
+        const response = await fetch(roundUrl);
+        const games = await response.json();
+        
+        for (const game of games.games) {
+            if (game.game.bracketId) {
+                const roundNum = parseInt(game.game.bracketId[0]);
+                const gameNum = parseInt(game.game.bracketId.slice(1));
+                let offset = 0;
+                
+                if (roundNum === 3) offset = 32;
+                else if (roundNum === 4) offset = 48;
+                else if (roundNum === 5) offset = 56;
+                else if (roundNum === 6) offset = 60;
+                else if (roundNum === 7) offset = 62;
+                
+                const index = gameNum - 1 + offset;
+                
+                // Handle Final Four and Championship games differently
+                if (roundNum >= 6) {
+                    if (game.game.away.winner) {
+                        const teamRegion = teamRegionDict[game.game.away.names.short];
+                        master[index] = `${game.game.away.seed} ${game.game.away.names.short}`;
+                    }
+                    if (game.game.home.winner) {
+                        const teamRegion = teamRegionDict[game.game.home.names.short];
+                        master[index] = `${game.game.home.seed} ${game.game.home.names.short}`;
+                    }
+                }
+                // Handle earlier rounds normally
+                else if (game.game.bracketRegion !== "") {
+                    if (game.game.away.winner) {
+                        master[index] = `${game.game.away.seed} ${game.game.away.names.short}`;
+                    }
+                    if (game.game.home.winner) {
+                        master[index] = `${game.game.home.seed} ${game.game.home.names.short}`;
+                    }
+                }
+            }
+        }
+    }
     
-  } catch (error) {
-    console.error('Error fetching bracket teams:', error);
-    throw error;
-  }
+    console.log(master);
+    return master;
 }
 
-/**
- * GET handler for /api/bracket-teams endpoint
- */
-export async function GET() {
-  try {
-    const teams = await getBracketTeams();
-    
-    // Return whatever teams we found
-    return json({
-      teams,
-      total: teams.length,
-      lastUpdated: new Date().toISOString()
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-  }
-} 
+// Helper function to format team string (e.g., "1 Houston")
+function formatTeamString(team) {
+    if (!team) return null;
+    return `${team.seed} ${team.name}`;
+}
+
+function parseTeam(teamStr) {
+    if (!teamStr) return null;
+    const [seed, ...nameParts] = teamStr.split(' ');
+    return {
+        seed: parseInt(seed),
+        name: nameParts.join(' ')
+    };
+}
+
+function getTeamFromStr(teamStr) {
+    return teamStr ? parseTeam(teamStr) : null;
+}
+
+export async function GET(event) {
+    try {
+        // Get the winners array using the new getMasterBracket function
+        const WINNERS = await getMasterBracket();
+        
+        // Fetch teams from bracket-teams endpoint
+        const response = await event.fetch('/api/bracket-teams');
+        if (!response.ok) {
+            throw new Error('Failed to fetch bracket teams');
+        }
+        const teams = await response.json();
+        
+        // Convert teams to the format we need
+        const INITIAL_TEAMS = teams.map(team => formatTeamString(team));
+        
+        const matches = {};
+        
+        // First round - matches 1-32
+        for (let i = 0; i < 32; i++) {
+            const teamAStr = INITIAL_TEAMS[i * 2];
+            const teamBStr = INITIAL_TEAMS[i * 2 + 1];
+            const winnerStr = WINNERS[i];
+            
+            matches[i + 1] = {
+                teamA: parseTeam(teamAStr),
+                teamB: parseTeam(teamBStr),
+                winner: winnerStr === teamAStr ? 'A' : 'B'
+            };
+        }
+
+        // Second round - matches 33-48
+        for (let i = 0; i < 16; i++) {
+            const teamAStr = WINNERS[i * 2];
+            const teamBStr = WINNERS[i * 2 + 1];
+            const winnerStr = WINNERS[i + 32];
+            
+            matches[i + 33] = {
+                teamA: getTeamFromStr(teamAStr),
+                teamB: getTeamFromStr(teamBStr),
+                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
+            };
+        }
+
+        // Sweet 16 - matches 49-56
+        for (let i = 0; i < 8; i++) {
+            const teamAStr = WINNERS[i * 2 + 32];
+            const teamBStr = WINNERS[i * 2 + 33];
+            const winnerStr = WINNERS[i + 48];
+            
+            matches[i + 49] = {
+                teamA: getTeamFromStr(teamAStr),
+                teamB: getTeamFromStr(teamBStr),
+                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
+            };
+        }
+
+        // Elite 8 - matches 57-60
+        for (let i = 0; i < 4; i++) {
+            const teamAStr = WINNERS[i * 2 + 48];
+            const teamBStr = WINNERS[i * 2 + 49];
+            const winnerStr = WINNERS[i + 56];
+            
+            matches[i + 57] = {
+                teamA: getTeamFromStr(teamAStr),
+                teamB: getTeamFromStr(teamBStr),
+                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
+            };
+        }
+
+        // Final Four - matches 61-62
+        for (let i = 0; i < 2; i++) {
+            const teamAStr = WINNERS[i * 2 + 56];
+            const teamBStr = WINNERS[i * 2 + 57];
+            const winnerStr = WINNERS[i + 60];
+            
+            matches[i + 61] = {
+                teamA: getTeamFromStr(teamAStr),
+                teamB: getTeamFromStr(teamBStr),
+                winner: winnerStr ? (winnerStr === teamAStr ? 'A' : 'B') : null
+            };
+        }
+
+        // Championship - match 63
+        const championshipTeamAStr = WINNERS[60];
+        const championshipTeamBStr = WINNERS[61];
+        const championStr = WINNERS[62];
+        
+        matches[63] = {
+            teamA: getTeamFromStr(championshipTeamAStr),
+            teamB: getTeamFromStr(championshipTeamBStr),
+            winner: championStr ? (championStr === championshipTeamAStr ? 'A' : 'B') : null
+        };
+        
+        return json({ matches });
+        
+    } catch (error) {
+        console.error('Error creating bracket data:', error);
+        return new Response(JSON.stringify({ error: error.message }), {
+            status: 500
+        });
+    }
+}
