@@ -2,6 +2,7 @@
   import { fade } from 'svelte/transition';
   import BracketView from './BracketView.svelte';
   import { onMount } from 'svelte';
+  import { supabase } from '$lib/supabase';
 
   export let entries = [];
   export let loading = false;
@@ -10,6 +11,7 @@
   let selectedEntrantId = '';
   let liveBracketData = null;
   let loadingBracketData = true;
+  let user = null;
   
   $: selectedEntrant = entries.find(e => e.id === selectedEntrantId);
   $: selectedBracket = selectedEntrant?.brackets[0];
@@ -174,7 +176,11 @@
 
   onMount(async () => {
     try {
-      // Fetch live bracket data instead of teams
+      // Get the current user
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      user = currentUser;
+      
+      // Fetch live bracket data
       const response = await fetch('/api/live-bracket');
       if (!response.ok) {
         throw new Error(`Error fetching live bracket data: ${response.statusText}`);
@@ -187,8 +193,17 @@
       
       liveBracketData = data;
       loadingBracketData = false;
+      
+      // If user is logged in, find their entry and select it
+      if (user && entries.length > 0) {
+        // Look for an entry with matching email
+        const userEntry = entries.find(e => e.email === user.email);
+        if (userEntry) {
+          selectedEntrantId = userEntry.id;
+        }
+      }
     } catch (err) {
-      console.error('Error fetching live bracket data:', err);
+      console.error('Error in component initialization:', err);
       error = err.message;
       loadingBracketData = false;
     }
