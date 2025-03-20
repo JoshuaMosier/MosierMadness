@@ -41,7 +41,7 @@
         teamB: liveMatch.teamB,
         winner: selections[i] ? 
           (selections[i] === formatTeamString(liveMatch.teamA) ? 'A' : 'B') : 
-          null
+          null,
       };
     }
 
@@ -63,9 +63,49 @@
         (prevMatchB.winner === 'A' ? prevMatchB.teamA : prevMatchB.teamB) : 
         null;
 
-      // Create copies of the teams with gray color
-      const teamA = winnerA ? { ...winnerA, color: '#666666', secondaryColor: '#666666' } : null;
-      const teamB = winnerB ? { ...winnerB, color: '#666666', secondaryColor: '#666666' } : null;
+      // Get the actual result from the live bracket
+      const liveMatch = liveBracketData.matches[i + 1];
+      const liveTeamA = liveMatch?.teamA;
+      const liveTeamB = liveMatch?.teamB;
+      const liveWinner = liveMatch?.winner;
+      
+      // Get user's selected team for this match
+      const userSelection = selections[i];
+      
+      // Determine if user selection matches the actual teams in this position
+      let isCorrectA = false;
+      let isCorrectB = false;
+      let isWrongA = false;
+      let isWrongB = false;
+      
+      // Check if user's selection matches team A
+      if (userSelection && liveTeamA) {
+        const userTeamStr = formatTeamString(winnerA);
+        const liveTeamStr = formatTeamString(liveTeamA);
+        isCorrectA = userTeamStr === liveTeamStr;
+        isWrongA = userTeamStr !== liveTeamStr && liveTeamStr;
+      }
+      
+      // Check if user's selection matches team B
+      if (userSelection && liveTeamB) {
+        const userTeamStr = formatTeamString(winnerB);
+        const liveTeamStr = formatTeamString(liveTeamB);
+        isCorrectB = userTeamStr === liveTeamStr;
+        isWrongB = userTeamStr !== liveTeamStr && liveTeamStr;
+      }
+
+      // Create teams with appropriate colors
+      const teamA = winnerA ? { 
+        ...winnerA, 
+        color: isCorrectA ? '#22c55e' : isWrongA ? '#ef4444' : '#666666', 
+        secondaryColor: isCorrectA ? '#16a34a' : isWrongA ? '#dc2626' : '#666666' 
+      } : null;
+      
+      const teamB = winnerB ? { 
+        ...winnerB, 
+        color: isCorrectB ? '#22c55e' : isWrongB ? '#ef4444' : '#666666', 
+        secondaryColor: isCorrectB ? '#16a34a' : isWrongB ? '#dc2626' : '#666666' 
+      } : null;
 
       const teamAString = formatTeamString(winnerA);
       const teamBString = formatTeamString(winnerB);
