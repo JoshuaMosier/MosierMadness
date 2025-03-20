@@ -90,10 +90,21 @@
   }, []);
 
   function getRankLabel(rank) {
-    if (rank === 1) return '1st';
-    if (rank === 2) return '2nd';
-    if (rank === 3) return '3rd';
-    return `${rank}th`;
+    const lastDigit = rank % 10;
+    const lastTwoDigits = rank % 100;
+    
+    // Handle special cases for 11th, 12th, 13th
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+        return `${rank}th`;
+    }
+    
+    // Handle other cases
+    switch (lastDigit) {
+        case 1: return `${rank}st`;
+        case 2: return `${rank}nd`;
+        case 3: return `${rank}rd`;
+        default: return `${rank}th`;
+    }
   }
 
   function toggleSort(field) {
