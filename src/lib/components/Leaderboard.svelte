@@ -26,7 +26,7 @@
 
   // We'll use a filter to create the outline effect on the SVG content itself
   const teamLogoClass = "w-full h-full object-contain p-0.5";
-  const teamLogoContainerClass = "w-8 h-8 bg-zinc-800 rounded-lg overflow-hidden";
+  const teamLogoContainerClass = "w-10 h-10 bg-zinc-800 rounded-lg p-1 overflow-hidden";
 
   // Let's remove the outline class and handle this differently
   // const teamLogoOutlineClass = "outline outline-2 outline-white outline-offset-[-2px] shadow-[0_0_0_4px_#000]";
@@ -305,7 +305,7 @@
                 </button>
               </th>
               <!-- Total column moved to beginning -->
-              <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('total')}>
                   Total
                   {#if sortField === 'total'}
@@ -320,7 +320,7 @@
                 </button>
               </th>
               <!-- Potential column moved after Total -->
-              <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('potential')}>
                   Potential
                   {#if sortField === 'potential'}
@@ -334,7 +334,7 @@
                   {/if}
                 </button>
               </th>
-              <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('round1')}>
                   R1
                   {#if sortField === 'round1'}
@@ -348,7 +348,7 @@
                   {/if}
                 </button>
               </th>
-              <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('round2')}>
                   R2
                   {#if sortField === 'round2'}
@@ -362,7 +362,7 @@
                   {/if}
                 </button>
               </th>
-              <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('round3')}>
                   S16
                   {#if sortField === 'round3'}
@@ -376,16 +376,16 @@
                   {/if}
                 </button>
               </th>
-              <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 Elite 8
               </th>
-              <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 Final 4
               </th>
-              <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 CHAMP
               </th>
-              <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('correctGames')}>
                   Games
                   {#if sortField === 'correctGames'}
@@ -410,12 +410,12 @@
               >
                 <td class="px-6 py-4 whitespace-nowrap text-amber-500 font-semibold">{getRankLabel(ranks[index])}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-white font-medium">{score.firstName} {score.lastName}</td>
-                <td class="px-4 py-4 whitespace-nowrap text-center text-amber-400 font-bold text-lg">{score.total}</td>
-                <td class="px-4 py-4 whitespace-nowrap text-center text-emerald-400">{score.potential}</td>
-                <td class="px-4 py-4 whitespace-nowrap text-center text-white">{score.round1}</td>
-                <td class="px-4 py-4 whitespace-nowrap text-center text-white">{score.round2}</td>
-                <td class="px-4 py-4 whitespace-nowrap text-center text-white">{score.round3}</td>
-                <td class="px-4 py-4 whitespace-nowrap text-center">
+                <td class="px-2 py-2 whitespace-nowrap text-center text-amber-400 font-bold text-lg">{score.total}</td>
+                <td class="px-2 py-2 whitespace-nowrap text-center text-emerald-400">{score.potential}</td>
+                <td class="px-2 py-2 whitespace-nowrap text-center text-white">{score.round1}</td>
+                <td class="px-2 py-2 whitespace-nowrap text-center text-white">{score.round2}</td>
+                <td class="px-2 py-2 whitespace-nowrap text-center text-white">{score.round3}</td>
+                <td class="px-2 py-2 whitespace-nowrap text-center">
                   <!-- Elite 8 Team Logos -->
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).e8.length > 0}
@@ -433,7 +433,7 @@
                     {/if}
                   </div>
                 </td>
-                <td class="px-4 py-4 whitespace-nowrap text-center">
+                <td class="px-2 py-2 whitespace-nowrap text-center">
                   <!-- Final Four Team Logos -->
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).f4.length > 0}
@@ -451,7 +451,7 @@
                     {/if}
                   </div>
                 </td>
-                <td class="px-4 py-4 whitespace-nowrap text-center">
+                <td class="px-2 py-2 whitespace-nowrap text-center">
                   <!-- Championship Team Logo -->
                   <div class="flex justify-center">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).champ}
@@ -467,7 +467,7 @@
                     {/if}
                   </div>
                 </td>
-                <td class="px-4 py-4 whitespace-nowrap text-center text-white">{score.correctGames}</td>
+                <td class="px-2 py-2 whitespace-nowrap text-center text-white">{score.correctGames}</td>
               </tr>
             {/each}
           </tbody>
