@@ -32,6 +32,31 @@
     const matches = {};
     const selections = bracketData.selections || [];
     
+    // Build a list of eliminated teams from live bracket data
+    const eliminatedTeams = new Set();
+    const advancedTeams = new Set();
+    
+    // Find all eliminated teams from the first 4 rounds (matches 1-60)
+    // First add all teams to eliminated set
+    for (let i = 1; i <= 32; i++) {
+      const match = liveBracketData.matches[i];
+      if (match?.teamA) eliminatedTeams.add(formatTeamString(match.teamA));
+      if (match?.teamB) eliminatedTeams.add(formatTeamString(match.teamB));
+    }
+    
+    // Then remove teams that have advanced (winners)
+    for (let i = 1; i <= 63; i++) {
+      const match = liveBracketData.matches[i];
+      if (match?.winner) {
+        const winningTeam = match.winner === 'A' ? match.teamA : match.teamB;
+        if (winningTeam) {
+          const teamStr = formatTeamString(winningTeam);
+          advancedTeams.add(teamStr);
+          eliminatedTeams.delete(teamStr);
+        }
+      }
+    }
+    
     // Initialize first round matches using live bracket data (1-32)
     for (let i = 0; i < 32; i++) {
       const liveMatch = liveBracketData.matches[i + 1];
@@ -72,43 +97,58 @@
       // Get user's selected team for this match
       const userSelection = selections[i];
       
+      // Format team strings for comparison
+      const teamAString = formatTeamString(winnerA);
+      const teamBString = formatTeamString(winnerB);
+      
       // Determine if user selection matches the actual teams in this position
       let isCorrectA = false;
       let isCorrectB = false;
       let isWrongA = false;
       let isWrongB = false;
+      let isEliminatedA = false;
+      let isEliminatedB = false;
       
-      // Check if user's selection matches team A
-      if (userSelection && liveTeamA) {
-        const userTeamStr = formatTeamString(winnerA);
-        const liveTeamStr = formatTeamString(liveTeamA);
-        isCorrectA = userTeamStr === liveTeamStr;
-        isWrongA = userTeamStr !== liveTeamStr && liveTeamStr;
+      // Check if user's selection matches team A or has been eliminated
+      if (teamAString) {
+        // If we have live data for this match position
+        if (liveTeamA) {
+          const liveTeamStr = formatTeamString(liveTeamA);
+          isCorrectA = teamAString === liveTeamStr;
+          isWrongA = teamAString !== liveTeamStr;
+        } 
+        // If no live data yet, check if the team is already eliminated
+        else {
+          isEliminatedA = eliminatedTeams.has(teamAString);
+        }
       }
       
-      // Check if user's selection matches team B
-      if (userSelection && liveTeamB) {
-        const userTeamStr = formatTeamString(winnerB);
-        const liveTeamStr = formatTeamString(liveTeamB);
-        isCorrectB = userTeamStr === liveTeamStr;
-        isWrongB = userTeamStr !== liveTeamStr && liveTeamStr;
+      // Check if user's selection matches team B or has been eliminated
+      if (teamBString) {
+        // If we have live data for this match position
+        if (liveTeamB) {
+          const liveTeamStr = formatTeamString(liveTeamB);
+          isCorrectB = teamBString === liveTeamStr;
+          isWrongB = teamBString !== liveTeamStr;
+        } 
+        // If no live data yet, check if the team is already eliminated
+        else {
+          isEliminatedB = eliminatedTeams.has(teamBString);
+        }
       }
 
       // Create teams with appropriate colors
       const teamA = winnerA ? { 
         ...winnerA, 
-        color: isCorrectA ? '#22c55e' : isWrongA ? '#ef4444' : '#666666', 
-        secondaryColor: isCorrectA ? '#16a34a' : isWrongA ? '#dc2626' : '#666666' 
+        color: isCorrectA ? '#22c55e' : (isWrongA || isEliminatedA) ? '#ef4444' : '#666666', 
+        secondaryColor: isCorrectA ? '#16a34a' : (isWrongA || isEliminatedA) ? '#dc2626' : '#666666' 
       } : null;
       
       const teamB = winnerB ? { 
         ...winnerB, 
-        color: isCorrectB ? '#22c55e' : isWrongB ? '#ef4444' : '#666666', 
-        secondaryColor: isCorrectB ? '#16a34a' : isWrongB ? '#dc2626' : '#666666' 
+        color: isCorrectB ? '#22c55e' : (isWrongB || isEliminatedB) ? '#ef4444' : '#666666', 
+        secondaryColor: isCorrectB ? '#16a34a' : (isWrongB || isEliminatedB) ? '#dc2626' : '#666666' 
       } : null;
-
-      const teamAString = formatTeamString(winnerA);
-      const teamBString = formatTeamString(winnerB);
       
       matches[i + 1] = {
         teamA,
