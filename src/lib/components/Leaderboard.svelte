@@ -17,7 +17,6 @@
   let loadingLeaderboard = true;
   let teamSelections = new Map();
   let liveBracketData = null;
-  let currentUser = null;
 
   let cachedData = {
     masterBracket: null,
@@ -225,11 +224,6 @@
     try {
       loadingLeaderboard = true;
       
-      console.log('👤 Fetching current user...');
-      const { data: { user } } = await supabase.auth.getUser();
-      currentUser = user;
-      console.log('👤 Current user fetched:', user?.id);
-
       console.log('🏀 Fetching bracket data...');
       const bracketData = await fetchBracketDataWithRetry();
       if (!bracketData) {
@@ -301,11 +295,6 @@
     return null;
   }
 
-  // Helper function to check if a score belongs to current user
-  function isCurrentUserScore(score) {
-    return currentUser?.id === score.userId;
-  }
-
   // Function to handle name click and navigation
   function handleNameClick(score) {
     // Create a URL-safe identifier using first and last name
@@ -313,12 +302,11 @@
     goto(`/entries?selected=${nameIdentifier}`);
   }
 
-  // Add a function to check if a name is hoverable/clickable
+  // Update getNameButtonClass to remove the user-specific styling
   function getNameButtonClass(score) {
     return `
       inline-flex items-center gap-2 px-2 py-1 rounded-md transition-colors duration-150
       hover:bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-amber-500/50
-      ${isCurrentUserScore(score) ? 'hover:bg-amber-600/30' : ''}
     `.trim();
   }
 
@@ -403,8 +391,7 @@
         {#each sortedScores as score, index}
           <div 
             class="border-b border-zinc-800 p-4 transition-colors duration-150
-                   {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'} 
-                   {isCurrentUserScore(score) ? 'bg-amber-700/20 hover:bg-amber-700/30 border-l-4 border-l-amber-500' : ''}"
+                   {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'}"
             in:fade={{ duration: 100, delay: index * 50 }}
           >
             <div class="flex justify-between items-center">
@@ -472,8 +459,7 @@
             {#each sortedScores as score, index}
               <tr 
                 class="transition-colors duration-150
-                       {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'} 
-                       {isCurrentUserScore(score) ? 'bg-amber-700/20 hover:bg-amber-700/30 border-l-4 border-l-amber-500' : ''}"
+                       {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'}"
                 in:fade={{ duration: 100, delay: index * 50 }}
               >
                 <td class="px-6 py-2 whitespace-nowrap">
