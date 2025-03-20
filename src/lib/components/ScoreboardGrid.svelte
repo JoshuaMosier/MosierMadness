@@ -163,7 +163,11 @@
     {:else}
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {#each sortedMatches as game, index (game[0][6] + game[1][6])}
-          <div class="game-box bg-gradient-to-br from-stone-950/90 to-black/90 rounded-xl p-5 border border-white/10 hover:border-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02] hover:from-zinc-700/90 hover:to-zinc-800/90">
+          <a href="/game/{matches.findIndex(m => 
+            m[0][4] === game[0][4] && 
+            m[1][4] === game[1][4] && 
+            m[2] === game[2]
+          )}" class="game-box bg-gradient-to-br from-stone-950/90 to-black/90 rounded-xl p-5 border border-white/10 hover:border-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02] hover:from-zinc-700/90 hover:to-zinc-800/90">
             <div class="game-date flex justify-between items-center mb-3">
               <span class="text-sm text-gray-400 font-semibold">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
               <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 py-1 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
@@ -210,7 +214,7 @@
             <div class="mt-4 text-sm text-gray-400 text-center font-semibold border-t border-white/5 pt-3">
               {game[0][5]} vs {game[1][5]}
             </div>
-          </div>
+          </a>
         {/each}
       </div>
     {/if}
