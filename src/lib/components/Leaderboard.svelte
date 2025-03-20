@@ -198,12 +198,35 @@
     return selections;
   }
 
+  // Add initialization state tracking
+  let initialized = false;
+
   onMount(async () => {
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    currentUser = user;
+    // Wait for entries to be available
+    while (!initialized && (!entries.length || loading)) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    if (!initialized) {
+      initialized = true;
+      await initializeLeaderboard();
+    }
+  });
+
+  async function initializeLeaderboard() {
+    if (!entries.length) {
+      console.log('No entries available for initialization');
+      loadingLeaderboard = false;
+      return;
+    }
 
     try {
+      loadingLeaderboard = true;
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      currentUser = user;
+
       // Fetch bracket data using cached function
       const { liveBracketData: fetchedLiveBracket, masterData } = await fetchBracketData();
       
@@ -225,8 +248,6 @@
       });
       
       potentials = calculatePotential(masterBracket, eliminatedTeams, entries);
-      
-      // Use memoized team selections processing
       teamSelections = processTeamSelections(entries);
       
       // Merge potential data into scores
@@ -234,14 +255,13 @@
         const potential = potentials.find(p => p.entryId === score.entryId)?.potential || 0;
         return { ...score, potential };
       });
-      
-      loadingLeaderboard = false;
     } catch (err) {
       console.error('Error loading leaderboard data:', err);
       error = err.message;
+    } finally {
       loadingLeaderboard = false;
     }
-  });
+  }
 
   // Helper function to check if a score belongs to current user
   function isCurrentUserScore(score) {
