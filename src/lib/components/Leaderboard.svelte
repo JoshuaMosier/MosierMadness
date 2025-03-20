@@ -199,20 +199,15 @@
     return selections;
   }
 
-  // Add initialization state tracking
-  let initialized = false;
+  // Add retry count and interval
+  let retryCount = 0;
+  const MAX_RETRIES = 5;
+  const RETRY_INTERVAL = 1000; // 1 second
 
-  onMount(async () => {
-    // Wait for entries to be available
-    while (!initialized && (!entries.length || loading)) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    
-    if (!initialized) {
-      initialized = true;
-      await initializeLeaderboard();
-    }
-  });
+  // Replace onMount with a reactive statement
+  $: if (entries.length && !loading) {
+    initializeLeaderboard();
+  }
 
   async function initializeLeaderboard() {
     if (!entries.length) {
@@ -228,8 +223,13 @@
       const { data: { user } } = await supabase.auth.getUser();
       currentUser = user;
 
-      // Fetch bracket data using cached function
-      const { liveBracketData: fetchedLiveBracket, masterData } = await fetchBracketData();
+      // Fetch bracket data with retries
+      const bracketData = await fetchBracketDataWithRetry();
+      if (!bracketData) {
+        throw new Error('Failed to fetch bracket data after retries');
+      }
+      
+      const { liveBracketData: fetchedLiveBracket, masterData } = bracketData;
       
       if (fetchedLiveBracket.error) {
         throw new Error(fetchedLiveBracket.error);
@@ -256,12 +256,31 @@
         const potential = potentials.find(p => p.entryId === score.entryId)?.potential || 0;
         return { ...score, potential };
       });
+
+      retryCount = 0; // Reset retry count on success
     } catch (err) {
       console.error('Error loading leaderboard data:', err);
       error = err.message;
     } finally {
       loadingLeaderboard = false;
     }
+  }
+
+  // Add retry mechanism to fetchBracketData
+  async function fetchBracketDataWithRetry() {
+    while (retryCount < MAX_RETRIES) {
+      try {
+        const data = await fetchBracketData();
+        return data;
+      } catch (err) {
+        console.log(`Attempt ${retryCount + 1} failed, retrying...`);
+        retryCount++;
+        if (retryCount < MAX_RETRIES) {
+          await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+        }
+      }
+    }
+    return null;
   }
 
   // Helper function to check if a score belongs to current user
