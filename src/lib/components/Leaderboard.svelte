@@ -17,7 +17,6 @@
   let loadingLeaderboard = true;
   let teamSelections = new Map();
   let liveBracketData = null;
-  let currentUser = null;
 
   let cachedData = {
     masterBracket: null,
@@ -34,7 +33,7 @@
 
   // We'll use a filter to create the outline effect on the SVG content itself
   const teamLogoClass = "w-full h-full object-contain p-0.5 opacity-90";
-  const teamLogoContainerClass = "w-10 h-10 rounded-lg p-1 overflow-hidden shadow-inner";
+  const teamLogoContainerClass = "w-10 h-10 rounded-lg p-1 overflow-hidden shadow-inner relative";
 
   // Revised SVG filter to reverse drawing order (black first, then white on top)
   let svgFilter = `
@@ -225,11 +224,6 @@
     try {
       loadingLeaderboard = true;
       
-      console.log('👤 Fetching current user...');
-      const { data: { user } } = await supabase.auth.getUser();
-      currentUser = user;
-      console.log('👤 Current user fetched:', user?.id);
-
       console.log('🏀 Fetching bracket data...');
       const bracketData = await fetchBracketDataWithRetry();
       if (!bracketData) {
@@ -301,11 +295,6 @@
     return null;
   }
 
-  // Helper function to check if a score belongs to current user
-  function isCurrentUserScore(score) {
-    return currentUser?.id === score.userId;
-  }
-
   // Function to handle name click and navigation
   function handleNameClick(score) {
     // Create a URL-safe identifier using first and last name
@@ -313,12 +302,11 @@
     goto(`/entries?selected=${nameIdentifier}`);
   }
 
-  // Add a function to check if a name is hoverable/clickable
+  // Update getNameButtonClass to remove the user-specific styling
   function getNameButtonClass(score) {
     return `
       inline-flex items-center gap-2 px-2 py-1 rounded-md transition-colors duration-150
       hover:bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-amber-500/50
-      ${isCurrentUserScore(score) ? 'hover:bg-amber-600/30' : ''}
     `.trim();
   }
 
@@ -355,6 +343,27 @@
       background-color: ${rgba}; 
       filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3)) drop-shadow(-1px -1px 1px rgba(255, 255, 255, 0.1));
     `;
+  }
+
+  // Add these helper functions near the other style-related functions
+  function getTeamOverlayStyle(teamName, score, gameIndex) {
+    // Check if team was eliminated by looking for any eliminated team that ends with this team name
+    const isEliminated = eliminatedTeams.some(eliminatedTeam => {
+      const eliminatedTeamName = getTeamNameFromSelection(eliminatedTeam);
+      return eliminatedTeamName === teamName;
+    });
+    
+    if (isEliminated) {
+      return 'background: rgba(255, 0, 0, 0.7);'; // red-500 with 50% opacity
+    }
+    
+    // Check if prediction was correct
+    const masterTeamName = getTeamNameFromSelection(masterBracket[gameIndex]);
+    if (masterTeamName === teamName) {
+      return 'background: rgba(34, 197, 94, 0.5);'; // green-500 with 50% opacity
+    }
+    
+    return '';
   }
 </script>
 
@@ -403,8 +412,7 @@
         {#each sortedScores as score, index}
           <div 
             class="border-b border-zinc-800 p-4 transition-colors duration-150
-                   {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'} 
-                   {isCurrentUserScore(score) ? 'bg-amber-700/20 hover:bg-amber-700/30 border-l-4 border-l-amber-500' : ''}"
+                   {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'}"
             in:fade={{ duration: 100, delay: index * 50 }}
           >
             <div class="flex justify-between items-center">
@@ -472,8 +480,7 @@
             {#each sortedScores as score, index}
               <tr 
                 class="transition-colors duration-150
-                       {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'} 
-                       {isCurrentUserScore(score) ? 'bg-amber-700/20 hover:bg-amber-700/30 border-l-4 border-l-amber-500' : ''}"
+                       {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'}"
                 in:fade={{ duration: 100, delay: index * 50 }}
               >
                 <td class="px-6 py-2 whitespace-nowrap">
@@ -495,7 +502,7 @@
                 <td class="px-2 whitespace-nowrap text-center">
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).e8.length > 0}
-                      {#each teamSelections.get(score.entryId).e8 as team}
+                      {#each teamSelections.get(score.entryId).e8 as team, idx}
                         <div 
                           class={teamLogoContainerClass} 
                           title={team}
@@ -506,6 +513,10 @@
                                class={teamLogoClass}
                                style="filter: url(#teamLogoOutline);"
                                on:error={handleImageError}>
+                          <div 
+                            class="absolute inset-0 rounded-lg"
+                            style={getTeamOverlayStyle(team, score, 56 + idx)}
+                          ></div>
                         </div>
                       {/each}
                     {:else}
@@ -516,7 +527,7 @@
                 <td class="px-2 whitespace-nowrap text-center">
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).f4.length > 0}
-                      {#each teamSelections.get(score.entryId).f4 as team}
+                      {#each teamSelections.get(score.entryId).f4 as team, idx}
                         <div 
                           class={teamLogoContainerClass} 
                           title={team}
@@ -527,6 +538,10 @@
                                class={teamLogoClass}
                                style="filter: url(#teamLogoOutline);"
                                on:error={handleImageError}>
+                          <div 
+                            class="absolute inset-0 rounded-lg"
+                            style={getTeamOverlayStyle(team, score, 60 + idx)}
+                          ></div>
                         </div>
                       {/each}
                     {:else}
@@ -548,6 +563,10 @@
                              class={teamLogoClass}
                              style="filter: url(#teamLogoOutline);"
                              on:error={handleImageError}>
+                        <div 
+                          class="absolute inset-0 rounded-lg"
+                          style={getTeamOverlayStyle(champTeam, score, 62)}
+                        ></div>
                       </div>
                     {:else}
                       <span class="text-zinc-500 text-sm">-</span>
