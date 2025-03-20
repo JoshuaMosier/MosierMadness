@@ -770,13 +770,6 @@
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-5xl">
-    <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold mb-4">
-            <span class="bg-gradient-to-r from-amber-700 to-amber-600 text-white px-4 py-2 rounded-lg shadow-md inline-block">
-                Basketball Challenge
-            </span>
-        </h1>
-    </div>
 
     <div class="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl p-6 shadow-lg border border-zinc-700 mb-8">
         <div class="game-container relative" bind:this={gameContainer}>

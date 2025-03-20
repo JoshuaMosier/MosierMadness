@@ -6,6 +6,7 @@
   let isMenuOpen = false;
   let user = null;
   let userEntry = null;
+  let isSpinning = false;
   
   onMount(async () => {
     // Get initial auth state
@@ -83,6 +84,21 @@
     }
     closeMenu();
   }
+
+  function handleEasterEggClick(event) {
+    event.preventDefault();
+    if (isSpinning) return; // Prevent multiple simultaneous spins
+    
+    isSpinning = true;
+    const currentPath = window.location.pathname;
+    
+    setTimeout(() => {
+      isSpinning = false; // Reset spinning state after animation
+      if (currentPath !== '/easter-egg') {
+        goto('/easter-egg');
+      }
+    }, 1000);
+  }
 </script>
 
 <nav class="relative w-full pt-1">
@@ -128,9 +144,18 @@
         </div>
 
         <!-- Center Logo -->
-        <div class="flex-shrink-0 w-1/3 flex justify-center">
+        <div class="flex-shrink-0 w-1/3 flex justify-center relative">
           <a href="/" class="block">
             <img src="/images/ui/MM_logo.png" alt="Mosier Madness Logo" class="h-40 w-100 object-contain" />
+          </a>
+          <!-- Easter Egg Link -->
+          <a href="/easter-egg" 
+             class="hidden md:block absolute hover-trigger" 
+             style="top: 32%; left: 12%; transform: translate(-50%, -50%);"
+             on:click={handleEasterEggClick}>
+            <img src="/images/ui/easter-egg.png" 
+                 alt="" 
+                 class="w-14 h-14 cursor-pointer hover-glow {isSpinning ? 'spin' : ''}" />
           </a>
         </div>
 
@@ -236,5 +261,28 @@
     .nav-link {
       width: 160px;
     }
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .spin {
+    animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    pointer-events: none;
+  }
+
+  .hover-glow {
+    transition: filter 0.3s ease, transform 0.3s ease;
+  }
+
+  .hover-trigger:hover .hover-glow {
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.4));
+    transform: scale(1.05);
   }
 </style> 
