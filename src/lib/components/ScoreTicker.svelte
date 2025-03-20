@@ -126,7 +126,7 @@
                   <!-- Away Team -->
                   <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
                     <div class="flex items-center flex-1 min-w-0">
-                      <div class="relative w-8 h-8 mr-3">
+                      <div class="relative w-6 h-6 mr-3">
                         <img class="w-full h-full object-contain transition-transform" 
                              alt="{game[0][4]} logo" 
                              src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
@@ -134,7 +134,7 @@
                       </div>
                       <div>
                         {#if game[0][2]}
-                          <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-semibold">#{game[0][2]}</span>
+                          <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold">#{game[0][2]}</span>
                         {/if}
                         <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                               style={getTeamStyle(game[0][4])}>
@@ -148,7 +148,7 @@
                   <!-- Home Team -->
                   <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
                     <div class="flex items-center flex-1 min-w-0">
-                      <div class="relative w-8 h-8 mr-3">
+                      <div class="relative w-6 h-6 mr-3">
                         <img class="w-full h-full object-contain transition-transform" 
                              alt="{game[1][4]} logo" 
                              src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
@@ -156,7 +156,7 @@
                       </div>
                       <div>
                         {#if game[1][2]}
-                          <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-semibold">#{game[1][2]}</span>
+                          <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold">#{game[1][2]}</span>
                         {/if}
                         <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                               style={getTeamStyle(game[1][4])}>
@@ -198,7 +198,7 @@
                     <!-- Away Team -->
                     <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
                       <div class="flex items-center flex-1 min-w-0">
-                        <div class="relative w-8 h-8 mr-3">
+                        <div class="relative w-6 h-6 mr-3">
                           <img class="w-full h-full object-contain transition-transform" 
                                alt="{game[0][4]} logo" 
                                src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
@@ -206,7 +206,7 @@
                         </div>
                         <div>
                           {#if game[0][2]}
-                            <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-semibold">#{game[0][2]}</span>
+                            <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold">#{game[0][2]}</span>
                           {/if}
                           <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                 style={getTeamStyle(game[0][4])}>
@@ -220,7 +220,7 @@
                     <!-- Home Team -->
                     <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
                       <div class="flex items-center flex-1 min-w-0">
-                        <div class="relative w-8 h-8 mr-3">
+                        <div class="relative w-6 h-6 mr-3">
                           <img class="w-full h-full object-contain transition-transform" 
                                alt="{game[1][4]} logo" 
                                src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
@@ -228,7 +228,7 @@
                         </div>
                         <div>
                           {#if game[1][2]}
-                            <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-semibold">#{game[1][2]}</span>
+                            <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold">#{game[1][2]}</span>
                           {/if}
                           <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                 style={getTeamStyle(game[1][4])}>
@@ -263,7 +263,7 @@
                       <!-- Away Team -->
                       <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
                         <div class="flex items-center flex-1 min-w-0">
-                          <div class="relative w-8 h-8 mr-3">
+                          <div class="relative w-6 h-6 mr-3">
                             <img class="w-full h-full object-contain transition-transform" 
                                  alt="{game[0][4]} logo" 
                                  src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
@@ -271,7 +271,7 @@
                           </div>
                           <div>
                             {#if game[0][2]}
-                              <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-semibold">#{game[0][2]}</span>
+                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold">#{game[0][2]}</span>
                             {/if}
                             <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                   style={getTeamStyle(game[0][4])}>
@@ -285,7 +285,7 @@
                       <!-- Home Team -->
                       <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
                         <div class="flex items-center flex-1 min-w-0">
-                          <div class="relative w-8 h-8 mr-3">
+                          <div class="relative w-6 h-6 mr-3">
                             <img class="w-full h-full object-contain transition-transform" 
                                  alt="{game[1][4]} logo" 
                                  src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
@@ -293,7 +293,7 @@
                           </div>
                           <div>
                             {#if game[1][2]}
-                              <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-semibold">#{game[1][2]}</span>
+                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold">#{game[1][2]}</span>
                             {/if}
                             <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                   style={getTeamStyle(game[1][4])}>
@@ -321,7 +321,7 @@
                       <!-- Away Team -->
                       <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
                         <div class="flex items-center flex-1 min-w-0">
-                          <div class="relative w-8 h-8 mr-3">
+                          <div class="relative w-6 h-6 mr-3">
                             <img class="w-full h-full object-contain transition-transform" 
                                  alt="{game[0][4]} logo" 
                                  src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
@@ -329,7 +329,7 @@
                           </div>
                           <div>
                             {#if game[0][2]}
-                              <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-semibold">#{game[0][2]}</span>
+                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold">#{game[0][2]}</span>
                             {/if}
                             <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                   style={getTeamStyle(game[0][4])}>
@@ -343,7 +343,7 @@
                       <!-- Home Team -->
                       <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
                         <div class="flex items-center flex-1 min-w-0">
-                          <div class="relative w-8 h-8 mr-3">
+                          <div class="relative w-6 h-6 mr-3">
                             <img class="w-full h-full object-contain transition-transform" 
                                  alt="{game[1][4]} logo" 
                                  src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
@@ -351,7 +351,7 @@
                           </div>
                           <div>
                             {#if game[1][2]}
-                              <span class="rank text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full mr-2 font-semibold">#{game[1][2]}</span>
+                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold">#{game[1][2]}</span>
                             {/if}
                             <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
                                   style={getTeamStyle(game[1][4])}>

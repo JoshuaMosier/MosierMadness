@@ -47,29 +47,33 @@
     });
 </script>
 
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-center mb-8">Live Tournament Bracket</h1>
-    
-    {#if isLoading}
-        <div class="text-center">
-            <p class="text-lg">Loading bracket data...</p>
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        
+        <!-- Bracket Content -->
+        <div class="p-6">
+            {#if isLoading}
+                <div class="text-center">
+                    <p class="text-lg">Loading bracket data...</p>
+                </div>
+            {:else if error}
+                <div class="text-center text-red-500">
+                    <p class="text-lg">Error: {error}</p>
+                    <button 
+                        class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        on:click={fetchBracketData}
+                    >
+                        Retry
+                    </button>
+                </div>
+            {:else}
+                <BracketView
+                    mode="live"
+                    {bracketData}
+                    highlightWinners={true}
+                    showScores={true}
+                />
+            {/if}
         </div>
-    {:else if error}
-        <div class="text-center text-red-500">
-            <p class="text-lg">Error: {error}</p>
-            <button 
-                class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                on:click={fetchBracketData}
-            >
-                Retry
-            </button>
-        </div>
-    {:else}
-        <BracketView
-            mode="live"
-            {bracketData}
-            highlightWinners={true}
-            showScores={true}
-        />
-    {/if}
+    </div>
 </div>

@@ -8,7 +8,9 @@
   export let error = null;
 
   let selectedEntrantId = '';
-  let firstRoundTeams = []; // Will be populated dynamically
+  let liveBracketData = null;
+  let loadingBracketData = true;
+  
   $: selectedEntrant = entries.find(e => e.id === selectedEntrantId);
   $: selectedBracket = selectedEntrant?.brackets[0];
 
@@ -25,17 +27,21 @@
 
   // Function to transform bracket data into the format expected by BracketView
   function transformBracketData(bracketData) {
-    if (!bracketData) return null;
+    if (!bracketData || !liveBracketData) return null;
 
     const matches = {};
     const selections = bracketData.selections || [];
     
-    // Initialize first round matches with actual teams (1-32)
+    // Initialize first round matches using live bracket data (1-32)
     for (let i = 0; i < 32; i++) {
+      const liveMatch = liveBracketData.matches[i + 1];
+      
       matches[i + 1] = {
-        teamA: firstRoundTeams[i * 2],
-        teamB: firstRoundTeams[i * 2 + 1],
-        winner: selections[i] ? (selections[i] === formatTeamString(firstRoundTeams[i * 2]) ? 'A' : 'B') : null
+        teamA: liveMatch.teamA,
+        teamB: liveMatch.teamB,
+        winner: selections[i] ? 
+          (selections[i] === formatTeamString(liveMatch.teamA) ? 'A' : 'B') : 
+          null
       };
     }
 
@@ -84,10 +90,10 @@
 
   onMount(async () => {
     try {
-      // Fetch teams from our server endpoint
-      const response = await fetch('/api/bracket-teams');
+      // Fetch live bracket data instead of teams
+      const response = await fetch('/api/live-bracket');
       if (!response.ok) {
-        throw new Error(`Error fetching teams: ${response.statusText}`);
+        throw new Error(`Error fetching live bracket data: ${response.statusText}`);
       }
       
       const data = await response.json();
@@ -95,17 +101,19 @@
         throw new Error(data.error);
       }
       
-      firstRoundTeams = data;
+      liveBracketData = data;
+      loadingBracketData = false;
     } catch (err) {
-      console.error('Error fetching bracket teams:', err);
+      console.error('Error fetching live bracket data:', err);
       error = err.message;
+      loadingBracketData = false;
     }
   });
 </script>
 
 <div class="max-w-7xl mx-auto px-4 py-8">
 
-  {#if loading}
+  {#if loading || loadingBracketData}
     <div class="flex justify-center items-center min-h-[400px]" in:fade={{ duration: 100 }}>
       <div class="flex flex-col items-center gap-3">
         <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
@@ -147,7 +155,7 @@
       </div>
 
       <!-- Bracket View -->
-      {#if selectedEntrantId && firstRoundTeams.length > 0}
+      {#if selectedEntrantId && liveBracketData}
         <div class="p-6">
           <BracketView
             mode="view"

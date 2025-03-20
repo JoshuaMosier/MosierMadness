@@ -44,7 +44,7 @@ async function getScoreTicker(date = new Date()) {
     for (const game of data.games) {
       // Skip non-tournament games if needed
       // Uncomment this line during tournament to only show tournament games
-      // if (game.game.bracketId === "") continue;
+      if (game.game.bracketId === "") continue;
       
       const gm = [];
       
