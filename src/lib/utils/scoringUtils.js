@@ -137,22 +137,14 @@ export function getEliminatedTeams(liveBracketData) {
   const eliminatedTeams = new Set();
   const advancedTeams = new Set();
   
-  // First add all teams to the eliminated set
-  for (let i = 1; i <= 32; i++) {
-    const match = liveBracketData.matches[i];
-    if (match?.teamA) eliminatedTeams.add(`${match.teamA.seed} ${match.teamA.name}`);
-    if (match?.teamB) eliminatedTeams.add(`${match.teamB.seed} ${match.teamB.name}`);
-  }
-  
-  // Then remove teams that have advanced (winners)
+  // First add teams that have lost games to the eliminated set
   for (let i = 1; i <= 63; i++) {
     const match = liveBracketData.matches[i];
+    // Only consider matches that have been played (have a winner)
     if (match?.winner) {
-      const winningTeam = match.winner === 'A' ? match.teamA : match.teamB;
-      if (winningTeam) {
-        const teamStr = `${winningTeam.seed} ${winningTeam.name}`;
-        advancedTeams.add(teamStr);
-        eliminatedTeams.delete(teamStr);
+      const losingTeam = match.winner === 'A' ? match.teamB : match.teamA;
+      if (losingTeam) {
+        eliminatedTeams.add(`${losingTeam.seed} ${losingTeam.name}`);
       }
     }
   }

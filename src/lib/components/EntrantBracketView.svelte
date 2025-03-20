@@ -39,11 +39,14 @@
     const advancedTeams = new Set();
     
     // Find all eliminated teams from the first 4 rounds (matches 1-60)
-    // First add all teams to eliminated set
+    // First add all teams that have played to eliminated set
     for (let i = 1; i <= 32; i++) {
       const match = liveBracketData.matches[i];
-      if (match?.teamA) eliminatedTeams.add(formatTeamString(match.teamA));
-      if (match?.teamB) eliminatedTeams.add(formatTeamString(match.teamB));
+      // Only add teams to eliminated if the match has a winner
+      if (match?.winner) {
+        if (match?.teamA) eliminatedTeams.add(formatTeamString(match.teamA));
+        if (match?.teamB) eliminatedTeams.add(formatTeamString(match.teamB));
+      }
     }
     
     // Then remove teams that have advanced (winners)
@@ -117,7 +120,8 @@
         if (liveTeamA) {
           const liveTeamStr = formatTeamString(liveTeamA);
           isCorrectA = teamAString === liveTeamStr;
-          isWrongA = teamAString !== liveTeamStr;
+          // Only mark as wrong if there's a winner for this match
+          isWrongA = liveWinner && teamAString !== liveTeamStr;
         } 
         // If no live data yet, check if the team is already eliminated
         else {
@@ -131,7 +135,8 @@
         if (liveTeamB) {
           const liveTeamStr = formatTeamString(liveTeamB);
           isCorrectB = teamBString === liveTeamStr;
-          isWrongB = teamBString !== liveTeamStr;
+          // Only mark as wrong if there's a winner for this match
+          isWrongB = liveWinner && teamBString !== liveTeamStr;
         } 
         // If no live data yet, check if the team is already eliminated
         else {
