@@ -18,6 +18,14 @@
   let liveBracketData = null;
   let currentUser = null;
 
+  let cachedData = {
+    masterBracket: null,
+    liveBracket: null,
+    lastFetch: null,
+    // Cache for 5 minutes
+    cacheTimeout: 5 * 60 * 1000
+  };
+
   // Let's modify our approach to use a filter for the SVGs instead of container outlines
   function handleImageError(event) {
     event.target.src = '/images/placeholder-team.svg';
@@ -121,23 +129,73 @@
     return team.toLowerCase().replace(/[^a-z0-9]/g, '');
   }
   
-  // Process team selections to find Elite 8, Final Four and Championship picks
+  // Move the data fetching logic into a separate function
+  async function fetchBracketData() {
+    const now = Date.now();
+    
+    // Return cached data if it's still fresh
+    if (cachedData.lastFetch && (now - cachedData.lastFetch) < cachedData.cacheTimeout) {
+      return {
+        liveBracketData: cachedData.liveBracket,
+        masterData: { masterBracket: cachedData.masterBracket }
+      };
+    }
+
+    // Fetch new data
+    const [liveResponse, masterResponse] = await Promise.all([
+      fetch('/api/live-bracket'),
+      fetch('/api/master-bracket')
+    ]);
+
+    if (!liveResponse.ok || !masterResponse.ok) {
+      throw new Error('Failed to fetch bracket data');
+    }
+
+    const liveBracketData = await liveResponse.json();
+    const masterData = await masterResponse.json();
+
+    // Update cache
+    cachedData = {
+      masterBracket: masterData.masterBracket,
+      liveBracket: liveBracketData,
+      lastFetch: now,
+      cacheTimeout: cachedData.cacheTimeout
+    };
+
+    return { liveBracketData, masterData };
+  }
+
+  // Memoize team selections processing
+  let memoizedTeamSelections = null;
   function processTeamSelections(entries) {
+    // If entries haven't changed and we have memoized data, return it
+    if (memoizedTeamSelections && memoizedTeamSelections.entries === entries) {
+      return memoizedTeamSelections.selections;
+    }
+
+    const selections = new Map();
     entries.forEach(entry => {
-      const selections = entry.selections || entry.brackets?.[0]?.selections || [];
+      const entrySelections = entry.selections || entry.brackets?.[0]?.selections || [];
       const entryId = entry.entryId || entry.id;
       
-      // Initialize entry in the map
-      const e8Teams = selections.slice(56, 60).map(getTeamNameFromSelection).filter(Boolean);
-      const f4Teams = selections.slice(60, 62).map(getTeamNameFromSelection).filter(Boolean);
-      const champTeam = getTeamNameFromSelection(selections[62]);
+      const e8Teams = entrySelections.slice(56, 60).map(getTeamNameFromSelection).filter(Boolean);
+      const f4Teams = entrySelections.slice(60, 62).map(getTeamNameFromSelection).filter(Boolean);
+      const champTeam = getTeamNameFromSelection(entrySelections[62]);
       
-      teamSelections.set(entryId, {
+      selections.set(entryId, {
         e8: e8Teams,
         f4: f4Teams,
         champ: champTeam
       });
     });
+
+    // Store memoized result
+    memoizedTeamSelections = {
+      entries,
+      selections
+    };
+
+    return selections;
   }
 
   onMount(async () => {
@@ -146,47 +204,30 @@
     currentUser = user;
 
     try {
-      // Fetch live bracket data for eliminated teams
-      const liveResponse = await fetch('/api/live-bracket');
-      if (!liveResponse.ok) {
-        throw new Error(`Error fetching live bracket: ${liveResponse.statusText}`);
+      // Fetch bracket data using cached function
+      const { liveBracketData: fetchedLiveBracket, masterData } = await fetchBracketData();
+      
+      if (fetchedLiveBracket.error) {
+        throw new Error(fetchedLiveBracket.error);
       }
       
-      const liveData = await liveResponse.json();
-      if (liveData.error) {
-        throw new Error(liveData.error);
-      }
-      
-      liveBracketData = liveData;
-      eliminatedTeams = getEliminatedTeams(liveData);
-      
-      // Fetch master bracket data
-      const masterResponse = await fetch('/api/master-bracket');
-      if (!masterResponse.ok) {
-        throw new Error(`Error fetching master bracket: ${masterResponse.statusText}`);
-      }
-      
-      const masterData = await masterResponse.json();
-      if (masterData.error) {
-        throw new Error(masterData.error);
-      }
-      
+      liveBracketData = fetchedLiveBracket;
+      eliminatedTeams = getEliminatedTeams(liveBracketData);
       masterBracket = masterData.masterBracket;
       
       // Calculate scores and potentials
       scores = calculateScores(masterBracket, entries).map(score => {
-        // Find the corresponding entry to get the user_id
         const entry = entries.find(e => e.entryId === score.entryId || e.id === score.entryId);
         return {
           ...score,
-          userId: entry?.user_id // Add the user_id to the score object
+          userId: entry?.user_id
         };
       });
       
       potentials = calculatePotential(masterBracket, eliminatedTeams, entries);
       
-      // Process team selections to get the teams for E8, F4, and Champ
-      processTeamSelections(entries);
+      // Use memoized team selections processing
+      teamSelections = processTeamSelections(entries);
       
       // Merge potential data into scores
       scores = scores.map(score => {
