@@ -139,13 +139,14 @@
       const entryId = entry.entryId || entry.id;
       
       // Initialize entry in the map
+      const e8Teams = selections.slice(56, 60).map(getTeamNameFromSelection).filter(Boolean);
+      const f4Teams = selections.slice(60, 62).map(getTeamNameFromSelection).filter(Boolean);
+      const champTeam = getTeamNameFromSelection(selections[62]);
+      
       teamSelections.set(entryId, {
-        // Elite 8 picks (indexes 56-59)
-        e8: selections.slice(56, 60).map(getTeamNameFromSelection).filter(Boolean),
-        // Final Four picks (indexes 60-61)
-        f4: selections.slice(60, 62).map(getTeamNameFromSelection).filter(Boolean),
-        // Championship pick (index 62)
-        champ: getTeamNameFromSelection(selections[62])
+        e8: e8Teams,
+        f4: f4Teams,
+        champ: champTeam
       });
     });
   }
@@ -421,7 +422,7 @@
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).e8.length > 0}
                       {#each teamSelections.get(score.entryId).e8 as team}
                         <div class={teamLogoContainerClass} title={team}>
-                          <img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{getTeamSeoName(team)}.svg" 
+                          <img src="/images/team-logos/{getTeamSeoName(team)}.svg" 
                                alt={team} 
                                class={teamLogoClass}
                                style="filter: url(#teamLogoOutline);"
@@ -439,7 +440,7 @@
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).f4.length > 0}
                       {#each teamSelections.get(score.entryId).f4 as team}
                         <div class={teamLogoContainerClass} title={team}>
-                          <img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{getTeamSeoName(team)}.svg" 
+                          <img src="/images/team-logos/{getTeamSeoName(team)}.svg" 
                                alt={team} 
                                class={teamLogoClass}
                                style="filter: url(#teamLogoOutline);"
@@ -456,7 +457,7 @@
                   <div class="flex justify-center">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).champ}
                       <div class={teamLogoContainerClass} title={teamSelections.get(score.entryId).champ}>
-                        <img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{getTeamSeoName(teamSelections.get(score.entryId).champ)}.svg" 
+                        <img src="/images/team-logos/{getTeamSeoName(teamSelections.get(score.entryId).champ)}.svg" 
                              alt={teamSelections.get(score.entryId).champ} 
                              class={teamLogoClass}
                              style="filter: url(#teamLogoOutline);"
