@@ -60,11 +60,52 @@
     }
   }
   
-  // Computed property for sorted matches
+  // Add the same helper function after other helper functions
+  function parseGameTime(timeStr) {
+    if (!timeStr) return null;
+    
+    // Convert 12-hour format to 24-hour for proper comparison
+    const match = timeStr.match(/(\d{1,2}):(\d{2})(PM|AM)\s*ET/i);
+    if (!match) return null;
+    
+    let [_, hours, minutes, period] = match;
+    hours = parseInt(hours);
+    minutes = parseInt(minutes);
+    
+    // Convert to 24-hour format
+    if (period.toUpperCase() === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (period.toUpperCase() === 'AM' && hours === 12) {
+      hours = 0;
+    }
+    
+    return { hours, minutes };
+  }
+  
+  // Update the sortedMatches computed property
   $: sortedMatches = matches.slice().sort((a, b) => {
-    const statusA = getStatusPriority(a[2]);
-    const statusB = getStatusPriority(b[2]);
-    return statusA - statusB;
+    const statusA = a[2].toUpperCase();
+    const statusB = b[2].toUpperCase();
+    
+    // First sort by status priority
+    if (statusA !== statusB) {
+      return getStatusPriority(statusA) - getStatusPriority(statusB);
+    }
+    
+    // If both are PRE, sort by game time
+    if (statusA === 'PRE') {
+      const timeA = parseGameTime(a[3]);
+      const timeB = parseGameTime(b[3]);
+      
+      if (timeA && timeB) {
+        if (timeA.hours !== timeB.hours) {
+          return timeA.hours - timeB.hours;
+        }
+        return timeA.minutes - timeB.minutes;
+      }
+    }
+    
+    return 0;
   });
   
   // Handle image loading errors

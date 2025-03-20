@@ -15,7 +15,7 @@ import { onMount } from 'svelte';
   let teamSelectionSaving = false; // Separate saving state for team selections
   let bracketActionSaving = false; // Separate saving state for major bracket actions
   let firstRoundTeams = []; // Will be populated dynamically
-  const tournamentStarted = false; // Set this to true when tournament begins
+  const tournamentStarted = true; // Set this to true when tournament begins
 
   // Function to fetch and format teams from NCAA API
   async function fetchBracketTeams() {

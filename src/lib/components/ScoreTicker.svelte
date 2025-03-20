@@ -11,21 +11,22 @@
   // Function to fetch NCAA score data
   async function fetchScores() {
     try {
-      loading = true;
       const response = await fetch('/api/scores');
       if (!response.ok) {
         throw new Error(`Error fetching scores: ${response.statusText}`);
       }
-      matches = await response.json();
+      const newMatches = await response.json();
       
-      // Duplicate matches for continuous scrolling effect
-      // Only duplicate if we have enough games to warrant scrolling
-      if (matches.length > 4) {
-        duplicatedMatches = [...matches, ...matches];
-      } else {
-        duplicatedMatches = matches;
+      // Compare new data with existing data before updating
+      if (JSON.stringify(newMatches) !== JSON.stringify(matches)) {
+        matches = newMatches;
+        // Update duplicatedMatches while preserving animation
+        if (matches.length > 4) {
+          duplicatedMatches = [...matches, ...matches, ...matches]; // Triple the content
+        } else {
+          duplicatedMatches = matches;
+        }
       }
-      
       loading = false;
     } catch (err) {
       console.error('Failed to fetch scores:', err);
@@ -91,6 +92,63 @@
     const shortName = team[4];
     const char6Name = team[0];
     return shortName.length > 14 ? char6Name : shortName;
+  }
+
+  // Add this helper function after the other helper functions
+  function parseGameTime(timeStr) {
+    if (!timeStr) return null;
+    
+    // Convert 12-hour format to 24-hour for proper comparison
+    const match = timeStr.match(/(\d{1,2}):(\d{2})(PM|AM)\s*ET/i);
+    if (!match) return null;
+    
+    let [_, hours, minutes, period] = match;
+    hours = parseInt(hours);
+    minutes = parseInt(minutes);
+    
+    // Convert to 24-hour format
+    if (period.toUpperCase() === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (period.toUpperCase() === 'AM' && hours === 12) {
+      hours = 0;
+    }
+    
+    return { hours, minutes };
+  }
+
+  // Update the duplicatedMatches computation to use sorted matches
+  $: {
+    const sortedGames = matches.slice().sort((a, b) => {
+      const statusA = a[2].toUpperCase();
+      const statusB = b[2].toUpperCase();
+      
+      // First sort by status priority
+      if (statusA !== statusB) {
+        return ['LIVE', 'PRE', 'FINAL'].indexOf(statusA) - ['LIVE', 'PRE', 'FINAL'].indexOf(statusB);
+      }
+      
+      // If both are PRE, sort by game time
+      if (statusA === 'PRE') {
+        const timeA = parseGameTime(a[3]);
+        const timeB = parseGameTime(b[3]);
+        
+        if (timeA && timeB) {
+          if (timeA.hours !== timeB.hours) {
+            return timeA.hours - timeB.hours;
+          }
+          return timeA.minutes - timeB.minutes;
+        }
+      }
+      
+      return 0;
+    });
+    
+    // Only duplicate if we have enough games to warrant scrolling
+    if (matches.length > 4) {
+      duplicatedMatches = [...sortedGames, ...sortedGames];
+    } else {
+      duplicatedMatches = sortedGames;
+    }
   }
 </script>
 
@@ -250,121 +308,65 @@
             <div class="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black to-transparent z-10"></div>
             <div class="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black to-transparent z-10"></div>
             
-            <div class="flex animate-marquee whitespace-nowrap hover:pause-animation">
-              {#each duplicatedMatches as game, index}
-                <a href="/game/{index % matches.length}" class="flex-shrink-0 mx-2 w-64 transition-transform duration-300">
-                  <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
-                    <div class="game-date flex justify-between items-center mb-3">
-                      <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
-                      <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
-                    </div>
-                    
-                    <div class="game-teams space-y-3">
-                      <!-- Away Team -->
-                      <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
-                        <div class="flex items-center flex-1 min-w-0">
-                          <div class="relative w-6 h-6 mr-3">
-                            <img class="w-full h-full object-contain transition-transform" 
-                                 alt="{game[0][4]} logo" 
-                                 src="/images/team-logos/{game[0][6]}.svg"
-                                 on:error={handleImageError}>
-                          </div>
-                          <div>
-                            {#if game[0][2]}
-                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[0][2]}</span>
-                            {/if}
-                            <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
-                                  style={getTeamStyle(game[0][4])}>
-                              {getDisplayName(game[0])}
-                            </span>
-                          </div>
-                        </div>
-                        <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
+            <div class="marquee-container">
+              <div class="marquee-content animate-marquee">
+                {#each duplicatedMatches as game, index}
+                  <a href="/game/{index % matches.length}" class="flex-shrink-0 mx-2 w-64 transition-transform duration-300">
+                    <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
+                      <div class="game-date flex justify-between items-center mb-3">
+                        <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
+                        <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
                       </div>
                       
-                      <!-- Home Team -->
-                      <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
-                        <div class="flex items-center flex-1 min-w-0">
-                          <div class="relative w-6 h-6 mr-3">
-                            <img class="w-full h-full object-contain transition-transform" 
-                                 alt="{game[1][4]} logo" 
-                                 src="/images/team-logos/{game[1][6]}.svg"
-                                 on:error={handleImageError}>
+                      <div class="game-teams space-y-3">
+                        <!-- Away Team -->
+                        <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
+                          <div class="flex items-center flex-1 min-w-0">
+                            <div class="relative w-6 h-6 mr-3">
+                              <img class="w-full h-full object-contain transition-transform" 
+                                   alt="{game[0][4]} logo" 
+                                   src="/images/team-logos/{game[0][6]}.svg"
+                                   on:error={handleImageError}>
+                            </div>
+                            <div>
+                              {#if game[0][2]}
+                                <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[0][2]}</span>
+                              {/if}
+                              <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
+                                    style={getTeamStyle(game[0][4])}>
+                                {getDisplayName(game[0])}
+                              </span>
+                            </div>
                           </div>
-                          <div>
-                            {#if game[1][2]}
-                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[1][2]}</span>
-                            {/if}
-                            <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
-                                  style={getTeamStyle(game[1][4])}>
-                              {getDisplayName(game[1])}
-                            </span>
-                          </div>
+                          <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
                         </div>
-                        <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
+                        
+                        <!-- Home Team -->
+                        <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
+                          <div class="flex items-center flex-1 min-w-0">
+                            <div class="relative w-6 h-6 mr-3">
+                              <img class="w-full h-full object-contain transition-transform" 
+                                   alt="{game[1][4]} logo" 
+                                   src="/images/team-logos/{game[1][6]}.svg"
+                                   on:error={handleImageError}>
+                            </div>
+                            <div>
+                              {#if game[1][2]}
+                                <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[1][2]}</span>
+                              {/if}
+                              <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
+                                    style={getTeamStyle(game[1][4])}>
+                                {getDisplayName(game[1])}
+                              </span>
+                            </div>
+                          </div>
+                          <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </a>
-              {/each}
-              
-              <!-- Duplicate the first few items again to create seamless loop -->
-              {#each matches.slice(0, 3) as game, index}
-                <a href="/game/{index}" class="flex-shrink-0 mx-2 w-64 transition-transform duration-300">
-                  <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
-                    <div class="game-date flex justify-between items-center mb-3">
-                      <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
-                      <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
-                    </div>
-                    
-                    <div class="game-teams space-y-3">
-                      <!-- Away Team -->
-                      <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
-                        <div class="flex items-center flex-1 min-w-0">
-                          <div class="relative w-6 h-6 mr-3">
-                            <img class="w-full h-full object-contain transition-transform" 
-                                 alt="{game[0][4]} logo" 
-                                 src="/images/team-logos/{game[0][6]}.svg"
-                                 on:error={handleImageError}>
-                          </div>
-                          <div>
-                            {#if game[0][2]}
-                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[0][2]}</span>
-                            {/if}
-                            <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
-                                  style={getTeamStyle(game[0][4])}>
-                              {getDisplayName(game[0])}
-                            </span>
-                          </div>
-                        </div>
-                        <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
-                      </div>
-                      
-                      <!-- Home Team -->
-                      <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
-                        <div class="flex items-center flex-1 min-w-0">
-                          <div class="relative w-6 h-6 mr-3">
-                            <img class="w-full h-full object-contain transition-transform" 
-                                 alt="{game[1][4]} logo" 
-                                 src="/images/team-logos/{game[1][6]}.svg"
-                                 on:error={handleImageError}>
-                          </div>
-                          <div>
-                            {#if game[1][2]}
-                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[1][2]}</span>
-                            {/if}
-                            <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
-                                  style={getTeamStyle(game[1][4])}>
-                              {getDisplayName(game[1])}
-                            </span>
-                          </div>
-                        </div>
-                        <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
-                      </div>
-                    </div>
-                  </div>
-                </a>
-              {/each}
+                  </a>
+                {/each}
+              </div>
             </div>
           </div>
         </div>
@@ -382,19 +384,32 @@
     display: none;  /* Chrome, Safari and Opera */
   }
   
+  :root {
+    --marquee-duration: 80s; /* Doubled the duration to slow it down */
+  }
+  
   @keyframes marquee {
     0% { 
       transform: translateX(0); 
     }
     100% { 
-      transform: translateX(calc(-100% - 1rem)); /* Adjusted to account for full width */
+      transform: translateX(-50%);
     }
   }
   
   .animate-marquee {
     white-space: nowrap;
     will-change: transform;
-    animation: marquee 40s linear infinite;
+    animation: marquee var(--marquee-duration) linear infinite;
   }
   
+  .marquee-container {
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  .marquee-content {
+    display: flex;
+    width: fit-content;
+  }
 </style> 
