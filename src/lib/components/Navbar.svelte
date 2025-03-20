@@ -2,11 +2,15 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
+  import { page } from '$app/stores';
   
   let isMenuOpen = false;
   let user = null;
   let userEntry = null;
   let isSpinning = false;
+  
+  // Get current path for active state
+  $: currentPath = $page.url.pathname;
   
   onMount(async () => {
     // Get initial auth state
@@ -99,6 +103,14 @@
       }
     }, 1000);
   }
+
+  // Helper function to check if a path is active
+  function isActive(path) {
+    if (path === '/') {
+      return currentPath === '/';
+    }
+    return currentPath.startsWith(path);
+  }
 </script>
 
 <nav class="relative w-full pt-1">
@@ -129,16 +141,16 @@
         <div class="flex-shrink-0 w-1/3 flex justify-end">
           <div class="flex items-center space-x-3">
             <a href="/" class="nav-link">
-              <div class="nav-button">Leaderboard</div>
+              <div class="nav-button {isActive('/') ? 'active' : ''}">Leaderboard</div>
             </a>
             <a href="/bracket" class="nav-link">
-              <div class="nav-button">Submit Entry</div>
+              <div class="nav-button {isActive('/bracket') ? 'active' : ''}">Submit Entry</div>
             </a>
             <button on:click={handleEntriesClick} class="nav-link">
-              <div class="nav-button">Entries</div>
+              <div class="nav-button {isActive('/entries') ? 'active' : ''}">Entries</div>
             </button>
             <a href="/live-bracket" class="nav-link">
-              <div class="nav-button">Live Bracket</div>
+              <div class="nav-button {isActive('/live-bracket') ? 'active' : ''}">Live Bracket</div>
             </a>
           </div>
         </div>
@@ -163,13 +175,13 @@
         <div class="flex-shrink-0 w-1/3 flex justify-start">
           <div class="flex items-center space-x-3">
             <a href="/past-winners" class="nav-link">
-              <div class="nav-button">Past Winners</div>
+              <div class="nav-button {isActive('/past-winners') ? 'active' : ''}">Past Winners</div>
             </a>
             <a href="/stats" class="nav-link">
-              <div class="nav-button">Statistics</div>
+              <div class="nav-button {isActive('/stats') ? 'active' : ''}">Statistics</div>
             </a>
             <a href="/scenarios" class="nav-link">
-              <div class="nav-button">Scenarios</div>
+              <div class="nav-button {isActive('/scenarios') ? 'active' : ''}">Scenarios</div>
             </a>
             {#if user}
               <button on:click={handleLogout} class="nav-link">
@@ -177,7 +189,7 @@
               </button>
             {:else}
               <a href="/login" class="nav-link">
-                <div class="nav-button">Login</div>
+                <div class="nav-button {isActive('/login') ? 'active' : ''}">Login</div>
               </a>
             {/if}
           </div>
@@ -196,9 +208,9 @@
     {#if isMenuOpen}
       <div class="md:hidden fixed inset-0 bg-black bg-opacity-90 z-10 pt-16">
         <div class="px-4 pt-2 pb-3 space-y-3">
-          <a href="/" class="mobile-nav-button" on:click={closeMenu}>Leaderboard</a>
-          <a href="/bracket" class="mobile-nav-button" on:click={closeMenu}>Submit Bracket</a>
-          <button on:click={handleEntriesClick} class="mobile-nav-button w-full">Entries</button>
+          <a href="/" class="mobile-nav-button {isActive('/') ? 'active' : ''}" on:click={closeMenu}>Leaderboard</a>
+          <a href="/bracket" class="mobile-nav-button {isActive('/bracket') ? 'active' : ''}" on:click={closeMenu}>Submit Bracket</a>
+          <button on:click={handleEntriesClick} class="mobile-nav-button w-full {isActive('/entries') ? 'active' : ''}">Entries</button>
           <a href="/live-bracket" class="mobile-nav-button" on:click={closeMenu}>Live Bracket</a>
           <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a>
           <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a>
@@ -284,5 +296,21 @@
   .hover-trigger:hover .hover-glow {
     filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.4));
     transform: scale(1.05);
+  }
+
+  .nav-button.active {
+    @apply bg-amber-400/20 border-amber-400/30;
+  }
+
+  .nav-button.active:hover {
+    @apply bg-amber-400/30 border-amber-400/40;
+  }
+
+  .mobile-nav-button.active {
+    @apply bg-amber-400/20 border-amber-400/30;
+  }
+
+  .mobile-nav-button.active:hover {
+    @apply bg-amber-400/30;
   }
 </style> 
