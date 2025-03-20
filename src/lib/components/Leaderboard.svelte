@@ -14,8 +14,6 @@
   let scores = [];
   let potentials = [];
   let loadingLeaderboard = true;
-  let sortField = 'total';
-  let sortDirection = 'desc';
   let teamSelections = new Map();
   let liveBracketData = null;
   let currentUser = null;
@@ -28,9 +26,6 @@
   // We'll use a filter to create the outline effect on the SVG content itself
   const teamLogoClass = "w-full h-full object-contain p-0.5";
   const teamLogoContainerClass = "w-10 h-10 bg-zinc-800 rounded-lg p-1 overflow-hidden";
-
-  // Let's remove the outline class and handle this differently
-  // const teamLogoOutlineClass = "outline outline-2 outline-white outline-offset-[-2px] shadow-[0_0_0_4px_#000]";
 
   // Revised SVG filter to reverse drawing order (black first, then white on top)
   let svgFilter = `
@@ -56,22 +51,15 @@
   `;
 
   $: sortedScores = [...scores].sort((a, b) => {
-    const multiplier = sortDirection === 'desc' ? -1 : 1;
+    // Sort by total score (descending)
+    if (a.total > b.total) return -1;
+    if (a.total < b.total) return 1;
     
-    // Primary sort by sortField
-    if (a[sortField] < b[sortField]) return -1 * multiplier;
-    if (a[sortField] > b[sortField]) return 1 * multiplier;
+    // If totals are equal, sort by potential (descending)
+    if (a.potential > b.potential) return -1;
+    if (a.potential < b.potential) return 1;
     
-    // Secondary sort by potential if totals are equal (only when sorting by total)
-    if (sortField === 'total') {
-      if (a.potential < b.potential) return -1 * multiplier;
-      if (a.potential > b.potential) return 1 * multiplier;
-      
-      // Tertiary sort by name if both total and potential are equal
-      return a.firstName.localeCompare(b.firstName);
-    }
-    
-    // For other sort fields, secondary sort by name if primary values are equal
+    // If both total and potential are equal, sort by name
     return a.firstName.localeCompare(b.firstName);
   });
   
@@ -80,11 +68,11 @@
     if (index === 0) {
       acc.push(1); // First entry is always rank 1
     } else {
-      // If current score equals previous score (on the sort field), use the same rank
+      // If current total equals previous total, use the same rank
       const prevScore = sortedScores[index - 1];
       const prevRank = acc[index - 1];
       
-      if (score[sortField] === prevScore[sortField]) {
+      if (score.total === prevScore.total) {
         acc.push(prevRank); // Same rank for tied scores
       } else {
         acc.push(index + 1); // Rank is the position + 1 (skipping tied positions)
@@ -293,9 +281,6 @@
                   on:click={() => handleNameClick(score)}
                 >
                   <span class="text-zinc-100 font-medium">{score.firstName} {score.lastName}</span>
-                  <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
                 </button>
               </div>
               <div class="flex gap-6">
@@ -316,115 +301,36 @@
         <table class="min-w-full divide-y divide-zinc-800">
           <thead>
             <tr class="bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-10">
-              <th class="px-6 py-4 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider w-12">#</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider w-12">Rank</th>
               <th class="px-6 py-4 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
-                <button class="flex items-center hover:text-white transition-colors" on:click={() => toggleSort('firstName')}>
-                  Name
-                  {#if sortField === 'firstName'}
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {#if sortDirection === 'desc'}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      {:else}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                      {/if}
-                    </svg>
-                  {/if}
-                </button>
+                NAME
               </th>
-              <!-- Total column moved to beginning -->
-              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
-                <button class="flex items-center justify-center mx-auto hover:text-white transition-colors" on:click={() => toggleSort('total')}>
-                  Total
-                  {#if sortField === 'total'}
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {#if sortDirection === 'desc'}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      {:else}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                      {/if}
-                    </svg>
-                  {/if}
-                </button>
+              <th class="px-2 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                Total
               </th>
-              <!-- Potential column moved after Total -->
-              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('potential')}>
-                  Potential
-                  {#if sortField === 'potential'}
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {#if sortDirection === 'desc'}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      {:else}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                      {/if}
-                    </svg>
-                  {/if}
-                </button>
+              <th class="px-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                Potential
               </th>
-              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('round1')}>
-                  R1
-                  {#if sortField === 'round1'}
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {#if sortDirection === 'desc'}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      {:else}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                      {/if}
-                    </svg>
-                  {/if}
-                </button>
+              <th class="px-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                R1
               </th>
-              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('round2')}>
-                  R2
-                  {#if sortField === 'round2'}
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {#if sortDirection === 'desc'}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      {:else}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                      {/if}
-                    </svg>
-                  {/if}
-                </button>
+              <th class="px-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                R2
               </th>
-              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('round3')}>
-                  S16
-                  {#if sortField === 'round3'}
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {#if sortDirection === 'desc'}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      {:else}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                      {/if}
-                    </svg>
-                  {/if}
-                </button>
+              <th class="px-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                S16
               </th>
-              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 Elite 8
               </th>
-              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 Final 4
               </th>
-              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+              <th class="px-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 CHAMP
               </th>
-              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('correctGames')}>
-                  Games
-                  {#if sortField === 'correctGames'}
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {#if sortDirection === 'desc'}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      {:else}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                      {/if}
-                    </svg>
-                  {/if}
-                </button>
+              <th class="px-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                Games
               </th>
             </tr>
           </thead>
@@ -436,26 +342,23 @@
                        {isCurrentUserScore(score) ? 'bg-amber-700/20 hover:bg-amber-700/30 border-l-4 border-l-amber-500' : ''}"
                 in:fade={{ duration: 100, delay: index * 50 }}
               >
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-6 py-2 whitespace-nowrap">
                   <span class="text-amber-500 font-bold bg-amber-500/10 rounded-full py-1 px-3">{getRankLabel(ranks[index])}</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-6 py-2 whitespace-nowrap">
                   <button 
                     class={getNameButtonClass(score)}
                     on:click={() => handleNameClick(score)}
                   >
                     <span class="text-zinc-100 font-medium">{score.firstName} {score.lastName}</span>
-                    <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
                   </button>
                 </td>
-                <td class="px-2 py-2 whitespace-nowrap text-center text-amber-400 font-bold text-lg">{score.total}</td>
-                <td class="px-2 py-2 whitespace-nowrap text-center text-emerald-400">{score.potential}</td>
-                <td class="px-2 py-2 whitespace-nowrap text-center text-white">{score.round1}</td>
-                <td class="px-2 py-2 whitespace-nowrap text-center text-white">{score.round2}</td>
-                <td class="px-2 py-2 whitespace-nowrap text-center text-white">{score.round3}</td>
-                <td class="px-2 py-2 whitespace-nowrap text-center">
+                <td class="px-2 whitespace-nowrap text-center text-amber-400 font-bold text-lg">{score.total}</td>
+                <td class="px-2 whitespace-nowrap text-center text-emerald-400">{score.potential}</td>
+                <td class="px-2 whitespace-nowrap text-center text-white">{score.round1}</td>
+                <td class="px-2 whitespace-nowrap text-center text-white">{score.round2}</td>
+                <td class="px-2 whitespace-nowrap text-center text-white">{score.round3}</td>
+                <td class="px-2 whitespace-nowrap text-center">
                   <!-- Elite 8 Team Logos -->
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).e8.length > 0}
@@ -473,7 +376,7 @@
                     {/if}
                   </div>
                 </td>
-                <td class="px-2 py-2 whitespace-nowrap text-center">
+                <td class="px-2 whitespace-nowrap text-center">
                   <!-- Final Four Team Logos -->
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).f4.length > 0}
@@ -491,7 +394,7 @@
                     {/if}
                   </div>
                 </td>
-                <td class="px-2 py-2 whitespace-nowrap text-center">
+                <td class="px-2 whitespace-nowrap text-center">
                   <!-- Championship Team Logo -->
                   <div class="flex justify-center">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).champ}
@@ -507,7 +410,7 @@
                     {/if}
                   </div>
                 </td>
-                <td class="px-2 py-2 whitespace-nowrap text-center text-white">{score.correctGames}</td>
+                <td class="px-2 whitespace-nowrap text-center text-white">{score.correctGames}</td>
               </tr>
             {/each}
           </tbody>
