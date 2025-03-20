@@ -4,6 +4,7 @@
   import { supabase } from '$lib/supabase';
   import { calculateScores, calculatePotential, getEliminatedTeams } from '$lib/utils/scoringUtils';
   import { goto } from '$app/navigation';
+  import teamColors from '$lib/ncaa_team_colors.json';
 
   export let entries = [];
   export let loading = false;
@@ -32,8 +33,8 @@
   }
 
   // We'll use a filter to create the outline effect on the SVG content itself
-  const teamLogoClass = "w-full h-full object-contain p-0.5";
-  const teamLogoContainerClass = "w-10 h-10 bg-zinc-800 rounded-lg p-1 overflow-hidden";
+  const teamLogoClass = "w-full h-full object-contain p-0.5 opacity-90";
+  const teamLogoContainerClass = "w-10 h-10 rounded-lg p-1 overflow-hidden";
 
   // Revised SVG filter to reverse drawing order (black first, then white on top)
   let svgFilter = `
@@ -283,6 +284,20 @@
       ${isCurrentUserScore(score) ? 'hover:bg-amber-600/30' : ''}
     `.trim();
   }
+
+  // Add helper function to get team color
+  function getTeamBackgroundColor(teamName) {
+    const colors = teamColors[teamName];
+    const baseColor = colors?.primary_color || '#27272a';
+    // Convert hex to rgba with 0.7 opacity
+    if (baseColor.startsWith('#')) {
+      const r = parseInt(baseColor.slice(1, 3), 16);
+      const g = parseInt(baseColor.slice(3, 5), 16);
+      const b = parseInt(baseColor.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, .8)`;
+    }
+    return baseColor;
+  }
 </script>
 
 <!-- Add the SVG filter definition to the page -->
@@ -420,11 +435,14 @@
                 <td class="px-2 whitespace-nowrap text-center text-white">{score.round2}</td>
                 <td class="px-2 whitespace-nowrap text-center text-white">{score.round3}</td>
                 <td class="px-2 whitespace-nowrap text-center">
-                  <!-- Elite 8 Team Logos -->
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).e8.length > 0}
                       {#each teamSelections.get(score.entryId).e8 as team}
-                        <div class={teamLogoContainerClass} title={team}>
+                        <div 
+                          class={teamLogoContainerClass} 
+                          title={team}
+                          style="background-color: {getTeamBackgroundColor(team)};"
+                        >
                           <img src="/images/team-logos/{getTeamSeoName(team)}.svg" 
                                alt={team} 
                                class={teamLogoClass}
@@ -438,11 +456,14 @@
                   </div>
                 </td>
                 <td class="px-2 whitespace-nowrap text-center">
-                  <!-- Final Four Team Logos -->
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).f4.length > 0}
                       {#each teamSelections.get(score.entryId).f4 as team}
-                        <div class={teamLogoContainerClass} title={team}>
+                        <div 
+                          class={teamLogoContainerClass} 
+                          title={team}
+                          style="background-color: {getTeamBackgroundColor(team)};"
+                        >
                           <img src="/images/team-logos/{getTeamSeoName(team)}.svg" 
                                alt={team} 
                                class={teamLogoClass}
@@ -456,12 +477,16 @@
                   </div>
                 </td>
                 <td class="px-2 whitespace-nowrap text-center">
-                  <!-- Championship Team Logo -->
                   <div class="flex justify-center">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).champ}
-                      <div class={teamLogoContainerClass} title={teamSelections.get(score.entryId).champ}>
-                        <img src="/images/team-logos/{getTeamSeoName(teamSelections.get(score.entryId).champ)}.svg" 
-                             alt={teamSelections.get(score.entryId).champ} 
+                      {@const champTeam = teamSelections.get(score.entryId).champ}
+                      <div 
+                        class={teamLogoContainerClass} 
+                        title={champTeam}
+                        style="background-color: {getTeamBackgroundColor(champTeam)};"
+                      >
+                        <img src="/images/team-logos/{getTeamSeoName(champTeam)}.svg" 
+                             alt={champTeam} 
                              class={teamLogoClass}
                              style="filter: url(#teamLogoOutline);"
                              on:error={handleImageError}>
