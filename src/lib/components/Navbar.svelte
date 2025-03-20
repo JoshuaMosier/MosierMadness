@@ -5,15 +5,44 @@
   
   let isMenuOpen = false;
   let user = null;
+  let userEntry = null;
   
   onMount(async () => {
     // Get initial auth state
     const { data: { user: initialUser } } = await supabase.auth.getUser();
     user = initialUser;
+
+    if (user) {
+      // Fetch the user's entry
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('email', user.email)
+        .single();
+
+      if (profiles) {
+        userEntry = profiles;
+      }
+    }
     
     // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       user = session?.user || null;
+      
+      if (user) {
+        // Fetch the user's entry on auth state change
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('email', user.email)
+          .single();
+
+        if (profiles) {
+          userEntry = profiles;
+        }
+      } else {
+        userEntry = null;
+      }
     });
 
     // Cleanup subscription on component destroy
@@ -42,6 +71,17 @@
     } catch (err) {
       console.error('Unexpected error during logout:', err);
     }
+  }
+
+  // Function to handle entries navigation
+  function handleEntriesClick() {
+    if (user && userEntry) {
+      const nameIdentifier = `${userEntry.first_name}|${userEntry.last_name}`;
+      goto(`/entries?selected=${nameIdentifier}`);
+    } else {
+      goto('/entries');
+    }
+    closeMenu();
   }
 </script>
 
@@ -78,9 +118,9 @@
             <a href="/bracket" class="nav-link">
               <div class="nav-button">Submit Entry</div>
             </a>
-            <a href="/entries" class="nav-link">
+            <button on:click={handleEntriesClick} class="nav-link">
               <div class="nav-button">Entries</div>
-            </a>
+            </button>
             <a href="/live-bracket" class="nav-link">
               <div class="nav-button">Live Bracket</div>
             </a>
@@ -133,7 +173,7 @@
         <div class="px-4 pt-2 pb-3 space-y-3">
           <a href="/" class="mobile-nav-button" on:click={closeMenu}>Leaderboard</a>
           <a href="/bracket" class="mobile-nav-button" on:click={closeMenu}>Submit Bracket</a>
-          <a href="/entries" class="mobile-nav-button" on:click={closeMenu}>Entries</a>
+          <button on:click={handleEntriesClick} class="mobile-nav-button w-full">Entries</button>
           <a href="/live-bracket" class="mobile-nav-button" on:click={closeMenu}>Live Bracket</a>
           <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a>
           <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a>

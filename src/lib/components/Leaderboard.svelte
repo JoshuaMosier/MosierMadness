@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { supabase } from '$lib/supabase';
   import { calculateScores, calculatePotential, getEliminatedTeams } from '$lib/utils/scoringUtils';
+  import { goto } from '$app/navigation';
 
   export let entries = [];
   export let loading = false;
@@ -217,6 +218,22 @@
   function isCurrentUserScore(score) {
     return currentUser?.id === score.userId;
   }
+
+  // Function to handle name click and navigation
+  function handleNameClick(score) {
+    // Create a URL-safe identifier using first and last name
+    const nameIdentifier = `${score.firstName}|${score.lastName}`;
+    goto(`/entries?selected=${nameIdentifier}`);
+  }
+
+  // Add a function to check if a name is hoverable/clickable
+  function getNameButtonClass(score) {
+    return `
+      inline-flex items-center gap-2 px-2 py-1 rounded-md transition-colors duration-150
+      hover:bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-amber-500/50
+      ${isCurrentUserScore(score) ? 'hover:bg-amber-600/30' : ''}
+    `.trim();
+  }
 </script>
 
 <!-- Add the SVG filter definition to the page -->
@@ -238,24 +255,24 @@
     </div>
   {:else}
     <div 
-      class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"
+      class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-xl"
       in:fade={{ duration: 300, delay: 100 }}
     >
       
       <!-- Mobile View -->
       <div class="md:hidden">
         <!-- Column Headers -->
-        <div class="border-b border-zinc-800 p-3 bg-zinc-900/50">
+        <div class="border-b border-zinc-800 p-3 bg-zinc-900/50 sticky top-0 backdrop-blur-sm z-10">
           <div class="flex justify-between items-center">
             <div class="flex-1">
-              <span class="text-zinc-400 text-sm font-medium">Name</span>
+              <span class="text-zinc-300 text-sm font-semibold">Name</span>
             </div>
             <div class="flex gap-4">
               <div class="w-8 text-center">
-                <span class="text-zinc-400 text-sm font-medium">Tot.</span>
+                <span class="text-zinc-300 text-sm font-semibold">Tot.</span>
               </div>
               <div class="w-8 text-center">
-                <span class="text-zinc-400 text-sm font-medium">Pot.</span>
+                <span class="text-zinc-300 text-sm font-semibold">Pot.</span>
               </div>
             </div>
           </div>
@@ -263,21 +280,30 @@
 
         {#each sortedScores as score, index}
           <div 
-            class="border-b border-zinc-800 p-3 {index % 2 === 0 ? 'bg-zinc-800/30' : ''} 
-                   {isCurrentUserScore(score) ? 'bg-amber-700/20 border-l-4 border-l-amber-500' : ''}"
+            class="border-b border-zinc-800 p-4 transition-colors duration-150
+                   {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'} 
+                   {isCurrentUserScore(score) ? 'bg-amber-700/20 hover:bg-amber-700/30 border-l-4 border-l-amber-500' : ''}"
             in:fade={{ duration: 100, delay: index * 50 }}
           >
             <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2 flex-1">
-                <span class="text-amber-500 font-bold text-sm">{getRankLabel(ranks[index])}</span>
-                <span class="text-zinc-300 font-medium">{score.firstName} {score.lastName}</span>
+              <div class="flex items-center gap-3 flex-1">
+                <span class="text-amber-500 font-bold text-sm min-w-[2.5rem] bg-amber-500/10 rounded-full py-1 px-2 text-center">{getRankLabel(ranks[index])}</span>
+                <button 
+                  class={getNameButtonClass(score)}
+                  on:click={() => handleNameClick(score)}
+                >
+                  <span class="text-zinc-100 font-medium">{score.firstName} {score.lastName}</span>
+                  <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </button>
               </div>
-              <div class="flex gap-4">
+              <div class="flex gap-6">
                 <div class="w-8 text-center">
-                  <div class="text-amber-400 font-bold">{score.total}</div>
+                  <div class="text-amber-400 font-bold text-lg">{score.total}</div>
                 </div>
                 <div class="w-8 text-center">
-                  <div class="text-emerald-400 text-sm">{score.potential}</div>
+                  <div class="text-emerald-400 font-medium">{score.potential}</div>
                 </div>
               </div>
             </div>
@@ -289,10 +315,10 @@
       <div class="hidden md:block overflow-x-auto">
         <table class="min-w-full divide-y divide-zinc-800">
           <thead>
-            <tr class="bg-zinc-900/50">
-              <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider w-12">#</th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                <button class="flex items-center" on:click={() => toggleSort('firstName')}>
+            <tr class="bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-10">
+              <th class="px-6 py-4 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider w-12">#</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                <button class="flex items-center hover:text-white transition-colors" on:click={() => toggleSort('firstName')}>
                   Name
                   {#if sortField === 'firstName'}
                     <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,8 +332,8 @@
                 </button>
               </th>
               <!-- Total column moved to beginning -->
-              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('total')}>
+              <th class="px-2 py-2 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                <button class="flex items-center justify-center mx-auto hover:text-white transition-colors" on:click={() => toggleSort('total')}>
                   Total
                   {#if sortField === 'total'}
                     <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,12 +431,25 @@
           <tbody class="divide-y divide-zinc-800">
             {#each sortedScores as score, index}
               <tr 
-                class="{index % 2 === 0 ? 'bg-zinc-800/30' : ''} 
-                       {isCurrentUserScore(score) ? 'bg-amber-700/20 border-l-4 border-l-amber-500' : ''}"
+                class="transition-colors duration-150
+                       {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'} 
+                       {isCurrentUserScore(score) ? 'bg-amber-700/20 hover:bg-amber-700/30 border-l-4 border-l-amber-500' : ''}"
                 in:fade={{ duration: 100, delay: index * 50 }}
               >
-                <td class="px-6 py-4 whitespace-nowrap text-amber-500 font-semibold">{getRankLabel(ranks[index])}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-white font-medium">{score.firstName} {score.lastName}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="text-amber-500 font-bold bg-amber-500/10 rounded-full py-1 px-3">{getRankLabel(ranks[index])}</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <button 
+                    class={getNameButtonClass(score)}
+                    on:click={() => handleNameClick(score)}
+                  >
+                    <span class="text-zinc-100 font-medium">{score.firstName} {score.lastName}</span>
+                    <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </button>
+                </td>
                 <td class="px-2 py-2 whitespace-nowrap text-center text-amber-400 font-bold text-lg">{score.total}</td>
                 <td class="px-2 py-2 whitespace-nowrap text-center text-emerald-400">{score.potential}</td>
                 <td class="px-2 py-2 whitespace-nowrap text-center text-white">{score.round1}</td>

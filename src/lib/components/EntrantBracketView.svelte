@@ -3,6 +3,7 @@
   import BracketView from './BracketView.svelte';
   import { onMount } from 'svelte';
   import { supabase } from '$lib/supabase';
+  import { page } from '$app/stores';
 
   export let entries = [];
   export let loading = false;
@@ -12,6 +13,27 @@
   let liveBracketData = null;
   let loadingBracketData = true;
   let user = null;
+  
+  // Helper function to find entry by name
+  function findEntryByName(firstName, lastName) {
+    return entries.find(e => 
+      e.first_name.toLowerCase() === firstName.toLowerCase() && 
+      e.last_name.toLowerCase() === lastName.toLowerCase()
+    );
+  }
+
+  // Watch for both URL parameter changes AND entries being loaded
+  $: if (!loading && entries.length > 0 && $page.url.searchParams.get('selected')) {
+    const urlSelectedId = $page.url.searchParams.get('selected');
+    // Find the corresponding score in the URL
+    const [firstName, lastName] = urlSelectedId.split('|');
+    if (firstName && lastName) {
+      const matchingEntry = findEntryByName(firstName, lastName);
+      if (matchingEntry) {
+        selectedEntrantId = matchingEntry.id;
+      }
+    }
+  }
   
   $: selectedEntrant = entries.find(e => e.id === selectedEntrantId);
   $: selectedBracket = selectedEntrant?.brackets[0];
@@ -199,9 +221,8 @@
       liveBracketData = data;
       loadingBracketData = false;
       
-      // If user is logged in, find their entry and select it
-      if (user && entries.length > 0) {
-        // Look for an entry with matching email
+      // If no URL parameter and user is logged in, default to their entry
+      if (!$page.url.searchParams.get('selected') && user && entries.length > 0) {
         const userEntry = entries.find(e => e.email === user.email);
         if (userEntry) {
           selectedEntrantId = userEntry.id;
@@ -250,7 +271,7 @@
           >
             <option value="">Choose an entrant...</option>
             {#each sortedEntries as entry}
-              <option value={entry.id}>
+              <option value={entry.id || entry.entryId}>
                 {entry.first_name} {entry.last_name}
               </option>
             {/each}
