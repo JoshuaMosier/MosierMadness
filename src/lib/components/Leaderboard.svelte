@@ -134,28 +134,32 @@
   async function fetchBracketData() {
     const now = Date.now();
     
-    // Return cached data if it's still fresh
     if (cachedData.lastFetch && (now - cachedData.lastFetch) < cachedData.cacheTimeout) {
+      console.log('📦 Using cached bracket data');
       return {
         liveBracketData: cachedData.liveBracket,
         masterData: { masterBracket: cachedData.masterBracket }
       };
     }
 
-    // Fetch new data
+    console.log('🔄 Fetching fresh bracket data...');
     const [liveResponse, masterResponse] = await Promise.all([
       fetch('/api/live-bracket'),
       fetch('/api/master-bracket')
     ]);
 
     if (!liveResponse.ok || !masterResponse.ok) {
+      console.error('❌ API responses not OK:', { 
+        live: liveResponse.status, 
+        master: masterResponse.status 
+      });
       throw new Error('Failed to fetch bracket data');
     }
 
     const liveBracketData = await liveResponse.json();
     const masterData = await masterResponse.json();
 
-    // Update cache
+    console.log('💾 Updating cache with fresh data');
     cachedData = {
       masterBracket: masterData.masterBracket,
       liveBracket: liveBracketData,
@@ -206,28 +210,32 @@
 
   // Replace onMount with a reactive statement
   $: if (entries.length && !loading) {
+    console.log('🚀 Entries available, triggering initialization...', { entriesCount: entries.length, loading });
     initializeLeaderboard();
   }
 
   async function initializeLeaderboard() {
     if (!entries.length) {
-      console.log('No entries available for initialization');
+      console.log('❌ No entries available for initialization');
       loadingLeaderboard = false;
       return;
     }
 
+    console.log('📊 Starting leaderboard initialization...');
     try {
       loadingLeaderboard = true;
       
-      // Get current user
+      console.log('👤 Fetching current user...');
       const { data: { user } } = await supabase.auth.getUser();
       currentUser = user;
+      console.log('👤 Current user fetched:', user?.id);
 
-      // Fetch bracket data with retries
+      console.log('🏀 Fetching bracket data...');
       const bracketData = await fetchBracketDataWithRetry();
       if (!bracketData) {
         throw new Error('Failed to fetch bracket data after retries');
       }
+      console.log('✅ Bracket data fetched successfully');
       
       const { liveBracketData: fetchedLiveBracket, masterData } = bracketData;
       
@@ -235,11 +243,12 @@
         throw new Error(fetchedLiveBracket.error);
       }
       
+      console.log('🔄 Processing bracket data...');
       liveBracketData = fetchedLiveBracket;
       eliminatedTeams = getEliminatedTeams(liveBracketData);
       masterBracket = masterData.masterBracket;
       
-      // Calculate scores and potentials
+      console.log('📈 Calculating scores...');
       scores = calculateScores(masterBracket, entries).map(score => {
         const entry = entries.find(e => e.entryId === score.entryId || e.id === score.entryId);
         return {
@@ -248,21 +257,26 @@
         };
       });
       
+      console.log('🎯 Calculating potentials...');
       potentials = calculatePotential(masterBracket, eliminatedTeams, entries);
+      
+      console.log('👥 Processing team selections...');
       teamSelections = processTeamSelections(entries);
       
-      // Merge potential data into scores
+      console.log('🔄 Merging score data...');
       scores = scores.map(score => {
         const potential = potentials.find(p => p.entryId === score.entryId)?.potential || 0;
         return { ...score, potential };
       });
 
-      retryCount = 0; // Reset retry count on success
+      retryCount = 0;
+      console.log('✅ Leaderboard initialization complete!');
     } catch (err) {
-      console.error('Error loading leaderboard data:', err);
+      console.error('❌ Error loading leaderboard data:', err);
       error = err.message;
     } finally {
       loadingLeaderboard = false;
+      console.log('🏁 Loading state cleared');
     }
   }
 
@@ -270,16 +284,20 @@
   async function fetchBracketDataWithRetry() {
     while (retryCount < MAX_RETRIES) {
       try {
+        console.log(`🔄 Attempt ${retryCount + 1} of ${MAX_RETRIES} to fetch bracket data...`);
         const data = await fetchBracketData();
+        console.log('✅ Bracket data fetch successful');
         return data;
       } catch (err) {
-        console.log(`Attempt ${retryCount + 1} failed, retrying...`);
+        console.log(`❌ Attempt ${retryCount + 1} failed, retrying...`, err);
         retryCount++;
         if (retryCount < MAX_RETRIES) {
+          console.log(`⏳ Waiting ${RETRY_INTERVAL}ms before next attempt...`);
           await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
         }
       }
     }
+    console.log('❌ All retry attempts exhausted');
     return null;
   }
 
