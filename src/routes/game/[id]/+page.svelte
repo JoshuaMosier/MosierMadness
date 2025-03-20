@@ -2,49 +2,29 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   
+  export let data;
+  
   let gameData = null;
-  let loading = true;
+  let loading = false;
   let error = null;
   let allGames = [];
   
-  // Move fetch logic into a reactive statement that watches the page store
   $: {
-    const fetchGame = async () => {
-      loading = true;
-      error = null;
-      try {
-        const gameId = $page.params.id;
-        const response = await fetch('/api/scores');
-        
-        if (!response.ok) {
-          throw new Error(`Error fetching scores: ${response.statusText}`);
-        }
-        
-        const matches = await response.json();
-        allGames = matches;
-        
-        if (matches && matches.length > 0) {
-          if (gameId < matches.length) {
-            gameData = matches[gameId];
-            loading = false;
-          } else {
-            // If the requested game ID is out of range, show the first game
-            gameData = matches[0];
-            loading = false;
-            console.warn(`Game ID ${gameId} out of range, showing first game instead`);
-          }
-        } else {
-          throw new Error('No games available at this time');
-        }
-      } catch (err) {
-        console.error('Failed to fetch game data:', err);
-        error = err.message;
-        loading = false;
-      }
-    };
+    const matches = data.matches;
+    const gameId = data.gameId;
     
-    // Call fetchGame whenever the page store changes
-    fetchGame();
+    if (matches && matches.length > 0) {
+      // Find the game by matching teams and time
+      const targetGame = matches[gameId];
+      if (targetGame) {
+        gameData = targetGame;
+      } else {
+        gameData = matches[0];
+        console.warn(`Game ID ${gameId} not found, showing first game instead`);
+      }
+    } else {
+      error = 'No games available at this time';
+    }
   }
   
   // Helper function to determine if a team is a winner

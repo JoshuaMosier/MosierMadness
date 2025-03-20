@@ -245,7 +245,11 @@
           <!-- Mobile view: scrollable container -->
           <div class="md:hidden flex overflow-x-auto py-2 px-1 scrollbar-hide">
             {#each matches as game, index}
-              <a href="/game/{index}" class="flex-shrink-0 mx-1 w-64">
+              <a href="/game/{matches.findIndex(m => 
+                m[0][4] === game[0][4] && 
+                m[1][4] === game[1][4] && 
+                m[2] === game[2]
+              )}" class="flex-shrink-0 mx-1 w-64">
                 <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
                   <div class="game-date flex justify-between items-center mb-3">
                     <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
@@ -311,7 +315,11 @@
             <div class="marquee-container">
               <div class="marquee-content animate-marquee">
                 {#each duplicatedMatches as game, index}
-                  <a href="/game/{index % matches.length}" class="flex-shrink-0 mx-2 w-64 transition-transform duration-300">
+                  <a href="/game/{matches.findIndex(m => 
+                    m[0][4] === game[0][4] && 
+                    m[1][4] === game[1][4] && 
+                    m[2] === game[2]
+                  )}" class="flex-shrink-0 mx-2 w-64 transition-transform duration-300">
                     <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
                       <div class="game-date flex justify-between items-center mb-3">
                         <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
