@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 async function getMasterBracket() {
     const master = Array(63).fill('');
     const scores = Array(63).fill(null);
+    const teamSeoMap = {}; // Add this to store SEO names
     
     // Fetch data from NCAA API for each round
     // 2024
@@ -44,10 +45,20 @@ async function getMasterBracket() {
     
     // Build team region dictionary like in Python
     const teamRegionDict = {};
+    
+    // Also build SEO name mapping while we process games
     for (const game of [...round1Games.games, ...round2Games.games]) {
         if (game.game.bracketRegion !== "") {
             teamRegionDict[game.game.away.names.short] = game.game.bracketRegion;
             teamRegionDict[game.game.home.names.short] = game.game.bracketRegion;
+            
+            // Store SEO names
+            if (game.game.away.names.short && game.game.away.names.seo) {
+                teamSeoMap[game.game.away.names.short] = game.game.away.names.seo;
+            }
+            if (game.game.home.names.short && game.game.home.names.seo) {
+                teamSeoMap[game.game.home.names.short] = game.game.home.names.seo;
+            }
         }
     }
     
@@ -57,6 +68,14 @@ async function getMasterBracket() {
         const games = await response.json();
         
         for (const game of games.games) {
+            // Store SEO names for any teams we find
+            if (game.game.away.names.short && game.game.away.names.seo) {
+                teamSeoMap[game.game.away.names.short] = game.game.away.names.seo;
+            }
+            if (game.game.home.names.short && game.game.home.names.seo) {
+                teamSeoMap[game.game.home.names.short] = game.game.home.names.seo;
+            }
+            
             if (game.game.bracketId) {
                 const roundNum = parseInt(game.game.bracketId[0]);
                 const gameNum = parseInt(game.game.bracketId.slice(1));
@@ -105,7 +124,7 @@ async function getMasterBracket() {
             }
         }
     }
-    return { master, scores };
+    return { master, scores, teamSeoMap }; // Return the SEO map
 }
 
 // Helper function to format team string (e.g., "1 Houston")
@@ -119,12 +138,18 @@ function findTeamData(teams, teamName) {
     return teams.find(team => team.name === teamName);
 }
 
-function parseTeam(teamStr, teamData) {
+function parseTeam(teamStr, teamData, teamSeoMap) {
     if (!teamStr) return null;
     const [seed, ...nameParts] = teamStr.split(' ');
+    const name = nameParts.join(' ');
+    
+    // Get the SEO name if it's in our map
+    const seoName = teamSeoMap[name] || '';
+    
     return {
         seed: parseInt(seed),
-        name: nameParts.join(' '),
+        name: name,
+        seoName: seoName,
         color: teamData?.color,
         secondaryColor: teamData?.secondaryColor
     };
@@ -136,8 +161,8 @@ function getTeamFromStr(teamStr) {
 
 export async function GET(event) {
     try {
-        // Get the winners array using the new getMasterBracket function
-        const { master: WINNERS, scores: SCORES } = await getMasterBracket();
+        // Get the winners array, scores, and team SEO map
+        const { master: WINNERS, scores: SCORES, teamSeoMap } = await getMasterBracket();
         
         // Fetch teams from bracket-teams endpoint
         const response = await event.fetch('/api/bracket-teams');
@@ -162,8 +187,8 @@ export async function GET(event) {
             const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
             const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
             
-            const teamA = parseTeam(teamAStr, teamAData);
-            const teamB = parseTeam(teamBStr, teamBData);
+            const teamA = parseTeam(teamAStr, teamAData, teamSeoMap);
+            const teamB = parseTeam(teamBStr, teamBData, teamSeoMap);
             
             // Add scores if available - match by team name
             if (gameScores) {
@@ -199,8 +224,8 @@ export async function GET(event) {
             const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
             const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
             
-            const teamA = parseTeam(teamAStr, teamAData);
-            const teamB = parseTeam(teamBStr, teamBData);
+            const teamA = parseTeam(teamAStr, teamAData, teamSeoMap);
+            const teamB = parseTeam(teamBStr, teamBData, teamSeoMap);
             
             // Add scores if available - match by team name
             if (gameScores) {
@@ -236,8 +261,8 @@ export async function GET(event) {
             const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
             const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
             
-            const teamA = parseTeam(teamAStr, teamAData);
-            const teamB = parseTeam(teamBStr, teamBData);
+            const teamA = parseTeam(teamAStr, teamAData, teamSeoMap);
+            const teamB = parseTeam(teamBStr, teamBData, teamSeoMap);
             
             // Add scores if available - match by team name
             if (gameScores) {
@@ -273,8 +298,8 @@ export async function GET(event) {
             const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
             const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
             
-            const teamA = parseTeam(teamAStr, teamAData);
-            const teamB = parseTeam(teamBStr, teamBData);
+            const teamA = parseTeam(teamAStr, teamAData, teamSeoMap);
+            const teamB = parseTeam(teamBStr, teamBData, teamSeoMap);
             
             // Add scores if available - match by team name
             if (gameScores) {
@@ -310,8 +335,8 @@ export async function GET(event) {
             const teamAData = findTeamData(teams, teamAStr?.split(' ').slice(1).join(' '));
             const teamBData = findTeamData(teams, teamBStr?.split(' ').slice(1).join(' '));
             
-            const teamA = parseTeam(teamAStr, teamAData);
-            const teamB = parseTeam(teamBStr, teamBData);
+            const teamA = parseTeam(teamAStr, teamAData, teamSeoMap);
+            const teamB = parseTeam(teamBStr, teamBData, teamSeoMap);
             
             // Add scores if available - match by team name
             if (gameScores) {
@@ -346,8 +371,8 @@ export async function GET(event) {
         const teamAData = findTeamData(teams, championshipTeamAStr?.split(' ').slice(1).join(' '));
         const teamBData = findTeamData(teams, championshipTeamBStr?.split(' ').slice(1).join(' '));
         
-        const teamA = parseTeam(championshipTeamAStr, teamAData);
-        const teamB = parseTeam(championshipTeamBStr, teamBData);
+        const teamA = parseTeam(championshipTeamAStr, teamAData, teamSeoMap);
+        const teamB = parseTeam(championshipTeamBStr, teamBData, teamSeoMap);
         
         // Add scores if available - match by team name
         if (gameScores) {

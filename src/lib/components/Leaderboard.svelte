@@ -1,6 +1,7 @@
 <script>
   import { fade } from 'svelte/transition';
   import { onMount } from 'svelte';
+  import { supabase } from '$lib/supabase';
   import { calculateScores, calculatePotential, getEliminatedTeams } from '$lib/utils/scoringUtils';
 
   export let entries = [];
@@ -14,6 +15,44 @@
   let loadingLeaderboard = true;
   let sortField = 'total';
   let sortDirection = 'desc';
+  let teamSelections = new Map();
+  let liveBracketData = null;
+  let currentUser = null;
+
+  // Let's modify our approach to use a filter for the SVGs instead of container outlines
+  function handleImageError(event) {
+    event.target.src = '/images/placeholder-team.svg';
+  }
+
+  // We'll use a filter to create the outline effect on the SVG content itself
+  const teamLogoClass = "w-full h-full object-contain p-0.5";
+  const teamLogoContainerClass = "w-8 h-8 bg-zinc-800 rounded-lg overflow-hidden";
+
+  // Let's remove the outline class and handle this differently
+  // const teamLogoOutlineClass = "outline outline-2 outline-white outline-offset-[-2px] shadow-[0_0_0_4px_#000]";
+
+  // Revised SVG filter to reverse drawing order (black first, then white on top)
+  let svgFilter = `
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <filter id="teamLogoOutline" x="-20%" y="-20%" width="140%" height="140%">
+        <!-- Black outline (first, larger) -->
+        <feMorphology operator="dilate" radius="1" in="SourceAlpha" result="blackThicken" />
+        <feFlood flood-color="black" result="blackOutline" />
+        <feComposite in="blackOutline" in2="blackThicken" operator="in" result="blackOutline" />
+        
+        <!-- White outline (second, smaller) -->
+        <feMorphology operator="dilate" radius="0.5" in="SourceAlpha" result="whiteThicken" />
+        <feFlood flood-color="white" result="whiteOutline" />
+        <feComposite in="whiteOutline" in2="whiteThicken" operator="in" result="whiteOutline" />
+        
+        <!-- Stack with proper layer order: black on bottom, white in middle, original on top -->
+        <feComposite in="whiteOutline" in2="blackOutline" operator="over" result="outlines" />
+        <feComposite in="SourceGraphic" in2="outlines" operator="over" />
+      </filter>
+    </defs>
+  </svg>
+  `;
 
   $: sortedScores = [...scores].sort((a, b) => {
     const multiplier = sortDirection === 'desc' ? -1 : 1;
@@ -26,9 +65,13 @@
     if (sortField === 'total') {
       if (a.potential < b.potential) return -1 * multiplier;
       if (a.potential > b.potential) return 1 * multiplier;
+      
+      // Tertiary sort by name if both total and potential are equal
+      return a.firstName.localeCompare(b.firstName);
     }
     
-    return 0;
+    // For other sort fields, secondary sort by name if primary values are equal
+    return a.firstName.localeCompare(b.firstName);
   });
   
   // Generate golf-style ranks
@@ -64,9 +107,69 @@
       sortDirection = 'desc';
     }
   }
+  
+  // Helper function to extract team name from selection string (e.g. "1 Houston" -> "Houston")
+  function getTeamNameFromSelection(selection) {
+    if (!selection) return null;
+    const parts = selection.split(' ');
+    if (parts.length < 2) return null;
+    return parts.slice(1).join(' ');
+  }
+  
+  // Modify the getTeamSeoName function to use seoName from live bracket data
+  function getTeamSeoName(team) {
+    // First try to find the team in the live bracket data 
+    for (let i = 1; i <= 63; i++) {
+      const match = liveBracketData?.matches[i];
+      if (match?.teamA?.name === team && match.teamA.seoName) {
+        return match.teamA.seoName;
+      }
+      if (match?.teamB?.name === team && match.teamB.seoName) {
+        return match.teamB.seoName;
+      }
+    }
+    // Fallback to the old method
+    return team.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+  
+  // Process team selections to find Elite 8, Final Four and Championship picks
+  function processTeamSelections(entries) {
+    entries.forEach(entry => {
+      const selections = entry.selections || entry.brackets?.[0]?.selections || [];
+      const entryId = entry.entryId || entry.id;
+      
+      // Initialize entry in the map
+      teamSelections.set(entryId, {
+        // Elite 8 picks (indexes 56-59)
+        e8: selections.slice(56, 60).map(getTeamNameFromSelection).filter(Boolean),
+        // Final Four picks (indexes 60-61)
+        f4: selections.slice(60, 62).map(getTeamNameFromSelection).filter(Boolean),
+        // Championship pick (index 62)
+        champ: getTeamNameFromSelection(selections[62])
+      });
+    });
+  }
 
   onMount(async () => {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    currentUser = user;
+
     try {
+      // Fetch live bracket data for eliminated teams
+      const liveResponse = await fetch('/api/live-bracket');
+      if (!liveResponse.ok) {
+        throw new Error(`Error fetching live bracket: ${liveResponse.statusText}`);
+      }
+      
+      const liveData = await liveResponse.json();
+      if (liveData.error) {
+        throw new Error(liveData.error);
+      }
+      
+      liveBracketData = liveData;
+      eliminatedTeams = getEliminatedTeams(liveData);
+      
       // Fetch master bracket data
       const masterResponse = await fetch('/api/master-bracket');
       if (!masterResponse.ok) {
@@ -80,22 +183,20 @@
       
       masterBracket = masterData.masterBracket;
       
-      // Fetch live bracket data for eliminated teams
-      const liveResponse = await fetch('/api/live-bracket');
-      if (!liveResponse.ok) {
-        throw new Error(`Error fetching live bracket: ${liveResponse.statusText}`);
-      }
-      
-      const liveData = await liveResponse.json();
-      if (liveData.error) {
-        throw new Error(liveData.error);
-      }
-      
-      eliminatedTeams = getEliminatedTeams(liveData);
-      
       // Calculate scores and potentials
-      scores = calculateScores(masterBracket, entries);
+      scores = calculateScores(masterBracket, entries).map(score => {
+        // Find the corresponding entry to get the user_id
+        const entry = entries.find(e => e.entryId === score.entryId || e.id === score.entryId);
+        return {
+          ...score,
+          userId: entry?.user_id // Add the user_id to the score object
+        };
+      });
+      
       potentials = calculatePotential(masterBracket, eliminatedTeams, entries);
+      
+      // Process team selections to get the teams for E8, F4, and Champ
+      processTeamSelections(entries);
       
       // Merge potential data into scores
       scores = scores.map(score => {
@@ -110,9 +211,16 @@
       loadingLeaderboard = false;
     }
   });
+
+  // Helper function to check if a score belongs to current user
+  function isCurrentUserScore(score) {
+    return currentUser?.id === score.userId;
+  }
 </script>
 
-<div class="max-w-7xl mx-auto px-4 py-8">
+<!-- Add the SVG filter definition to the page -->
+  {@html svgFilter}
+  
   {#if loading || loadingLeaderboard}
     <div class="flex justify-center items-center min-h-[400px]" in:fade={{ duration: 100 }}>
       <div class="flex flex-col items-center gap-3">
@@ -133,33 +241,44 @@
       in:fade={{ duration: 300, delay: 100 }}
     >
       
-      <div class="border-b border-zinc-800 bg-zinc-900/50 p-6">
-        <h2 class="text-2xl font-bold text-amber-500 text-center">Leaderboard</h2>
-      </div>
-      
       <!-- Mobile View -->
       <div class="md:hidden">
+        <!-- Column Headers -->
+        <div class="border-b border-zinc-800 p-3 bg-zinc-900/50">
+          <div class="flex justify-between items-center">
+            <div class="flex-1">
+              <span class="text-zinc-400 text-sm font-medium">Name</span>
+            </div>
+            <div class="flex gap-4">
+              <div class="w-8 text-center">
+                <span class="text-zinc-400 text-sm font-medium">Tot.</span>
+              </div>
+              <div class="w-8 text-center">
+                <span class="text-zinc-400 text-sm font-medium">Pot.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {#each sortedScores as score, index}
           <div 
-            class="border-b border-zinc-800 p-4 {index % 2 === 0 ? 'bg-zinc-800/30' : ''}"
+            class="border-b border-zinc-800 p-3 {index % 2 === 0 ? 'bg-zinc-800/30' : ''} 
+                   {isCurrentUserScore(score) ? 'bg-amber-700/20 border-l-4 border-l-amber-500' : ''}"
             in:fade={{ duration: 100, delay: index * 50 }}
           >
             <div class="flex justify-between items-center">
-              <div class="flex items-center gap-3">
-                <span class="text-amber-500 font-bold">{getRankLabel(ranks[index])}</span>
-                <span class="text-xl font-semibold">{score.firstName} {score.lastName}</span>
+              <div class="flex items-center gap-2 flex-1">
+                <span class="text-amber-500 font-bold text-sm">{getRankLabel(ranks[index])}</span>
+                <span class="text-zinc-300 font-medium">{score.firstName} {score.lastName}</span>
               </div>
-            </div>
-            <div class="mt-2 grid grid-cols-2 gap-2 text-sm">
-              <div class="text-zinc-400 text-lg">Total: <span class="text-amber-400 font-bold">{score.total}</span></div>
-              <div class="text-zinc-400 text-lg">Potential: <span class="text-emerald-400">{score.potential}</span></div>
-              <div class="text-zinc-400">Round 1: <span class="text-white">{score.round1}</span></div>
-              <div class="text-zinc-400">Round 2: <span class="text-white">{score.round2}</span></div>
-              <div class="text-zinc-400">Sweet 16: <span class="text-white">{score.round3}</span></div>
-              <div class="text-zinc-400">Elite 8: <span class="text-white">{score.round4}</span></div>
-              <div class="text-zinc-400">Final 4: <span class="text-white">{score.round5}</span></div>
-              <div class="text-zinc-400">Championship: <span class="text-white">{score.round6}</span></div>
-              <div class="text-zinc-400">Correct Games: <span class="text-white">{score.correctGames}</span></div>
+              <div class="flex gap-4">
+                <div class="w-8 text-center">
+                  <div class="text-amber-400 font-bold">{score.total}</div>
+                </div>
+                <div class="w-8 text-center">
+                  <div class="text-emerald-400 text-sm">{score.potential}</div>
+                </div>
+              </div>
             </div>
           </div>
         {/each}
@@ -258,46 +377,13 @@
                 </button>
               </th>
               <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('round4')}>
-                  E8
-                  {#if sortField === 'round4'}
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {#if sortDirection === 'desc'}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      {:else}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                      {/if}
-                    </svg>
-                  {/if}
-                </button>
+                Elite 8
               </th>
               <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('round5')}>
-                  F4
-                  {#if sortField === 'round5'}
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {#if sortDirection === 'desc'}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      {:else}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                      {/if}
-                    </svg>
-                  {/if}
-                </button>
+                Final 4
               </th>
               <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('round6')}>
-                  CHAMP
-                  {#if sortField === 'round6'}
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {#if sortDirection === 'desc'}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      {:else}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                      {/if}
-                    </svg>
-                  {/if}
-                </button>
+                CHAMP
               </th>
               <th class="px-4 py-4 text-center text-xs font-medium text-zinc-400 uppercase tracking-wider">
                 <button class="flex items-center justify-center mx-auto" on:click={() => toggleSort('correctGames')}>
@@ -318,7 +404,8 @@
           <tbody class="divide-y divide-zinc-800">
             {#each sortedScores as score, index}
               <tr 
-                class={index % 2 === 0 ? 'bg-zinc-800/30' : ''}
+                class="{index % 2 === 0 ? 'bg-zinc-800/30' : ''} 
+                       {isCurrentUserScore(score) ? 'bg-amber-700/20 border-l-4 border-l-amber-500' : ''}"
                 in:fade={{ duration: 100, delay: index * 50 }}
               >
                 <td class="px-6 py-4 whitespace-nowrap text-amber-500 font-semibold">{getRankLabel(ranks[index])}</td>
@@ -328,9 +415,58 @@
                 <td class="px-4 py-4 whitespace-nowrap text-center text-white">{score.round1}</td>
                 <td class="px-4 py-4 whitespace-nowrap text-center text-white">{score.round2}</td>
                 <td class="px-4 py-4 whitespace-nowrap text-center text-white">{score.round3}</td>
-                <td class="px-4 py-4 whitespace-nowrap text-center text-white">{score.round4}</td>
-                <td class="px-4 py-4 whitespace-nowrap text-center text-white">{score.round5}</td>
-                <td class="px-4 py-4 whitespace-nowrap text-center text-white">{score.round6}</td>
+                <td class="px-4 py-4 whitespace-nowrap text-center">
+                  <!-- Elite 8 Team Logos -->
+                  <div class="flex justify-center gap-1">
+                    {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).e8.length > 0}
+                      {#each teamSelections.get(score.entryId).e8 as team}
+                        <div class={teamLogoContainerClass} title={team}>
+                          <img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{getTeamSeoName(team)}.svg" 
+                               alt={team} 
+                               class={teamLogoClass}
+                               style="filter: url(#teamLogoOutline);"
+                               on:error={handleImageError}>
+                        </div>
+                      {/each}
+                    {:else}
+                      <span class="text-zinc-500 text-sm">-</span>
+                    {/if}
+                  </div>
+                </td>
+                <td class="px-4 py-4 whitespace-nowrap text-center">
+                  <!-- Final Four Team Logos -->
+                  <div class="flex justify-center gap-1">
+                    {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).f4.length > 0}
+                      {#each teamSelections.get(score.entryId).f4 as team}
+                        <div class={teamLogoContainerClass} title={team}>
+                          <img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{getTeamSeoName(team)}.svg" 
+                               alt={team} 
+                               class={teamLogoClass}
+                               style="filter: url(#teamLogoOutline);"
+                               on:error={handleImageError}>
+                        </div>
+                      {/each}
+                    {:else}
+                      <span class="text-zinc-500 text-sm">-</span>
+                    {/if}
+                  </div>
+                </td>
+                <td class="px-4 py-4 whitespace-nowrap text-center">
+                  <!-- Championship Team Logo -->
+                  <div class="flex justify-center">
+                    {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).champ}
+                      <div class={teamLogoContainerClass} title={teamSelections.get(score.entryId).champ}>
+                        <img src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{getTeamSeoName(teamSelections.get(score.entryId).champ)}.svg" 
+                             alt={teamSelections.get(score.entryId).champ} 
+                             class={teamLogoClass}
+                             style="filter: url(#teamLogoOutline);"
+                             on:error={handleImageError}>
+                      </div>
+                    {:else}
+                      <span class="text-zinc-500 text-sm">-</span>
+                    {/if}
+                  </div>
+                </td>
                 <td class="px-4 py-4 whitespace-nowrap text-center text-white">{score.correctGames}</td>
               </tr>
             {/each}
@@ -339,4 +475,3 @@
       </div>
     </div>
   {/if}
-</div>
