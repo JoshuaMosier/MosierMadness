@@ -161,8 +161,7 @@
             mode="view"
             bracketData={transformBracketData(selectedBracket)}
             isLocked={true}
-            showScores={true}
-            highlightWinners={true}
+            showScores={false}
           />
         </div>
       {:else}

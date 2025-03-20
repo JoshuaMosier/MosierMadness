@@ -7,7 +7,6 @@
   export let mode = 'view'; // 'view' | 'select' | 'live'
   export let bracketData = null; // The bracket data to display/edit
   export let isLocked = false; // Whether the bracket is locked for editing
-  export let highlightWinners = true; // Whether to highlight winning teams
   export let showScores = true; // Whether to show scores
   
   // Define regions
@@ -127,13 +126,6 @@
     
     if (isSelected) {
       classes.push('bg-amber-800/90 font-medium cursor-pointer');
-    } else if (highlightWinners && isWinningTeam) {
-      if (team?.color) {
-        classes.push(`font-medium`);
-        // We'll apply the color directly in the style attribute
-      } else {
-        classes.push('bg-amber-800/90 font-medium');
-      }
     } else if (!team?.name || team?.name === '') {
       // Make unfilled games more distinct with a dashed border and lighter background
       classes.push('bg-stone-900 border border-dashed border-amber-300/50');
@@ -145,10 +137,6 @@
         classes.push('bg-zinc-800/80');
       }
     }
-    
-    // if (!isSelected && mode === 'live') {
-    //   classes.push('line-through');
-    // }
     
     return classes.join(' ');
   }

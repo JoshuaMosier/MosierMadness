@@ -70,7 +70,6 @@
                 <BracketView
                     mode="live"
                     {bracketData}
-                    highlightWinners={true}
                     showScores={true}
                 />
             {/if}
