@@ -63,12 +63,16 @@
         (prevMatchB.winner === 'A' ? prevMatchB.teamA : prevMatchB.teamB) : 
         null;
 
+      // Create copies of the teams with gray color
+      const teamA = winnerA ? { ...winnerA, color: '#666666', secondaryColor: '#666666' } : null;
+      const teamB = winnerB ? { ...winnerB, color: '#666666', secondaryColor: '#666666' } : null;
+
       const teamAString = formatTeamString(winnerA);
       const teamBString = formatTeamString(winnerB);
       
       matches[i + 1] = {
-        teamA: winnerA,
-        teamB: winnerB,
+        teamA,
+        teamB,
         winner: selections[i] ? 
           (selections[i] === teamAString ? 'A' : 
            selections[i] === teamBString ? 'B' : null) : 
