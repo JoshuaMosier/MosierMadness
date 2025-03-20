@@ -34,7 +34,7 @@
 
   // We'll use a filter to create the outline effect on the SVG content itself
   const teamLogoClass = "w-full h-full object-contain p-0.5 opacity-90";
-  const teamLogoContainerClass = "w-10 h-10 rounded-lg p-1 overflow-hidden";
+  const teamLogoContainerClass = "w-10 h-10 rounded-lg p-1 overflow-hidden shadow-inner";
 
   // Revised SVG filter to reverse drawing order (black first, then white on top)
   let svgFilter = `
@@ -298,6 +298,27 @@
     }
     return baseColor;
   }
+
+  // Add a new function to generate both background color and filter styles
+  function getTeamContainerStyle(teamName) {
+    const colors = teamColors[teamName];
+    const baseColor = colors?.primary_color || '#27272a';
+    let rgba;
+    
+    if (baseColor.startsWith('#')) {
+      const r = parseInt(baseColor.slice(1, 3), 16);
+      const g = parseInt(baseColor.slice(3, 5), 16);
+      const b = parseInt(baseColor.slice(5, 7), 16);
+      rgba = `rgba(${r}, ${g}, ${b}, .8)`;
+    } else {
+      rgba = baseColor;
+    }
+
+    return `
+      background-color: ${rgba}; 
+      filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3)) drop-shadow(-1px -1px 1px rgba(255, 255, 255, 0.1));
+    `;
+  }
 </script>
 
 <!-- Add the SVG filter definition to the page -->
@@ -441,7 +462,7 @@
                         <div 
                           class={teamLogoContainerClass} 
                           title={team}
-                          style="background-color: {getTeamBackgroundColor(team)};"
+                          style={getTeamContainerStyle(team)}
                         >
                           <img src="/images/team-logos/{getTeamSeoName(team)}.svg" 
                                alt={team} 
@@ -462,7 +483,7 @@
                         <div 
                           class={teamLogoContainerClass} 
                           title={team}
-                          style="background-color: {getTeamBackgroundColor(team)};"
+                          style={getTeamContainerStyle(team)}
                         >
                           <img src="/images/team-logos/{getTeamSeoName(team)}.svg" 
                                alt={team} 
@@ -483,7 +504,7 @@
                       <div 
                         class={teamLogoContainerClass} 
                         title={champTeam}
-                        style="background-color: {getTeamBackgroundColor(champTeam)};"
+                        style={getTeamContainerStyle(champTeam)}
                       >
                         <img src="/images/team-logos/{getTeamSeoName(champTeam)}.svg" 
                              alt={champTeam} 
