@@ -134,7 +134,7 @@
                 <div class="relative w-8 h-8 flex-shrink-0">
                   <img class="w-full h-full object-contain" 
                        alt="{game[0][4]} logo" 
-                       src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[0][6]}.svg"
+                       src="/images/team-logos/{game[0][6]}.svg"
                        on:error={handleImageError}>
                 </div>
                 {#if game[0][2]}
@@ -152,7 +152,7 @@
                 <div class="relative w-8 h-8 flex-shrink-0">
                   <img class="w-full h-full object-contain" 
                        alt="{game[1][4]} logo" 
-                       src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{game[1][6]}.svg"
+                       src="/images/team-logos/{game[1][6]}.svg"
                        on:error={handleImageError}>
                 </div>
                 {#if game[1][2]}

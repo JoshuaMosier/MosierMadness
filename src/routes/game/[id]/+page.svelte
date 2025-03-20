@@ -99,7 +99,7 @@
         <div class="team-block text-center flex-1">
           <img 
             class="w-24 h-24 mx-auto mb-2" 
-            src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{gameData[0][6]}.svg" 
+            src="/images/team-logos/{gameData[0][6]}.svg" 
             alt="{gameData[0][0]} logo"
             on:error={handleImageError}
           >
@@ -123,7 +123,7 @@
         <div class="team-block text-center flex-1">
           <img 
             class="w-24 h-24 mx-auto mb-2" 
-            src="https://i.turner.ncaa.com/sites/default/files/images/logos/schools/bgl/{gameData[1][6]}.svg" 
+            src="/images/team-logos/{gameData[1][6]}.svg" 
             alt="{gameData[1][0]} logo"
             on:error={handleImageError}
           >
