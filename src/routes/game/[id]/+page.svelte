@@ -7,37 +7,45 @@
   let error = null;
   let allGames = [];
   
-  onMount(async () => {
-    try {
-      const gameId = $page.params.id;
-      const response = await fetch('/api/scores');
-      
-      if (!response.ok) {
-        throw new Error(`Error fetching scores: ${response.statusText}`);
-      }
-      
-      const matches = await response.json();
-      allGames = matches;
-      
-      if (matches && matches.length > 0) {
-        if (gameId < matches.length) {
-          gameData = matches[gameId];
-          loading = false;
-        } else {
-          // If the requested game ID is out of range, show the first game
-          gameData = matches[0];
-          loading = false;
-          console.warn(`Game ID ${gameId} out of range, showing first game instead`);
+  // Move fetch logic into a reactive statement that watches the page store
+  $: {
+    const fetchGame = async () => {
+      loading = true;
+      error = null;
+      try {
+        const gameId = $page.params.id;
+        const response = await fetch('/api/scores');
+        
+        if (!response.ok) {
+          throw new Error(`Error fetching scores: ${response.statusText}`);
         }
-      } else {
-        throw new Error('No games available at this time');
+        
+        const matches = await response.json();
+        allGames = matches;
+        
+        if (matches && matches.length > 0) {
+          if (gameId < matches.length) {
+            gameData = matches[gameId];
+            loading = false;
+          } else {
+            // If the requested game ID is out of range, show the first game
+            gameData = matches[0];
+            loading = false;
+            console.warn(`Game ID ${gameId} out of range, showing first game instead`);
+          }
+        } else {
+          throw new Error('No games available at this time');
+        }
+      } catch (err) {
+        console.error('Failed to fetch game data:', err);
+        error = err.message;
+        loading = false;
       }
-    } catch (err) {
-      console.error('Failed to fetch game data:', err);
-      error = err.message;
-      loading = false;
-    }
-  });
+    };
+    
+    // Call fetchGame whenever the page store changes
+    fetchGame();
+  }
   
   // Helper function to determine if a team is a winner
   function isWinner(team) {
@@ -60,7 +68,8 @@
   }
 </script>
 
-<div class="container mx-auto px-4 py-8">
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <div class="p-4 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
   {#if loading}
     <div class="w-full py-12 text-center">
       <div class="inline-block animate-pulse text-white">
@@ -150,3 +159,4 @@
     </div>
   {/if}
 </div> 
+</div>
