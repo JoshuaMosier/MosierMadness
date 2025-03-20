@@ -23,8 +23,8 @@
     masterBracket: null,
     liveBracket: null,
     lastFetch: null,
-    // Cache for 5 minutes
-    cacheTimeout: 5 * 60 * 1000
+    // Cache for 1 hour
+    cacheTimeout: 60 * 60 * 1000
   };
 
   // Let's modify our approach to use a filter for the SVGs instead of container outlines
