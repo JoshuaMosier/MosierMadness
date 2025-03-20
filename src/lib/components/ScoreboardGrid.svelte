@@ -138,7 +138,7 @@
                        on:error={handleImageError}>
                 </div>
                 {#if game[0][2]}
-                  <span class="rank text-xs bg-gray-700 text-white px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">#{game[0][2]}</span>
+                  <span class="rank text-xs bg-gray-700 text-white px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 min-w-[2rem] inline-block text-center">#{game[0][2]}</span>
                 {/if}
                 <span class="text-lg px-2 py-1 rounded-md flex-grow {isWinner(game[0]) ? 'text-white font-semibold' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm truncate"
                       style={getTeamStyle(game[0][4])}>
@@ -156,7 +156,7 @@
                        on:error={handleImageError}>
                 </div>
                 {#if game[1][2]}
-                  <span class="rank text-xs bg-gray-700 text-white px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">#{game[1][2]}</span>
+                  <span class="rank text-xs bg-gray-700 text-white px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 min-w-[2rem] inline-block text-center">#{game[1][2]}</span>
                 {/if}
                 <span class="text-lg px-2 py-1 rounded-md flex-grow {isWinner(game[1]) ? 'text-white font-semibold' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm truncate"
                       style={getTeamStyle(game[1][4])}>
