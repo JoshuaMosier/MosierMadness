@@ -33,7 +33,7 @@
 
   // We'll use a filter to create the outline effect on the SVG content itself
   const teamLogoClass = "w-full h-full object-contain p-0.5 opacity-90";
-  const teamLogoContainerClass = "w-10 h-10 rounded-lg p-1 overflow-hidden shadow-inner";
+  const teamLogoContainerClass = "w-10 h-10 rounded-lg p-1 overflow-hidden shadow-inner relative";
 
   // Revised SVG filter to reverse drawing order (black first, then white on top)
   let svgFilter = `
@@ -344,6 +344,27 @@
       filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3)) drop-shadow(-1px -1px 1px rgba(255, 255, 255, 0.1));
     `;
   }
+
+  // Add these helper functions near the other style-related functions
+  function getTeamOverlayStyle(teamName, score, gameIndex) {
+    // Check if team was eliminated by looking for any eliminated team that ends with this team name
+    const isEliminated = eliminatedTeams.some(eliminatedTeam => {
+      const eliminatedTeamName = getTeamNameFromSelection(eliminatedTeam);
+      return eliminatedTeamName === teamName;
+    });
+    
+    if (isEliminated) {
+      return 'background: rgba(255, 0, 0, 0.7);'; // red-500 with 50% opacity
+    }
+    
+    // Check if prediction was correct
+    const masterTeamName = getTeamNameFromSelection(masterBracket[gameIndex]);
+    if (masterTeamName === teamName) {
+      return 'background: rgba(34, 197, 94, 0.5);'; // green-500 with 50% opacity
+    }
+    
+    return '';
+  }
 </script>
 
 <!-- Add the SVG filter definition to the page -->
@@ -481,7 +502,7 @@
                 <td class="px-2 whitespace-nowrap text-center">
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).e8.length > 0}
-                      {#each teamSelections.get(score.entryId).e8 as team}
+                      {#each teamSelections.get(score.entryId).e8 as team, idx}
                         <div 
                           class={teamLogoContainerClass} 
                           title={team}
@@ -492,6 +513,10 @@
                                class={teamLogoClass}
                                style="filter: url(#teamLogoOutline);"
                                on:error={handleImageError}>
+                          <div 
+                            class="absolute inset-0 rounded-lg"
+                            style={getTeamOverlayStyle(team, score, 56 + idx)}
+                          ></div>
                         </div>
                       {/each}
                     {:else}
@@ -502,7 +527,7 @@
                 <td class="px-2 whitespace-nowrap text-center">
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).f4.length > 0}
-                      {#each teamSelections.get(score.entryId).f4 as team}
+                      {#each teamSelections.get(score.entryId).f4 as team, idx}
                         <div 
                           class={teamLogoContainerClass} 
                           title={team}
@@ -513,6 +538,10 @@
                                class={teamLogoClass}
                                style="filter: url(#teamLogoOutline);"
                                on:error={handleImageError}>
+                          <div 
+                            class="absolute inset-0 rounded-lg"
+                            style={getTeamOverlayStyle(team, score, 60 + idx)}
+                          ></div>
                         </div>
                       {/each}
                     {:else}
@@ -534,6 +563,10 @@
                              class={teamLogoClass}
                              style="filter: url(#teamLogoOutline);"
                              on:error={handleImageError}>
+                        <div 
+                          class="absolute inset-0 rounded-lg"
+                          style={getTeamOverlayStyle(champTeam, score, 62)}
+                        ></div>
                       </div>
                     {:else}
                       <span class="text-zinc-500 text-sm">-</span>

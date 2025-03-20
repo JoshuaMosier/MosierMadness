@@ -142,8 +142,10 @@
         if (liveTeamA) {
           const liveTeamStr = formatTeamString(liveTeamA);
           isCorrectA = teamAString === liveTeamStr;
-          // Only mark as wrong if there's a winner for this match
-          isWrongA = liveWinner && teamAString !== liveTeamStr;
+          // Mark as wrong if either:
+          // 1. There's a winner and team doesn't match live team, or
+          // 2. The team is in eliminated set
+          isWrongA = (liveWinner && teamAString !== liveTeamStr) || eliminatedTeams.has(teamAString);
         } 
         // If no live data yet, check if the team is already eliminated
         else {
@@ -157,8 +159,10 @@
         if (liveTeamB) {
           const liveTeamStr = formatTeamString(liveTeamB);
           isCorrectB = teamBString === liveTeamStr;
-          // Only mark as wrong if there's a winner for this match
-          isWrongB = liveWinner && teamBString !== liveTeamStr;
+          // Mark as wrong if either:
+          // 1. There's a winner and team doesn't match live team, or
+          // 2. The team is in eliminated set
+          isWrongB = (liveWinner && teamBString !== liveTeamStr) || eliminatedTeams.has(teamBString);
         } 
         // If no live data yet, check if the team is already eliminated
         else {
