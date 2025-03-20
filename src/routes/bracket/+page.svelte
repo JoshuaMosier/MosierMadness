@@ -15,6 +15,7 @@ import { onMount } from 'svelte';
   let teamSelectionSaving = false; // Separate saving state for team selections
   let bracketActionSaving = false; // Separate saving state for major bracket actions
   let firstRoundTeams = []; // Will be populated dynamically
+  const tournamentStarted = true; // Set this to true when tournament begins
 
   // Function to fetch and format teams from NCAA API
   async function fetchBracketTeams() {
@@ -422,6 +423,12 @@ import { onMount } from 'svelte';
       >
         Login
       </a>
+    </div>
+  {:else if tournamentStarted}
+    <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center"
+         in:fade={{ duration: 100, delay: 100 }}>
+      <h2 class="text-xl font-semibold text-zinc-200 mb-3">Tournament In Progress</h2>
+      <p class="text-zinc-300">Bracket submission is now closed as the tournament has begun.</p>
     </div>
   {:else if bracket}
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"

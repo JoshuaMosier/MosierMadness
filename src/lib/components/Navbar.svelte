@@ -2,18 +2,52 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
+  import { page } from '$app/stores';
   
   let isMenuOpen = false;
   let user = null;
+  let userEntry = null;
+  let isSpinning = false;
+  
+  // Get current path for active state
+  $: currentPath = $page.url.pathname;
   
   onMount(async () => {
     // Get initial auth state
     const { data: { user: initialUser } } = await supabase.auth.getUser();
     user = initialUser;
+
+    if (user) {
+      // Fetch the user's entry
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('email', user.email)
+        .single();
+
+      if (profiles) {
+        userEntry = profiles;
+      }
+    }
     
     // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       user = session?.user || null;
+      
+      if (user) {
+        // Fetch the user's entry on auth state change
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('email', user.email)
+          .single();
+
+        if (profiles) {
+          userEntry = profiles;
+        }
+      } else {
+        userEntry = null;
+      }
     });
 
     // Cleanup subscription on component destroy
@@ -42,6 +76,40 @@
     } catch (err) {
       console.error('Unexpected error during logout:', err);
     }
+  }
+
+  // Function to handle entries navigation
+  function handleEntriesClick() {
+    if (user && userEntry) {
+      const nameIdentifier = `${userEntry.first_name}|${userEntry.last_name}`;
+      goto(`/entries?selected=${nameIdentifier}`);
+    } else {
+      goto('/entries');
+    }
+    closeMenu();
+  }
+
+  function handleEasterEggClick(event) {
+    event.preventDefault();
+    if (isSpinning) return; // Prevent multiple simultaneous spins
+    
+    isSpinning = true;
+    const currentPath = window.location.pathname;
+    
+    setTimeout(() => {
+      isSpinning = false; // Reset spinning state after animation
+      if (currentPath !== '/easter-egg') {
+        goto('/easter-egg');
+      }
+    }, 1000);
+  }
+
+  // Helper function to check if a path is active
+  function isActive(path) {
+    if (path === '/') {
+      return currentPath === '/';
+    }
+    return currentPath.startsWith(path);
   }
 </script>
 
@@ -73,10 +141,10 @@
         <div class="flex-shrink-0 w-1/3 flex justify-end">
           <div class="flex items-center space-x-3">
             <a href="/" class="nav-link">
-              <div class="nav-button">Leaderboard</div>
+              <div class="nav-button {isActive('/') ? 'active' : ''}">Leaderboard</div>
             </a>
             <a href="/bracket" class="nav-link">
-              <div class="nav-button">Submit Entry</div>
+              <div class="nav-button {isActive('/bracket') ? 'active' : ''}">Submit Entry</div>
             </a>
             <a href="/entries" class="nav-link">
               <div class="nav-button">Entries</div>
@@ -85,9 +153,18 @@
         </div>
 
         <!-- Center Logo -->
-        <div class="flex-shrink-0 w-1/3 flex justify-center">
+        <div class="flex-shrink-0 w-1/3 flex justify-center relative">
           <a href="/" class="block">
             <img src="/images/ui/mmi_madness.png" alt="MMI Madness Logo" class="h-40 w-100 object-contain" />
+          </a>
+          <!-- Easter Egg Link -->
+          <a href="/easter-egg" 
+             class="hidden md:block absolute hover-trigger" 
+             style="top: 32%; left: 12%; transform: translate(-50%, -50%);"
+             on:click={handleEasterEggClick}>
+            <img src="/images/ui/easter-egg.png" 
+                 alt="" 
+                 class="w-14 h-14 cursor-pointer hover-glow {isSpinning ? 'spin' : ''}" />
           </a>
         </div>
 
@@ -98,7 +175,7 @@
               <div class="nav-button">Live Bracket</div>
             </a>
             <a href="/scenarios" class="nav-link">
-              <div class="nav-button">Scenarios</div>
+              <div class="nav-button {isActive('/scenarios') ? 'active' : ''}">Scenarios</div>
             </a>
             {#if user}
               <button on:click={handleLogout} class="nav-link">
@@ -106,7 +183,7 @@
               </button>
             {:else}
               <a href="/login" class="nav-link">
-                <div class="nav-button">Login</div>
+                <div class="nav-button {isActive('/login') ? 'active' : ''}">Login</div>
               </a>
             {/if}
           </div>
@@ -125,9 +202,9 @@
     {#if isMenuOpen}
       <div class="md:hidden fixed inset-0 bg-black bg-opacity-90 z-10 pt-16">
         <div class="px-4 pt-2 pb-3 space-y-3">
-          <a href="/" class="mobile-nav-button" on:click={closeMenu}>Leaderboard</a>
-          <a href="/bracket" class="mobile-nav-button" on:click={closeMenu}>Submit Bracket</a>
-          <a href="/entries" class="mobile-nav-button" on:click={closeMenu}>Entries</a>
+          <a href="/" class="mobile-nav-button {isActive('/') ? 'active' : ''}" on:click={closeMenu}>Leaderboard</a>
+          <a href="/bracket" class="mobile-nav-button {isActive('/bracket') ? 'active' : ''}" on:click={closeMenu}>Submit Bracket</a>
+          <button on:click={handleEntriesClick} class="mobile-nav-button w-full {isActive('/entries') ? 'active' : ''}">Entries</button>
           <a href="/live-bracket" class="mobile-nav-button" on:click={closeMenu}>Live Bracket</a>
           <!-- <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a> -->
           <!-- <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a> -->
@@ -190,5 +267,44 @@
     .nav-link {
       width: 160px;
     }
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .spin {
+    animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    pointer-events: none;
+  }
+
+  .hover-glow {
+    transition: filter 0.3s ease, transform 0.3s ease;
+  }
+
+  .hover-trigger:hover .hover-glow {
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.4));
+    transform: scale(1.05);
+  }
+
+  .nav-button.active {
+    @apply bg-amber-400/20 border-amber-400/30;
+  }
+
+  .nav-button.active:hover {
+    @apply bg-amber-400/30 border-amber-400/40;
+  }
+
+  .mobile-nav-button.active {
+    @apply bg-amber-400/20 border-amber-400/30;
+  }
+
+  .mobile-nav-button.active:hover {
+    @apply bg-amber-400/30;
   }
 </style> 
