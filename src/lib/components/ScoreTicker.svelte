@@ -61,8 +61,44 @@
     }
   }
   
+  // Helper function to get game status priority for sorting
+  function getStatusPriority(status) {
+    switch(status.toUpperCase()) {
+      case 'LIVE': return 0;
+      case 'FINAL': return 2;
+      case 'PRE': return 1;
+      default: return 3;
+    }
+  }
+  
   // Determine display mode based on number of games
   $: displayMode = matches.length <= 4 ? 'featured' : 'scroll';
+  
+  // Sort games by status and time
+  $: sortedGames = matches.slice().sort((a, b) => {
+    const statusA = a[2].toUpperCase();
+    const statusB = b[2].toUpperCase();
+    
+    // First sort by status priority
+    if (statusA !== statusB) {
+      return getStatusPriority(statusA) - getStatusPriority(statusB);
+    }
+    
+    // If both are PRE, sort by game time
+    if (statusA === 'PRE') {
+      const timeA = parseGameTime(a[3]);
+      const timeB = parseGameTime(b[3]);
+      
+      if (timeA && timeB) {
+        if (timeA.hours !== timeB.hours) {
+          return timeA.hours - timeB.hours;
+        }
+        return timeA.minutes - timeB.minutes;
+      }
+    }
+    
+    return 0;
+  });
   
   // Handle image loading errors
   function handleImageError(event) {
@@ -118,31 +154,6 @@
 
   // Update the duplicatedMatches computation to use sorted matches
   $: {
-    const sortedGames = matches.slice().sort((a, b) => {
-      const statusA = a[2].toUpperCase();
-      const statusB = b[2].toUpperCase();
-      
-      // First sort by status priority
-      if (statusA !== statusB) {
-        return ['LIVE', 'PRE', 'FINAL'].indexOf(statusA) - ['LIVE', 'PRE', 'FINAL'].indexOf(statusB);
-      }
-      
-      // If both are PRE, sort by game time
-      if (statusA === 'PRE') {
-        const timeA = parseGameTime(a[3]);
-        const timeB = parseGameTime(b[3]);
-        
-        if (timeA && timeB) {
-          if (timeA.hours !== timeB.hours) {
-            return timeA.hours - timeB.hours;
-          }
-          return timeA.minutes - timeB.minutes;
-        }
-      }
-      
-      return 0;
-    });
-    
     // Only duplicate if we have enough games to warrant scrolling
     if (matches.length > 4) {
       duplicatedMatches = [...sortedGames, ...sortedGames];
@@ -172,8 +183,12 @@
     {#if displayMode === 'featured'}
       <div class="p-2">
         <div class="flex flex-wrap gap-2 justify-center">
-          {#each matches as game, index}
-            <a href="/game/{index}" class="flex-shrink-0 w-64">
+          {#each sortedGames as game, index}
+            <a href="/game/{matches.findIndex(m => 
+              m[0][4] === game[0][4] && 
+              m[1][4] === game[1][4] && 
+              m[2] === game[2]
+            )}" class="flex-shrink-0 w-64">
               <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
                 <div class="game-date flex justify-between items-center mb-3">
                   <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
@@ -234,9 +249,18 @@
     <!-- Scroll mode for 5+ games - show scrolling ticker -->
     {:else}
       <div class="relative">
-        <!-- View All Scores Button -->
-        <div class="absolute -top-10 right-0">
+        <!-- Desktop View All Scores Button -->
+        <div class="absolute -top-10 right-0 hidden md:block">
           <a href="/scores" class="bg-black/40 hover:bg-black/60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border border-white/10 hover:border-white/30 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02]">
+            <span>View All Scores</span>
+          </a>
+        </div>
+
+        <!-- Mobile View All Scores button - always visible above the scores -->
+        <div class="mb-3 flex justify-center md:hidden">
+          <a href="/scores" 
+             on:click|preventDefault={(e) => { window.location.href = '/scores'; }}
+             class="bg-black/40 hover:bg-black/60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border border-white/10 hover:border-white/30 shadow-lg active:bg-black/70 touch-manipulation">
             <span>View All Scores</span>
           </a>
         </div>
@@ -244,7 +268,7 @@
         <div class="score-ticker relative py-2">
           <!-- Mobile view: scrollable container -->
           <div class="md:hidden flex overflow-x-auto py-2 px-1 scrollbar-hide">
-            {#each matches as game, index}
+            {#each sortedGames as game, index}
               <a href="/game/{matches.findIndex(m => 
                 m[0][4] === game[0][4] && 
                 m[1][4] === game[1][4] && 

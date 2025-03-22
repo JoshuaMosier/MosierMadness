@@ -1,6 +1,7 @@
 <script>
   import { page } from '$app/stores';
   import { supabase } from '$lib/supabase';
+  import { onMount } from 'svelte';
   
   export let data;
   
@@ -10,8 +11,30 @@
   let entries = [];
   let entriesLoading = true;
   let teamSelections = { home: [], away: [], other: [] };
+  let currentUserId = null; // Store the current user's ID
+  let previousGameId = null; // Track the previous game ID to detect changes
   
-  $: {
+  // Get the current user's ID on mount
+  onMount(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      currentUserId = user.id;
+      console.log('Current user ID:', currentUserId);
+    }
+  });
+  
+  // Helper function to check if an entry belongs to the current user
+  function isCurrentUser(entry) {
+    return entry.user_id === currentUserId;
+  }
+
+  // React to changes in the data prop, particularly the gameId
+  $: if (data.gameId !== previousGameId) {
+    // Reset state when changing games
+    teamSelections = { home: [], away: [], other: [] };
+    entriesLoading = true;
+    previousGameId = data.gameId;
+    
     const matches = data.matches;
     const gameId = data.gameId;
     
@@ -20,8 +43,13 @@
       const targetGame = matches[gameId];
       if (targetGame) {
         gameData = targetGame;
-        // Once we have game data, load entries
-        loadEntries();
+        // Load entries for the new game
+        if (typeof window !== 'undefined') { // Only run in browser
+          loadEntries();
+        } else {
+          // In SSR, defer loading until mounted
+          onMount(() => loadEntries());
+        }
       } else {
         gameData = matches[0];
         console.warn(`Game ID ${gameId} not found, showing first game instead`);
@@ -120,18 +148,21 @@
         if (userPick === homeTeamFormatted) {
           homeTeamPicks.push({
             name: `${bracket.profiles.first_name} ${bracket.profiles.last_name}`,
-            id: bracket.id
+            id: bracket.id,
+            user_id: bracket.user_id  // Add user_id to identify the current user
           });
         } else if (userPick === awayTeamFormatted) {
           awayTeamPicks.push({
             name: `${bracket.profiles.first_name} ${bracket.profiles.last_name}`,
-            id: bracket.id
+            id: bracket.id,
+            user_id: bracket.user_id  // Add user_id to identify the current user
           });
         } else {
           // User picked a different team that isn't in this game
           otherTeamPicks.push({
             name: `${bracket.profiles.first_name} ${bracket.profiles.last_name}`,
             id: bracket.id,
+            user_id: bracket.user_id,  // Add user_id to identify the current user
             team: userPick // Store which team they picked
           });
         }
@@ -337,10 +368,10 @@
                 {:else}
                   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                     {#each teamSelections.away as entry}
-                      <div class="px-3 py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors">
+                      <div class="px-3 py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
                         <a 
                           href="/entries?selected={entry.name.replace(' ', '|')}" 
-                          class="text-zinc-300 hover:text-white transition-colors block truncate"
+                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate"
                           title={entry.name}
                         >
                           {entry.name}
@@ -370,10 +401,10 @@
                 {:else}
                   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                     {#each teamSelections.home as entry}
-                      <div class="px-3 py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors">
+                      <div class="px-3 py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
                         <a 
                           href="/entries?selected={entry.name.replace(' ', '|')}" 
-                          class="text-zinc-300 hover:text-white transition-colors block truncate"
+                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate"
                           title={entry.name}
                         >
                           {entry.name}
@@ -390,32 +421,32 @@
 
       <!-- Unexpected Team Picks Section with logos -->
       {#if teamSelections.other && teamSelections.other.length > 0}
-        <div class="bg-black bg-opacity-30 rounded-lg p-6 shadow-lg border border-white/10 mt-6">
-          <h3 class="text-center text-2xl text-white font-semibold mb-6">Alternate Predictions</h3>
+        <div class="bg-black bg-opacity-30 rounded-lg p-4 shadow-lg border border-white/10 mt-6">
+          <h3 class="text-center text-xl text-white font-semibold mb-4">Alternate Predictions</h3>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {#each teamSelections.other as teamGroup}
               <div class="bg-zinc-800/30 rounded-lg overflow-hidden">
-                <div class="team-header bg-zinc-800/70 p-3 flex items-center justify-center gap-3">
+                <div class="team-header bg-zinc-800/70 p-2 flex items-center gap-2">
                   <img 
-                    class="w-8 h-8" 
+                    class="w-6 h-6" 
                     src="/images/team-logos/{teamGroup.seoName}.svg" 
                     alt="{teamGroup.name} logo"
                     on:error={handleImageError}
                   >
-                  <div class="team-seed bg-gray-700 text-white inline-block px-2 py-1 rounded">
+                  <div class="team-seed bg-gray-700 text-white inline-block px-1.5 py-0.5 rounded text-sm">
                     #{teamGroup.seed}
                   </div>
-                  <h4 class="text-lg font-semibold text-white">{teamGroup.name} ({teamGroup.count})</h4>
+                  <h4 class="text-base font-semibold text-white">{teamGroup.name} ({teamGroup.count})</h4>
                 </div>
                 
-                <div class="p-3">
-                  <div class="grid grid-cols-1 gap-2">
+                <div class="p-2">
+                  <div class="grid grid-cols-2 gap-1.5 text-sm">
                     {#each teamGroup.users as entry}
-                      <div class="px-3 py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors">
+                      <div class="px-2 py-1 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
                         <a 
                           href="/entries?selected={entry.name.replace(' ', '|')}" 
-                          class="text-zinc-300 hover:text-white transition-colors block truncate"
+                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate"
                           title={entry.name}
                         >
                           {entry.name}
