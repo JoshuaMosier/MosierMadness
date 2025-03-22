@@ -439,7 +439,7 @@
       <!-- Mobile View -->
       <div class="md:hidden">
         <!-- Column Headers -->
-        <div class="border-b border-zinc-800 p-3 bg-zinc-900/50 sticky top-0 backdrop-blur-sm z-10">
+        <div class="border-b border-zinc-800 p-3 bg-zinc-900/50 sticky top-0 backdrop-blur-sm z-[5]">
           <div class="flex justify-between items-center">
             <div class="flex-1">
               <span class="text-zinc-300 text-sm font-semibold">Name</span>
