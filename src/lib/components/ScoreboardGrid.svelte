@@ -139,11 +139,11 @@
   }
 </script>
 
-<div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen py-4 sm:py-8 px-2 sm:px-4 lg:px-8">
   <div class="max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-white">Live Scoreboard</h1>
-      <div class="text-sm text-gray-400">Auto-updates every 10 seconds</div>
+    <div class="flex justify-between items-center mb-4 sm:mb-6">
+      <h1 class="text-xl sm:text-2xl font-bold text-white">Live Scoreboard</h1>
+      <div class="text-xs sm:text-sm text-gray-400">Auto-updates every 10 seconds</div>
     </div>
 
     {#if loading && matches.length === 0}
@@ -161,57 +161,57 @@
         No games scheduled at this time.
       </div>
     {:else}
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6">
         {#each sortedMatches as game, index (game[0][6] + game[1][6])}
           <a href="/game/{matches.findIndex(m => 
             m[0][4] === game[0][4] && 
             m[1][4] === game[1][4] && 
             m[2] === game[2]
-          )}" class="game-box bg-gradient-to-br from-stone-950/90 to-black/90 rounded-xl p-5 border border-white/10 hover:border-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02] hover:from-zinc-700/90 hover:to-zinc-800/90">
-            <div class="game-date flex justify-between items-center mb-3">
-              <span class="text-sm text-gray-400 font-semibold">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
-              <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 py-1 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
+          )}" class="game-box bg-gradient-to-br from-stone-950/90 to-black/90 rounded-lg sm:rounded-xl p-2 sm:p-5 border border-white/10 hover:border-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02] hover:from-zinc-700/90 hover:to-zinc-800/90">
+            <div class="game-date flex justify-between items-center mb-2 sm:mb-3">
+              <span class="text-xs sm:text-sm text-gray-400 font-semibold">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
+              <span class="game-prog {getStatusColor(game[2])} font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
             </div>
             
-            <div class="game-teams space-y-4">
+            <div class="game-teams space-y-2 sm:space-y-4">
               <!-- Away Team -->
-              <div class="game-team flex items-center space-x-2 py-2 {isWinner(game[0]) ? 'font-bold' : ''} group">
-                <div class="relative w-8 h-8 flex-shrink-0">
+              <div class="game-team flex items-center space-x-1 sm:space-x-2 py-1 sm:py-2 {isWinner(game[0]) ? 'font-bold' : ''} group">
+                <div class="relative w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
                   <img class="w-full h-full object-contain" 
                        alt="{game[0][4]} logo" 
                        src="/images/team-logos/{game[0][6]}.svg"
                        on:error={handleImageError}>
                 </div>
                 {#if game[0][2]}
-                  <span class="rank text-xs bg-gray-700 text-white px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 min-w-[2rem] inline-block text-center">#{game[0][2]}</span>
+                  <span class="rank text-xxs sm:text-xs bg-gray-700 text-white px-1 sm:px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 min-w-[1.5rem] sm:min-w-[2rem] inline-block text-center">#{game[0][2]}</span>
                 {/if}
-                <span class="text-lg px-2 py-1 rounded-md flex-grow {isWinner(game[0]) ? 'text-white font-semibold' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm truncate"
+                <span class="text-sm sm:text-lg px-1 sm:px-2 py-0.5 sm:py-1 rounded-md flex-grow {isWinner(game[0]) ? 'text-white font-semibold' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm truncate"
                       style={getTeamStyle(game[0][4])}>
                   {getDisplayName(game[0])}
                 </span>
-                <span class="score-value text-2xl font-bold tabular-nums flex-shrink-0 {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
+                <span class="score-value text-lg sm:text-2xl font-bold tabular-nums flex-shrink-0 {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
               </div>
               
               <!-- Home Team -->
-              <div class="game-team flex items-center space-x-2 py-2 {isWinner(game[1]) ? 'font-bold' : ''} group">
-                <div class="relative w-8 h-8 flex-shrink-0">
+              <div class="game-team flex items-center space-x-1 sm:space-x-2 py-1 sm:py-2 {isWinner(game[1]) ? 'font-bold' : ''} group">
+                <div class="relative w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
                   <img class="w-full h-full object-contain" 
                        alt="{game[1][4]} logo" 
                        src="/images/team-logos/{game[1][6]}.svg"
                        on:error={handleImageError}>
                 </div>
                 {#if game[1][2]}
-                  <span class="rank text-xs bg-gray-700 text-white px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 min-w-[2rem] inline-block text-center">#{game[1][2]}</span>
+                  <span class="rank text-xxs sm:text-xs bg-gray-700 text-white px-1 sm:px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 min-w-[1.5rem] sm:min-w-[2rem] inline-block text-center">#{game[1][2]}</span>
                 {/if}
-                <span class="text-lg px-2 py-1 rounded-md flex-grow {isWinner(game[1]) ? 'text-white font-semibold' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm truncate"
+                <span class="text-sm sm:text-lg px-1 sm:px-2 py-0.5 sm:py-1 rounded-md flex-grow {isWinner(game[1]) ? 'text-white font-semibold' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm truncate"
                       style={getTeamStyle(game[1][4])}>
                   {getDisplayName(game[1])}
                 </span>
-                <span class="score-value text-2xl font-bold tabular-nums flex-shrink-0 {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
+                <span class="score-value text-lg sm:text-2xl font-bold tabular-nums flex-shrink-0 {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
               </div>
             </div>
             
-            <div class="mt-4 text-sm text-gray-400 text-center font-semibold border-t border-white/5 pt-3">
+            <div class="mt-2 sm:mt-4 text-xs sm:text-sm text-gray-400 text-center font-semibold border-t border-white/5 pt-2 sm:pt-3">
               {game[0][5]} vs {game[1][5]}
             </div>
           </a>
@@ -220,3 +220,11 @@
     {/if}
   </div>
 </div>
+
+<style>
+  /* Add text-xxs size for very small text on mobile */
+  .text-xxs {
+    font-size: 0.65rem;
+    line-height: 0.85rem;
+  }
+</style>

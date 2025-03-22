@@ -128,9 +128,15 @@
   
   <div class="max-w-6xl mx-auto px-4 relative z-10">
     <!-- Mobile menu button -->
-    <button class="md:hidden absolute top-4 left-4 p-2 z-20" on:click={toggleMenu} aria-label="Toggle navigation menu">
+    <button class="md:hidden absolute top-4 left-4 p-2 z-[30]" on:click={toggleMenu} aria-label="Toggle navigation menu">
       <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        {#if isMenuOpen}
+          <!-- X icon for closing -->
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        {:else}
+          <!-- Hamburger icon for opening -->
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        {/if}
       </svg>
     </button>
 
@@ -200,7 +206,7 @@
 
     <!-- Mobile Navigation Menu -->
     {#if isMenuOpen}
-      <div class="md:hidden fixed inset-0 bg-black bg-opacity-90 z-10 pt-16">
+      <div class="md:hidden fixed inset-0 bg-black z-[20] pt-16">
         <div class="px-4 pt-2 pb-3 space-y-3">
           <a href="/" class="mobile-nav-button {isActive('/') ? 'active' : ''}" on:click={closeMenu}>Leaderboard</a>
           <a href="/bracket" class="mobile-nav-button {isActive('/bracket') ? 'active' : ''}" on:click={closeMenu}>Submit Bracket</a>
