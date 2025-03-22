@@ -60,18 +60,26 @@
     const eliminatedTeams = new Set();
     const advancedTeams = new Set();
     
-    // Find all eliminated teams from the first 4 rounds (matches 1-60)
-    // First add all teams that have played to eliminated set
-    for (let i = 1; i <= 32; i++) {
+    // First add all losing teams to eliminated set
+    for (let i = 1; i <= 48; i++) {
       const match = liveBracketData.matches[i];
       // Only add teams to eliminated if the match has a winner
       if (match?.winner) {
-        if (match?.teamA) eliminatedTeams.add(formatTeamString(match.teamA));
-        if (match?.teamB) eliminatedTeams.add(formatTeamString(match.teamB));
+        // Add the losing team to the eliminated set
+        const losingTeam = match.winner === 'A' ? match.teamB : match.teamA;
+        if (losingTeam) {
+          const teamStr = formatTeamString(losingTeam);
+          eliminatedTeams.add(teamStr);
+          console.log('Added to eliminated:', teamStr);
+        }
       }
     }
-    
-    // Then remove teams that have advanced (winners)
+
+    console.log('Eliminated teams before processing winners:', Array.from(eliminatedTeams));
+
+    // DO NOT REMOVE teams from eliminatedTeams based on the bracket data!
+    // This logic is incorrect and is causing the issue:
+    // Instead, use a different approach - build advancedTeams separately
     for (let i = 1; i <= 63; i++) {
       const match = liveBracketData.matches[i];
       if (match?.winner) {
@@ -79,11 +87,15 @@
         if (winningTeam) {
           const teamStr = formatTeamString(winningTeam);
           advancedTeams.add(teamStr);
-          eliminatedTeams.delete(teamStr);
+          // Do NOT delete from eliminatedTeams here
         }
       }
     }
-    
+
+    // Debug what we have now
+    console.log('Final eliminated teams:', Array.from(eliminatedTeams));
+    console.log('Advanced teams:', Array.from(advancedTeams));
+
     // Initialize first round matches using live bracket data (1-32)
     for (let i = 0; i < 32; i++) {
       const liveMatch = liveBracketData.matches[i + 1];
@@ -142,10 +154,8 @@
         if (liveTeamA) {
           const liveTeamStr = formatTeamString(liveTeamA);
           isCorrectA = teamAString === liveTeamStr;
-          // Mark as wrong if either:
-          // 1. There's a winner and team doesn't match live team, or
-          // 2. The team is in eliminated set
-          isWrongA = (liveWinner && teamAString !== liveTeamStr) || eliminatedTeams.has(teamAString);
+          // IMPORTANT: Use the eliminatedTeams set directly, don't rely on other logic
+          isWrongA = eliminatedTeams.has(teamAString);
         } 
         // If no live data yet, check if the team is already eliminated
         else {
@@ -159,10 +169,8 @@
         if (liveTeamB) {
           const liveTeamStr = formatTeamString(liveTeamB);
           isCorrectB = teamBString === liveTeamStr;
-          // Mark as wrong if either:
-          // 1. There's a winner and team doesn't match live team, or
-          // 2. The team is in eliminated set
-          isWrongB = (liveWinner && teamBString !== liveTeamStr) || eliminatedTeams.has(teamBString);
+          // IMPORTANT: Use the eliminatedTeams set directly
+          isWrongB = eliminatedTeams.has(teamBString);
         } 
         // If no live data yet, check if the team is already eliminated
         else {
@@ -203,6 +211,23 @@
       matches,
       champion
     };
+  }
+
+  function isTeamEliminated(teamStr, eliminatedTeamsSet) {
+    if (!teamStr) return false;
+    
+    // Direct check
+    if (eliminatedTeamsSet.has(teamStr)) return true;
+    
+    // Normalize and check again (remove punctuation, lowercase)
+    const normalizedTeamStr = teamStr.toLowerCase().replace(/[^\w\s]/g, '');
+    
+    for (const eliminatedTeam of eliminatedTeamsSet) {
+      const normalizedEliminatedTeam = eliminatedTeam.toLowerCase().replace(/[^\w\s]/g, '');
+      if (normalizedTeamStr === normalizedEliminatedTeam) return true;
+    }
+    
+    return false;
   }
 
   onMount(async () => {
