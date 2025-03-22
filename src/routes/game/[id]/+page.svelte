@@ -285,11 +285,11 @@
           {/if}
         </div>
         
-        <div class="game-content flex flex-col md:flex-row justify-between items-center gap-8 py-4">
+        <div class="game-content flex flex-row justify-between items-center gap-4 py-4">
           <!-- Away Team -->
           <div class="team-block text-center flex-1">
             <img 
-              class="w-24 h-24 mx-auto mb-2" 
+              class="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-2" 
               src="/images/team-logos/{gameData[0][6]}.svg" 
               alt="{gameData[0][0]} logo"
               on:error={handleImageError}
@@ -297,10 +297,10 @@
             <div class="team-seed bg-gray-800 text-white inline-block px-2 py-1 rounded mb-1">
               #{gameData[0][2]}
             </div>
-            <div class="team-name text-xl font-semibold mb-1 {isWinner(gameData[0]) ? 'text-white' : isWinner(gameData[1]) ? 'text-gray-400 line-through' : 'text-white'}">
+            <div class="team-name text-lg sm:text-xl font-semibold mb-1 {isWinner(gameData[0]) ? 'text-white' : isWinner(gameData[1]) ? 'text-gray-400 line-through' : 'text-white'}">
               {gameData[0][4]}
             </div>
-            <div class="team-score text-4xl font-bold {isWinner(gameData[0]) ? 'text-yellow-300' : 'text-white'}">
+            <div class="team-score text-3xl sm:text-4xl font-bold {isWinner(gameData[0]) ? 'text-yellow-300' : 'text-white'}">
               {gameData[0][1]}
             </div>
             {#if isWinner(gameData[0])}
@@ -313,7 +313,7 @@
           <!-- Home Team -->
           <div class="team-block text-center flex-1">
             <img 
-              class="w-24 h-24 mx-auto mb-2" 
+              class="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-2" 
               src="/images/team-logos/{gameData[1][6]}.svg" 
               alt="{gameData[1][0]} logo"
               on:error={handleImageError}
@@ -321,10 +321,10 @@
             <div class="team-seed bg-gray-800 text-white inline-block px-2 py-1 rounded mb-1">
               #{gameData[1][2]}
             </div>
-            <div class="team-name text-xl font-semibold mb-1 {isWinner(gameData[1]) ? 'text-white' : isWinner(gameData[0]) ? 'text-gray-400 line-through' : 'text-white'}">
+            <div class="team-name text-lg sm:text-xl font-semibold mb-1 {isWinner(gameData[1]) ? 'text-white' : isWinner(gameData[0]) ? 'text-gray-400 line-through' : 'text-white'}">
               {gameData[1][4]}
             </div>
-            <div class="team-score text-4xl font-bold {isWinner(gameData[1]) ? 'text-yellow-300' : 'text-white'}">
+            <div class="team-score text-3xl sm:text-4xl font-bold {isWinner(gameData[1]) ? 'text-yellow-300' : 'text-white'}">
               {gameData[1][1]}
             </div>
             {#if isWinner(gameData[1])}
@@ -349,7 +349,77 @@
             <div class="animate-pulse text-white">Loading entries...</div>
           </div>
         {:else}
-          <div class="flex flex-col md:flex-row justify-between gap-8">
+          <!-- Mobile Layout (Below md breakpoint) -->
+          <div class="md:hidden space-y-6">
+            <!-- Away Team Section -->
+            <div class="team-section">
+              <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-2">
+                <img 
+                  class="w-6 h-6 sm:w-8 sm:h-8" 
+                  src="/images/team-logos/{gameData[0][6]}.svg" 
+                  alt="{gameData[0][0]} logo"
+                  on:error={handleImageError}
+                >
+                <h4 class="text-base sm:text-lg font-semibold text-white">{gameData[0][4]} ({teamSelections.away.length})</h4>
+              </div>
+              
+              <div class="bg-zinc-800/30 p-2 sm:p-4 rounded-b-lg">
+                {#if teamSelections.away.length === 0}
+                  <div class="text-center text-gray-400 py-4">No entries picked this team.</div>
+                {:else}
+                  <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                    {#each teamSelections.away as entry}
+                      <div class="px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
+                        <a 
+                          href="/entries?selected={entry.name.replace(' ', '|')}" 
+                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate text-sm sm:text-base"
+                          title={entry.name}
+                        >
+                          {entry.name}
+                        </a>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            </div>
+            
+            <!-- Home Team Section -->
+            <div class="team-section">
+              <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-2">
+                <img 
+                  class="w-6 h-6 sm:w-8 sm:h-8" 
+                  src="/images/team-logos/{gameData[1][6]}.svg" 
+                  alt="{gameData[1][0]} logo"
+                  on:error={handleImageError}
+                >
+                <h4 class="text-base sm:text-lg font-semibold text-white">{gameData[1][4]} ({teamSelections.home.length})</h4>
+              </div>
+              
+              <div class="bg-zinc-800/30 p-2 sm:p-4 rounded-b-lg">
+                {#if teamSelections.home.length === 0}
+                  <div class="text-center text-gray-400 py-4">No entries picked this team.</div>
+                {:else}
+                  <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                    {#each teamSelections.home as entry}
+                      <div class="px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
+                        <a 
+                          href="/entries?selected={entry.name.replace(' ', '|')}" 
+                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate text-sm sm:text-base"
+                          title={entry.name}
+                        >
+                          {entry.name}
+                        </a>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Layout (md breakpoint and above) -->
+          <div class="hidden md:flex md:flex-row justify-between gap-8">
             <!-- Away Team Picks Column -->
             <div class="flex-1 team-column">
               <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-3">
@@ -424,12 +494,12 @@
         <div class="bg-black bg-opacity-30 rounded-lg p-4 shadow-lg border border-white/10 mt-6">
           <h3 class="text-center text-xl text-white font-semibold mb-4">Alternate Predictions</h3>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
             {#each teamSelections.other as teamGroup}
               <div class="bg-zinc-800/30 rounded-lg overflow-hidden">
-                <div class="team-header bg-zinc-800/70 p-2 flex items-center gap-2">
+                <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-2">
                   <img 
-                    class="w-6 h-6" 
+                    class="w-6 h-6 sm:w-8 sm:h-8" 
                     src="/images/team-logos/{teamGroup.seoName}.svg" 
                     alt="{teamGroup.name} logo"
                     on:error={handleImageError}
@@ -437,16 +507,16 @@
                   <div class="team-seed bg-gray-700 text-white inline-block px-1.5 py-0.5 rounded text-sm">
                     #{teamGroup.seed}
                   </div>
-                  <h4 class="text-base font-semibold text-white">{teamGroup.name} ({teamGroup.count})</h4>
+                  <h4 class="text-base sm:text-lg font-semibold text-white">{teamGroup.name} ({teamGroup.count})</h4>
                 </div>
                 
-                <div class="p-2">
+                <div class="bg-zinc-800/30 p-2 sm:p-4 rounded-b-lg">
                   <div class="grid grid-cols-2 gap-1.5 text-sm">
                     {#each teamGroup.users as entry}
-                      <div class="px-2 py-1 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
+                      <div class="px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
                         <a 
                           href="/entries?selected={entry.name.replace(' ', '|')}" 
-                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate"
+                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate text-sm sm:text-base"
                           title={entry.name}
                         >
                           {entry.name}
