@@ -386,6 +386,31 @@
       isEliminatedOrCorrect: isEliminated || isCorrect
     };
   }
+
+  // Update the getPotentialColor function to include opacity
+  function getPotentialColor(potential, scores) {
+    if (scores.length === 0) return 'text-emerald-400';
+    
+    // Find max and min potentials in the dataset
+    const maxPotential = Math.max(...scores.map(s => s.potential));
+    const minPotential = Math.min(...scores.map(s => s.potential));
+    
+    // If all potentials are the same, return the max color
+    if (maxPotential === minPotential) return 'text-emerald-400';
+    
+    // Calculate where this potential falls in the range (0 to 1)
+    const normalizedValue = (potential - minPotential) / (maxPotential - minPotential);
+    
+    // Convert normalized value to HSL color (120° for green, 60° for yellow, 0° for red)
+    // This gives a smooth transition from red→yellow→green as the value increases
+    const hue = Math.round(normalizedValue * 120); // 0 = red, 60 = yellow, 120 = green
+    const saturation = 85; // High saturation for vibrant colors
+    const lightness = 60; // Medium lightness for visibility
+    const opacity = 0.8; // 70% opacity as requested
+    
+    // Return a style object with hsla color (including alpha/opacity)
+    return `color: hsla(${hue}, ${saturation}%, ${lightness}%, ${opacity})`;
+  }
 </script>
 
 <!-- Add the SVG filter definition to the page -->
@@ -451,7 +476,7 @@
                   <div class="text-amber-400 font-bold text-lg">{score.total}</div>
                 </div>
                 <div class="w-8 text-center">
-                  <div class="text-emerald-400 font-medium">{score.potential}</div>
+                  <div style={getPotentialColor(score.potential, sortedScores)}>{score.potential}</div>
                 </div>
               </div>
             </div>
@@ -516,7 +541,9 @@
                   </button>
                 </td>
                 <td class="px-2 whitespace-nowrap text-center text-amber-400 font-bold text-lg">{score.total}</td>
-                <td class="px-2 whitespace-nowrap text-center text-emerald-400">{score.potential}</td>
+                <td class="px-2 whitespace-nowrap text-center">
+                  <span style={getPotentialColor(score.potential, sortedScores)}>{score.potential}</span>
+                </td>
                 <td class="px-2 whitespace-nowrap text-center text-white">{score.round1}</td>
                 <td class="px-2 whitespace-nowrap text-center text-white">{score.round2}</td>
                 <td class="px-2 whitespace-nowrap text-center text-white">{score.round3}</td>
