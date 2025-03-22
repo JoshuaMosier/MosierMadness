@@ -335,8 +335,8 @@
     return baseColor;
   }
 
-  // Add a new function to generate both background color and filter styles
-  function getTeamContainerStyle(teamName) {
+  // Update getTeamContainerStyle to handle desaturation
+  function getTeamContainerStyle(teamName, isEliminatedOrCorrect = false) {
     const colors = teamColors[teamName];
     const baseColor = colors?.primary_color || '#27272a';
     let rgba;
@@ -345,7 +345,14 @@
       const r = parseInt(baseColor.slice(1, 3), 16);
       const g = parseInt(baseColor.slice(3, 5), 16);
       const b = parseInt(baseColor.slice(5, 7), 16);
-      rgba = `rgba(${r}, ${g}, ${b}, .8)`;
+      
+      if (isEliminatedOrCorrect) {
+        // Convert to grayscale and reduce opacity further
+        const gray = Math.round((r + g + b) / 3);
+        rgba = `rgba(${gray}, ${gray}, ${gray}, .5)`;
+      } else {
+        rgba = `rgba(${r}, ${g}, ${b}, .8)`;
+      }
     } else {
       rgba = baseColor;
     }
@@ -356,25 +363,28 @@
     `;
   }
 
-  // Add these helper functions near the other style-related functions
+  // Update getTeamOverlayStyle to return more information
   function getTeamOverlayStyle(teamName, score, gameIndex) {
-    // Check if team was eliminated by looking for any eliminated team that ends with this team name
     const isEliminated = eliminatedTeams.some(eliminatedTeam => {
       const eliminatedTeamName = getTeamNameFromSelection(eliminatedTeam);
       return eliminatedTeamName === teamName;
     });
     
-    if (isEliminated) {
-      return 'background: rgba(255, 0, 0, 0.7);'; // red-500 with 50% opacity
-    }
-    
-    // Check if prediction was correct
     const masterTeamName = getTeamNameFromSelection(masterBracket[gameIndex]);
-    if (masterTeamName === teamName) {
-      return 'background: rgba(34, 197, 94, 0.5);'; // green-500 with 50% opacity
+    const isCorrect = masterTeamName === teamName;
+    
+    const styles = [];
+    
+    if (isEliminated) {
+      styles.push('background: rgba(255, 0, 0, 0.6)');
+    } else if (isCorrect) {
+      styles.push('background: rgba(34, 197, 94, 0.5)');
     }
     
-    return '';
+    return {
+      style: styles.join(';'),
+      isEliminatedOrCorrect: isEliminated || isCorrect
+    };
   }
 </script>
 
@@ -514,19 +524,20 @@
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).e8.length > 0}
                       {#each teamSelections.get(score.entryId).e8 as team, idx}
+                        {@const overlayInfo = getTeamOverlayStyle(team, score, 56 + idx)}
                         <div 
                           class={teamLogoContainerClass} 
                           title={team}
-                          style={getTeamContainerStyle(team)}
+                          style={getTeamContainerStyle(team, overlayInfo.isEliminatedOrCorrect)}
                         >
                           <img src="/images/team-logos/{getTeamSeoName(team)}.svg" 
                                alt={team} 
                                class={teamLogoClass}
-                               style="filter: url(#teamLogoOutline);"
+                               style="filter: url(#teamLogoOutline) {overlayInfo.isEliminatedOrCorrect ? 'saturate(0.3)' : ''};"
                                on:error={handleImageError}>
                           <div 
                             class="absolute inset-0 rounded-lg"
-                            style={getTeamOverlayStyle(team, score, 56 + idx)}
+                            style={overlayInfo.style}
                           ></div>
                         </div>
                       {/each}
@@ -539,19 +550,20 @@
                   <div class="flex justify-center gap-1">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).f4.length > 0}
                       {#each teamSelections.get(score.entryId).f4 as team, idx}
+                        {@const overlayInfo = getTeamOverlayStyle(team, score, 60 + idx)}
                         <div 
                           class={teamLogoContainerClass} 
                           title={team}
-                          style={getTeamContainerStyle(team)}
+                          style={getTeamContainerStyle(team, overlayInfo.isEliminatedOrCorrect)}
                         >
                           <img src="/images/team-logos/{getTeamSeoName(team)}.svg" 
                                alt={team} 
                                class={teamLogoClass}
-                               style="filter: url(#teamLogoOutline);"
+                               style="filter: url(#teamLogoOutline) {overlayInfo.isEliminatedOrCorrect ? 'saturate(0.3)' : ''};"
                                on:error={handleImageError}>
                           <div 
                             class="absolute inset-0 rounded-lg"
-                            style={getTeamOverlayStyle(team, score, 60 + idx)}
+                            style={overlayInfo.style}
                           ></div>
                         </div>
                       {/each}
@@ -564,19 +576,20 @@
                   <div class="flex justify-center">
                     {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).champ}
                       {@const champTeam = teamSelections.get(score.entryId).champ}
+                      {@const overlayInfo = getTeamOverlayStyle(champTeam, score, 62)}
                       <div 
                         class={teamLogoContainerClass} 
                         title={champTeam}
-                        style={getTeamContainerStyle(champTeam)}
+                        style={getTeamContainerStyle(champTeam, overlayInfo.isEliminatedOrCorrect)}
                       >
                         <img src="/images/team-logos/{getTeamSeoName(champTeam)}.svg" 
                              alt={champTeam} 
                              class={teamLogoClass}
-                             style="filter: url(#teamLogoOutline);"
+                             style="filter: url(#teamLogoOutline) {overlayInfo.isEliminatedOrCorrect ? 'saturate(0.3)' : ''};"
                              on:error={handleImageError}>
                         <div 
                           class="absolute inset-0 rounded-lg"
-                          style={getTeamOverlayStyle(champTeam, score, 62)}
+                          style={overlayInfo.style}
                         ></div>
                       </div>
                     {:else}
