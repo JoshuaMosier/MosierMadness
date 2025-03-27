@@ -27,10 +27,10 @@ async function getMasterBracket() {
         "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/21/scoreboard.json",
         "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/22/scoreboard.json",
         "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/23/scoreboard.json",
-        // "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/27/scoreboard.json",
-        // "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/28/scoreboard.json",
-        // "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/29/scoreboard.json",
-        // "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/30/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/27/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/28/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/29/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/30/scoreboard.json",
         // "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/04/05/scoreboard.json",
         // "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/04/07/scoreboard.json"
     ];
