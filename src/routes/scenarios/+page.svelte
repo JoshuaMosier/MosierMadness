@@ -13,9 +13,11 @@
   let simulationInProgress = false;
   let scenariosCalculated = false;
   let totalScenarios = 0;
+  let selectedTab = 'win'; // 'win' or 'full'
   
   // Results tracking
   let userWinCounts = [];
+  let positionProbabilities = []; // Track probabilities for each position
   
   onMount(async () => {
     try {
@@ -66,6 +68,9 @@
       is_submitted: bracket.is_submitted || false
     }));
     
+    // Filter out incomplete entries
+    entries = entries.filter(entry => entry.is_submitted && entry.selections && entry.selections.length > 0);
+    
     // Initialize user win counters
     userWinCounts = entries.map(entry => ({
       entryId: entry.entryId,
@@ -74,6 +79,28 @@
       winCount: 0,
       winProbability: 0
     }));
+    
+    // Initialize position probabilities
+    initializePositionProbabilities();
+  }
+  
+  function initializePositionProbabilities() {
+    positionProbabilities = entries.map(entry => {
+      const positions = {};
+      // Create a position counter for each possible position (1 to entries.length)
+      for (let i = 1; i <= entries.length; i++) {
+        positions[i] = 0;
+      }
+      
+      return {
+        entryId: entry.entryId,
+        firstName: entry.firstName,
+        lastName: entry.lastName,
+        positions: positions,
+        // We'll calculate these percentages later
+        positionProbabilities: {}
+      };
+    });
   }
   
   // Generate all possible remaining scenarios and count winners
@@ -87,6 +114,9 @@
       winCount: 0,
       winProbability: 0
     }));
+    
+    // Reset position counts
+    initializePositionProbabilities();
     
     // Start with the current master bracket
     const scenarioBracket = [...masterBracket];
@@ -104,6 +134,20 @@
       winProbability: (user.winCount / totalScenarios) * 100
     }));
     
+    // Convert position counts to percentages
+    positionProbabilities = positionProbabilities.map(user => {
+      const positionPercentages = {};
+      
+      for (const [position, count] of Object.entries(user.positions)) {
+        positionPercentages[position] = (count / totalScenarios) * 100;
+      }
+      
+      return {
+        ...user,
+        positionProbabilities: positionPercentages
+      };
+    });
+    
     // Sort by win probability (descending)
     userWinCounts.sort((a, b) => b.winProbability - a.winProbability);
     
@@ -117,17 +161,83 @@
     if (gameIndex >= remainingGames.length) {
       // Calculate final standings for this scenario
       const scenarioScores = calculateScores(bracket, entries);
+      
+      // Sort scores to determine rankings
       const sortedScores = [...scenarioScores].sort((a, b) => b.total - a.total);
       
-      // Check for ties at first place
-      const highestScore = sortedScores[0].total;
-      const tiedWinners = sortedScores.filter(score => score.total === highestScore);
+      // Process tie groups and assign positions
+      let currentPosition = 1;
+      let currentScore = null;
+      let tieGroup = [];
       
-      // Award a full win to each tied winner
-      for (const winner of tiedWinners) {
-        const userWinCount = userWinCounts.find(u => u.entryId === winner.entryId);
-        if (userWinCount) {
-          userWinCount.winCount += 1;
+      // Process all scores
+      for (let i = 0; i < sortedScores.length; i++) {
+        const score = sortedScores[i];
+        
+        // If this is a new score (or the first score), start a new tie group
+        if (currentScore === null || score.total !== currentScore) {
+          // Process previous tie group if it exists
+          if (tieGroup.length > 0) {
+            // Award each person in the tie group a full win for each position they're tied for
+            const positions = tieGroup.map((_, index) => currentPosition + index);
+            
+            for (const tiedScore of tieGroup) {
+              // Update win count if tied for first
+              if (positions.includes(1)) {
+                const winCounter = userWinCounts.find(u => u.entryId === tiedScore.entryId);
+                if (winCounter) {
+                  winCounter.winCount += 1;
+                }
+              }
+              
+              // Update position counts
+              const positionCounter = positionProbabilities.find(p => p.entryId === tiedScore.entryId);
+              if (positionCounter) {
+                // For each position in the tie range
+                for (const position of positions) {
+                  // Add a fractional count for the position (1/number of tied players)
+                  positionCounter.positions[position] += 1;
+                }
+              }
+            }
+            
+            // Update position for the next group
+            currentPosition += tieGroup.length;
+            // Clear the tie group
+            tieGroup = [];
+          }
+          
+          // Start new tie group with this score
+          currentScore = score.total;
+          tieGroup.push(score);
+        } else {
+          // This score is tied with the previous one, add to tie group
+          tieGroup.push(score);
+        }
+      }
+      
+      // Process the final tie group if it exists
+      if (tieGroup.length > 0) {
+        const positions = tieGroup.map((_, index) => currentPosition + index);
+        
+        for (const tiedScore of tieGroup) {
+          // Update win count if tied for first
+          if (positions.includes(1)) {
+            const winCounter = userWinCounts.find(u => u.entryId === tiedScore.entryId);
+            if (winCounter) {
+              winCounter.winCount += 1;
+            }
+          }
+          
+          // Update position counts
+          const positionCounter = positionProbabilities.find(p => p.entryId === tiedScore.entryId);
+          if (positionCounter) {
+            // For each position in the tie range
+            for (const position of positions) {
+              // Add a fractional count for the position
+              positionCounter.positions[position] += 1;
+            }
+          }
         }
       }
       
@@ -191,6 +301,68 @@
       await new Promise(resolve => setTimeout(resolve, 0));
     }
   }
+  
+  // Function to get color for a probability cell based on percentage
+  function getHeatmapColor(probability) {
+    // Special case for 0% probability
+    if (probability === 0) {
+      return 'rgba(50, 50, 50, 0.2)'; // Very dark gray, nearly transparent
+    }
+    
+    // Green for high probabilities, red for low
+    const hue = Math.min(120, Math.round(probability * 1.2));
+    const saturation = 75;
+    const lightness = 50;
+    const alpha = Math.min(0.9, 0.2 + (probability / 100) * 0.7);
+    
+    return `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
+  }
+  
+  // New function to get color for a probability cell relative to row max
+  function getRowHeatmapColor(probability, maxInRow) {
+    // Special case for 0% probability
+    if (probability === 0) {
+      return 'rgba(50, 50, 50, 0.2)'; // Very dark gray, nearly transparent
+    }
+    
+    // Calculate relative strength (0 to 1)
+    const relativeStrength = probability / maxInRow;
+    
+    // Green for high probabilities, yellow for medium, red for low
+    const hue = Math.min(120, Math.round(relativeStrength * 120));
+    const saturation = 75;
+    const lightness = 50;
+    
+    // Alpha increases with relative strength
+    const alpha = Math.min(0.9, 0.2 + relativeStrength * 0.7);
+    
+    return `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
+  }
+  
+  // Function to sort the position data for display
+  function getSortedPositionData() {
+    return [...positionProbabilities].sort((a, b) => {
+      // Find highest possible finish (lowest position number with >0% chance) for each user
+      const aHighestPos = Object.entries(a.positionProbabilities)
+        .filter(([_, probability]) => probability > 0)
+        .sort(([posA], [posB]) => Number(posA) - Number(posB))[0];
+      
+      const bHighestPos = Object.entries(b.positionProbabilities)
+        .filter(([_, probability]) => probability > 0)
+        .sort(([posA], [posB]) => Number(posA) - Number(posB))[0];
+      
+      // If one doesn't have any possible finishes, sort to the bottom
+      if (!aHighestPos) return 1;
+      if (!bHighestPos) return -1;
+      
+      // First sort by highest possible position
+      const positionDiff = Number(aHighestPos[0]) - Number(bHighestPos[0]);
+      if (positionDiff !== 0) return positionDiff;
+      
+      // If tied on highest position, sort by probability of that position (descending)
+      return bHighestPos[1] - aHighestPos[1];
+    });
+  }
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-7xl">
@@ -201,7 +373,7 @@
       </span>
     </h1>
     <p class="text-zinc-400 mt-4 max-w-2xl mx-auto">
-      Calculate the probability of each participant winning based on all possible outcomes 
+      Calculate the probability of each participant finishing in each position based on all possible outcomes 
       for the {remainingGames.length} remaining games.
     </p>
   </div>
@@ -225,9 +397,12 @@
       <div class="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl p-6 shadow-lg border border-zinc-700">
         <div class="flex flex-col md:flex-row justify-between items-center mb-6">
           <div>
-            <h2 class="text-xl font-bold text-amber-500">Win Probabilities</h2>
+            <h2 class="text-xl font-bold text-amber-500">Tournament Outcome Probabilities</h2>
             <p class="text-zinc-400 text-sm mt-1">
               Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'all possible'} tournament outcomes
+            </p>
+            <p class="text-zinc-400 text-sm">
+              Calculating with {entries.length} complete {entries.length === 1 ? 'entry' : 'entries'}
             </p>
           </div>
           
@@ -254,55 +429,142 @@
         
         {#if scenariosCalculated}
           <div class="bg-zinc-800/30 rounded-lg p-3 mb-4 text-sm text-zinc-400">
-            <p><span class="text-amber-500 font-medium">Note on ties:</span> When multiple users tie for first place in a scenario, each receives a full win. Therefore, percentages represent the probability of winning OR tying for first place.</p>
+            <p><span class="text-amber-500 font-medium">Note on ties:</span> When multiple users tie for a position, each receives full credit for all positions in the tie range.</p>
           </div>
           
-          <div class="overflow-hidden rounded-lg border border-zinc-700">
-            <table class="min-w-full divide-y divide-zinc-700">
-              <thead class="bg-zinc-800">
-                <tr>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
-                    Rank
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
-                    Win/Tie %
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-zinc-300 uppercase tracking-wider">
-                    Win/Tie Scenarios
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-zinc-800/50 divide-y divide-zinc-700">
-                {#each userWinCounts as user, i}
-                  <tr class={i % 2 === 0 ? 'bg-zinc-800/30' : ''}>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-300">
-                      {i + 1}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-300">
-                      {user.firstName} {user.lastName}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-300 text-center">
-                      <div class="inline-flex items-center">
-                        <div class="relative w-full bg-zinc-700 rounded-full h-2.5 w-24 mx-auto">
-                          <div class="bg-amber-600 h-2.5 rounded-full" style="width: {Math.min(100, user.winProbability)}%"></div>
-                        </div>
-                        <span class="ml-3 text-amber-500 font-medium">{user.winProbability.toFixed(1)}%</span>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-400 text-right">
-                      {user.winCount.toLocaleString(undefined, {maximumFractionDigits: 1})} / {totalScenarios.toLocaleString()}
-                    </td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
+          <!-- Tab navigation -->
+          <div class="border-b border-zinc-700 mb-4">
+            <div class="flex -mb-px">
+              <button
+                class="py-2 px-4 border-b-2 font-medium text-sm focus:outline-none 
+                      {selectedTab === 'win' ? 'border-amber-500 text-amber-500' : 'border-transparent text-zinc-400 hover:text-zinc-300'}"
+                on:click={() => selectedTab = 'win'}
+              >
+                Win Probability
+              </button>
+              <button
+                class="py-2 px-4 border-b-2 font-medium text-sm focus:outline-none 
+                      {selectedTab === 'full' ? 'border-amber-500 text-amber-500' : 'border-transparent text-zinc-400 hover:text-zinc-300'}"
+                on:click={() => selectedTab = 'full'}
+              >
+                Full Position Probabilities
+              </button>
+            </div>
           </div>
+          
+          {#if selectedTab === 'win'}
+            <!-- Win probability table -->
+            <div class="overflow-hidden rounded-lg border border-zinc-700">
+              <table class="min-w-full divide-y divide-zinc-700">
+                <thead class="bg-zinc-800">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                      Rank
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                      Win/Tie %
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                      Win/Tie Scenarios
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-zinc-800/50 divide-y divide-zinc-700">
+                  {#each userWinCounts as user, i}
+                    <tr class={i % 2 === 0 ? 'bg-zinc-800' : ''}>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-300">
+                        {i + 1}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-300">
+                        {user.firstName} {user.lastName}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-300 text-center">
+                        <div class="inline-flex items-center">
+                          <div class="relative w-full bg-zinc-700 rounded-full h-2.5 w-24 mx-auto">
+                            <div class="bg-amber-600 h-2.5 rounded-full" style="width: {Math.min(100, user.winProbability)}%"></div>
+                          </div>
+                          <span class="ml-3 text-amber-500 font-medium">{user.winProbability.toFixed(1)}%</span>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-400 text-right">
+                        {user.winCount.toLocaleString(undefined, {maximumFractionDigits: 1})} / {totalScenarios.toLocaleString()}
+                      </td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+            </div>
+          {:else}
+            <!-- Full position probability table -->
+            <div class="mb-2 text-xs text-zinc-400">
+              <p>Table sorted by best possible finish, then by probability of that finish. A dash (-) indicates a 0% chance.</p>
+            </div>
+            <div class="overflow-x-auto pb-4">
+              <table class="min-w-full divide-y divide-zinc-700 whitespace-nowrap">
+                <thead class="bg-zinc-800">
+                  <tr>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider sticky left-0 bg-zinc-800 z-10">
+                      Name
+                    </th>
+                    {#each Array(entries.length) as _, i}
+                      <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                        {i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'}
+                      </th>
+                    {/each}
+                  </tr>
+                </thead>
+                <tbody class="bg-zinc-800/50 divide-y divide-zinc-700">
+                  {#each getSortedPositionData() as user, i}
+                    {@const userProbabilities = Object.values(user.positionProbabilities)}
+                    {@const maxProbability = Math.max(...userProbabilities, 0.1)}
+                    <tr class={i % 2 === 0 ? 'bg-zinc-800' : ''}>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-zinc-300 sticky left-0 {i % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} z-10">
+                        {user.firstName} {user.lastName}
+                      </td>
+                      {#each Array(entries.length) as _, j}
+                        {@const position = j + 1}
+                        {@const probability = user.positionProbabilities[position] || 0}
+                        <td class="px-2 py-3 whitespace-nowrap text-center" 
+                            style="background-color: {getRowHeatmapColor(probability, maxProbability)}">
+                          <span class="{probability === 0 ? 'text-zinc-500 font-normal' : 'text-white font-medium'} text-sm">
+                            {probability === 0 ? '-' : probability.toFixed(1) + '%'}
+                          </span>
+                        </td>
+                      {/each}
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="mt-4 p-3 bg-zinc-800/30 rounded text-xs text-zinc-400">
+              <div class="flex items-center justify-center gap-6 mb-2">
+                <div class="flex items-center gap-1">
+                  <div class="w-4 h-4 rounded" style="background-color: hsla(120, 75%, 50%, 0.8)"></div>
+                  <span>Most likely position</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-4 h-4 rounded" style="background-color: hsla(60, 75%, 50%, 0.6)"></div>
+                  <span>Medium likelihood</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-4 h-4 rounded" style="background-color: hsla(0, 75%, 50%, 0.4)"></div>
+                  <span>Less likely position</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-4 h-4 rounded" style="background-color: rgba(50, 50, 50, 0.2)"></div>
+                  <span>0.0% (impossible)</span>
+                </div>
+              </div>
+              <p class="text-center">Colors show relative likelihood for each player (row-based) rather than absolute percentages.</p>
+            </div>
+          {/if}
         {:else}
           <div class="text-center py-12 text-zinc-500">
-            Click "Calculate All Scenarios" to see each participant's probability of winning the tournament.
+            Click "Calculate All Scenarios" to see each participant's probability of finishing in each position.
           </div>
         {/if}
       </div>
