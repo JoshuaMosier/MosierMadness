@@ -182,13 +182,78 @@
     <!-- Featured mode for 1-4 games - show in a static layout -->
     {#if displayMode === 'featured'}
       <div class="p-2">
-        <div class="flex flex-wrap gap-2 justify-center">
+        <!-- Desktop: flex wrap layout -->
+        <div class="hidden md:flex md:flex-wrap md:gap-2 md:justify-center">
           {#each sortedGames as game, index}
             <a href="/game/{matches.findIndex(m => 
               m[0][4] === game[0][4] && 
               m[1][4] === game[1][4] && 
               m[2] === game[2]
-            )}" class="flex-shrink-0 w-64">
+            )}" class="flex-shrink-0 w-72">
+              <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
+                <div class="game-date flex justify-between items-center mb-3">
+                  <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
+                  <span class="game-prog {getStatusColor(game[2])} font-semibold px-3 py-1 rounded-full text-sm {game[2].toUpperCase() === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game[2].toUpperCase() === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game[2].toUpperCase()}</span>
+                </div>
+                
+                <div class="game-teams space-y-3">
+                  <!-- Away Team -->
+                  <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
+                    <div class="flex items-center space-x-3 flex-1 min-w-0">
+                      <div class="relative w-6 h-6 flex-shrink-0">
+                        <img class="w-full h-full object-contain transition-transform" 
+                             alt="{game[0][4]} logo" 
+                             src="/images/team-logos/{game[0][6]}.svg"
+                             on:error={handleImageError}>
+                      </div>
+                      {#if game[0][2]}
+                        <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold min-w-[2rem] text-center flex-shrink-0">#{game[0][2]}</span>
+                      {/if}
+                      <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm flex-shrink"
+                            style={getTeamStyle(game[0][4])}>
+                        {getDisplayName(game[0])}
+                      </span>
+                    </div>
+                    <div class="flex-shrink-0 w-[3rem] text-right">
+                      <span class="score-value text-2xl font-bold font-condensed tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Home Team -->
+                  <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
+                    <div class="flex items-center space-x-3 flex-1 min-w-0">
+                      <div class="relative w-6 h-6 flex-shrink-0">
+                        <img class="w-full h-full object-contain transition-transform" 
+                             alt="{game[1][4]} logo" 
+                             src="/images/team-logos/{game[1][6]}.svg"
+                             on:error={handleImageError}>
+                      </div>
+                      {#if game[1][2]}
+                        <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold min-w-[2rem] text-center flex-shrink-0">#{game[1][2]}</span>
+                      {/if}
+                      <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm flex-shrink"
+                            style={getTeamStyle(game[1][4])}>
+                        {getDisplayName(game[1])}
+                      </span>
+                    </div>
+                    <div class="flex-shrink-0 w-[3rem] text-right">
+                      <span class="score-value text-2xl font-bold font-condensed tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </a>
+          {/each}
+        </div>
+        
+        <!-- Mobile: horizontal scroll layout -->
+        <div class="flex md:hidden overflow-x-auto py-2 px-1 scrollbar-hide">
+          {#each sortedGames as game, index}
+            <a href="/game/{matches.findIndex(m => 
+              m[0][4] === game[0][4] && 
+              m[1][4] === game[1][4] && 
+              m[2] === game[2]
+            )}" class="flex-shrink-0 mx-1 w-72">
               <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
                 <div class="game-date flex justify-between items-center mb-3">
                   <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
@@ -273,7 +338,7 @@
                 m[0][4] === game[0][4] && 
                 m[1][4] === game[1][4] && 
                 m[2] === game[2]
-              )}" class="flex-shrink-0 mx-1 w-64">
+              )}" class="flex-shrink-0 mx-1 w-72">
                 <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
                   <div class="game-date flex justify-between items-center mb-3">
                     <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
@@ -343,7 +408,7 @@
                     m[0][4] === game[0][4] && 
                     m[1][4] === game[1][4] && 
                     m[2] === game[2]
-                  )}" class="flex-shrink-0 mx-2 w-64 transition-transform duration-300">
+                  )}" class="flex-shrink-0 mx-2 w-72 transition-transform duration-300">
                     <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
                       <div class="game-date flex justify-between items-center mb-3">
                         <span class="text-sm text-gray-400 font-medium">{game[2].toUpperCase() !== 'FINAL' ? (game[3] || '') : ''}</span>
