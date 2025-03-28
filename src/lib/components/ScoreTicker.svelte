@@ -198,46 +198,46 @@
                 <div class="game-teams space-y-3">
                   <!-- Away Team -->
                   <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
-                    <div class="flex items-center flex-1 min-w-0">
-                      <div class="relative w-6 h-6 mr-3">
+                    <div class="flex items-center space-x-3 flex-1 min-w-0">
+                      <div class="relative w-6 h-6 flex-shrink-0">
                         <img class="w-full h-full object-contain transition-transform" 
                              alt="{game[0][4]} logo" 
                              src="/images/team-logos/{game[0][6]}.svg"
                              on:error={handleImageError}>
                       </div>
-                      <div>
-                        {#if game[0][2]}
-                          <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[0][2]}</span>
-                        {/if}
-                        <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
-                              style={getTeamStyle(game[0][4])}>
-                          {getDisplayName(game[0])}
-                        </span>
-                      </div>
+                      {#if game[0][2]}
+                        <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold min-w-[2rem] text-center flex-shrink-0">#{game[0][2]}</span>
+                      {/if}
+                      <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm flex-shrink"
+                            style={getTeamStyle(game[0][4])}>
+                        {getDisplayName(game[0])}
+                      </span>
                     </div>
-                    <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
+                    <div class="flex-shrink-0 w-[3rem] text-right">
+                      <span class="score-value text-2xl font-bold font-condensed tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
+                    </div>
                   </div>
                   
                   <!-- Home Team -->
                   <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
-                    <div class="flex items-center flex-1 min-w-0">
-                      <div class="relative w-6 h-6 mr-3">
+                    <div class="flex items-center space-x-3 flex-1 min-w-0">
+                      <div class="relative w-6 h-6 flex-shrink-0">
                         <img class="w-full h-full object-contain transition-transform" 
                              alt="{game[1][4]} logo" 
                              src="/images/team-logos/{game[1][6]}.svg"
                              on:error={handleImageError}>
                       </div>
-                      <div>
-                        {#if game[1][2]}
-                          <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[1][2]}</span>
-                        {/if}
-                        <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
-                              style={getTeamStyle(game[1][4])}>
-                          {getDisplayName(game[1])}
-                        </span>
-                      </div>
+                      {#if game[1][2]}
+                        <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold min-w-[2rem] text-center flex-shrink-0">#{game[1][2]}</span>
+                      {/if}
+                      <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm flex-shrink"
+                            style={getTeamStyle(game[1][4])}>
+                        {getDisplayName(game[1])}
+                      </span>
                     </div>
-                    <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
+                    <div class="flex-shrink-0 w-[3rem] text-right">
+                      <span class="score-value text-2xl font-bold font-condensed tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -283,46 +283,46 @@
                   <div class="game-teams space-y-3">
                     <!-- Away Team -->
                     <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
-                      <div class="flex items-center flex-1 min-w-0">
-                        <div class="relative w-6 h-6 mr-3">
+                      <div class="flex items-center space-x-3 flex-1 min-w-0">
+                        <div class="relative w-6 h-6 flex-shrink-0">
                           <img class="w-full h-full object-contain transition-transform" 
                                alt="{game[0][4]} logo" 
                                src="/images/team-logos/{game[0][6]}.svg"
                                on:error={handleImageError}>
                         </div>
-                        <div>
-                          {#if game[0][2]}
-                            <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[0][2]}</span>
-                          {/if}
-                          <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
-                                style={getTeamStyle(game[0][4])}>
-                            {getDisplayName(game[0])}
-                          </span>
-                        </div>
+                        {#if game[0][2]}
+                          <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold min-w-[2rem] text-center flex-shrink-0">#{game[0][2]}</span>
+                        {/if}
+                        <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm flex-shrink"
+                              style={getTeamStyle(game[0][4])}>
+                          {getDisplayName(game[0])}
+                        </span>
                       </div>
-                      <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
+                      <div class="flex-shrink-0 w-[3rem] text-right">
+                        <span class="score-value text-2xl font-bold font-condensed tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
+                      </div>
                     </div>
                     
                     <!-- Home Team -->
                     <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
-                      <div class="flex items-center flex-1 min-w-0">
-                        <div class="relative w-6 h-6 mr-3">
+                      <div class="flex items-center space-x-3 flex-1 min-w-0">
+                        <div class="relative w-6 h-6 flex-shrink-0">
                           <img class="w-full h-full object-contain transition-transform" 
                                alt="{game[1][4]} logo" 
                                src="/images/team-logos/{game[1][6]}.svg"
                                on:error={handleImageError}>
                         </div>
-                        <div>
-                          {#if game[1][2]}
-                            <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[1][2]}</span>
-                          {/if}
-                          <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
-                                style={getTeamStyle(game[1][4])}>
-                            {getDisplayName(game[1])}
-                          </span>
-                        </div>
+                        {#if game[1][2]}
+                          <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold min-w-[2rem] text-center flex-shrink-0">#{game[1][2]}</span>
+                        {/if}
+                        <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm flex-shrink"
+                              style={getTeamStyle(game[1][4])}>
+                          {getDisplayName(game[1])}
+                        </span>
                       </div>
-                      <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
+                      <div class="flex-shrink-0 w-[3rem] text-right">
+                        <span class="score-value text-2xl font-bold font-condensed tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -353,46 +353,46 @@
                       <div class="game-teams space-y-3">
                         <!-- Away Team -->
                         <div class="game-team flex justify-between items-center {isWinner(game[0]) ? 'font-bold' : ''} group">
-                          <div class="flex items-center flex-1 min-w-0">
-                            <div class="relative w-6 h-6 mr-3">
+                          <div class="flex items-center space-x-3 flex-1 min-w-0">
+                            <div class="relative w-6 h-6 flex-shrink-0">
                               <img class="w-full h-full object-contain transition-transform" 
                                    alt="{game[0][4]} logo" 
                                    src="/images/team-logos/{game[0][6]}.svg"
                                    on:error={handleImageError}>
                             </div>
-                            <div>
-                              {#if game[0][2]}
-                                <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[0][2]}</span>
-                              {/if}
-                              <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
-                                    style={getTeamStyle(game[0][4])}>
-                                {getDisplayName(game[0])}
-                              </span>
-                            </div>
+                            {#if game[0][2]}
+                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold min-w-[2rem] text-center flex-shrink-0">#{game[0][2]}</span>
+                            {/if}
+                            <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis {isWinner(game[0]) ? 'text-white' : isWinner(game[1]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm flex-shrink"
+                                  style={getTeamStyle(game[0][4])}>
+                              {getDisplayName(game[0])}
+                            </span>
                           </div>
-                          <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
+                          <div class="flex-shrink-0 w-[3rem] text-right">
+                            <span class="score-value text-2xl font-bold font-condensed tabular-nums {isWinner(game[0]) ? 'text-white' : 'text-gray-400'}">{game[0][1]}</span>
+                          </div>
                         </div>
                         
                         <!-- Home Team -->
                         <div class="game-team flex justify-between items-center {isWinner(game[1]) ? 'font-bold' : ''} group">
-                          <div class="flex items-center flex-1 min-w-0">
-                            <div class="relative w-6 h-6 mr-3">
+                          <div class="flex items-center space-x-3 flex-1 min-w-0">
+                            <div class="relative w-6 h-6 flex-shrink-0">
                               <img class="w-full h-full object-contain transition-transform" 
                                    alt="{game[1][4]} logo" 
                                    src="/images/team-logos/{game[1][6]}.svg"
                                    on:error={handleImageError}>
                             </div>
-                            <div>
-                              {#if game[1][2]}
-                                <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full mr-2 font-semibold min-w-[2rem] inline-block text-center">#{game[1][2]}</span>
-                              {/if}
-                              <span class="text-sm inline-block font-semibold px-3 py-1 rounded-md min-w-[80px] whitespace-nowrap {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm"
-                                    style={getTeamStyle(game[1][4])}>
-                                {getDisplayName(game[1])}
-                              </span>
-                            </div>
+                            {#if game[1][2]}
+                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold min-w-[2rem] text-center flex-shrink-0">#{game[1][2]}</span>
+                            {/if}
+                            <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis {isWinner(game[1]) ? 'text-white' : isWinner(game[0]) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm flex-shrink"
+                                  style={getTeamStyle(game[1][4])}>
+                              {getDisplayName(game[1])}
+                            </span>
                           </div>
-                          <span class="score-value text-2xl font-bold ml-3 tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
+                          <div class="flex-shrink-0 w-[3rem] text-right">
+                            <span class="score-value text-2xl font-bold font-condensed tabular-nums {isWinner(game[1]) ? 'text-white' : 'text-gray-400'}">{game[1][1]}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
