@@ -16,6 +16,11 @@
   let selectedTab = 'win'; // 'win' or 'full'
   let displayMode = 'percent'; // 'count' or 'percent'
   
+  // Match selections
+  let selectedWinners = {}; // gameId -> winner team string
+  let matchSimulationDetails = []; // Details about matches for the UI
+  let hasSelections = false; // Flag to track if user has made any selections
+  
   // Tracking hover state for highlighting
   let hoveredRow = null;
   let hoveredCol = null;
@@ -59,6 +64,9 @@
       }
     }
     
+    // Setup match simulation details
+    prepareMatchDetails();
+    
     // Fetch all brackets with user profiles
     const { data, error: bracketsError } = await supabase
       .from('brackets')
@@ -90,6 +98,87 @@
     initializePositionProbabilities();
   }
   
+  // Function to prepare match details for the UI
+  function prepareMatchDetails() {
+    matchSimulationDetails = [];
+    
+    // Group the matches by round
+    const rounds = {
+      "Sweet 16": { range: [48, 56], games: [] },
+      "Elite 8": { range: [56, 60], games: [] },
+      "Final Four": { range: [60, 62], games: [] },
+      "Championship": { range: [62, 63], games: [] }
+    };
+    
+    // Process each remaining game to build match details
+    for (const gameId of remainingGames) {
+      let round;
+      if (gameId >= 48 && gameId < 56) round = "Sweet 16";
+      else if (gameId >= 56 && gameId < 60) round = "Elite 8";
+      else if (gameId >= 60 && gameId < 62) round = "Final Four";
+      else if (gameId === 62) round = "Championship";
+      
+      if (!round) continue;
+      
+      let teamA, teamB;
+      
+      if (gameId >= 48 && gameId < 56) {
+        // Sweet 16 games - teams come from the liveBracketData
+        const match = liveBracketData.matches[gameId + 1];
+        if (match?.teamA && match?.teamB) {
+          teamA = `${match.teamA.seed} ${match.teamA.name}`;
+          teamB = `${match.teamB.seed} ${match.teamB.name}`;
+        } else {
+          continue; // Skip if teams aren't available
+        }
+      } else {
+        // Later rounds - teams come from winners of previous rounds or current master bracket
+        let prevGame1, prevGame2;
+        
+        // Elite 8
+        if (gameId >= 56 && gameId < 60) {
+          prevGame1 = 48 + (gameId - 56) * 2;
+          prevGame2 = prevGame1 + 1;
+        }
+        // Final Four
+        else if (gameId >= 60 && gameId < 62) {
+          prevGame1 = 56 + (gameId - 60) * 2;
+          prevGame2 = prevGame1 + 1;
+        }
+        // Championship
+        else if (gameId === 62) {
+          prevGame1 = 60;
+          prevGame2 = 61;
+        }
+        
+        // Get teams from either master bracket or selected winners
+        teamA = masterBracket[prevGame1] || selectedWinners[prevGame1] || "TBD";
+        teamB = masterBracket[prevGame2] || selectedWinners[prevGame2] || "TBD";
+        
+        if (teamA === "TBD" && teamB === "TBD") {
+          continue; // Skip if both teams are undetermined
+        }
+      }
+      
+      rounds[round].games.push({
+        gameId,
+        teamA,
+        teamB,
+        selected: selectedWinners[gameId] || null
+      });
+    }
+    
+    // Convert to array for UI rendering
+    for (const [roundName, roundData] of Object.entries(rounds)) {
+      if (roundData.games.length > 0) {
+        matchSimulationDetails.push({
+          name: roundName,
+          games: roundData.games
+        });
+      }
+    }
+  }
+  
   function initializePositionProbabilities() {
     positionProbabilities = entries.map(entry => {
       const positions = {};
@@ -107,6 +196,40 @@
         positionProbabilities: {}
       };
     });
+  }
+  
+  // Function to select a winner for a match
+  function selectWinner(gameId, team) {
+    // If already selected, deselect
+    if (selectedWinners[gameId] === team) {
+      delete selectedWinners[gameId];
+    } else {
+      selectedWinners[gameId] = team;
+    }
+    
+    // Update UI state
+    selectedWinners = {...selectedWinners};
+    hasSelections = Object.keys(selectedWinners).length > 0;
+    
+    // Recalculate match details (important for dependent matches)
+    prepareMatchDetails();
+    
+    // If scenarios have been calculated, recalculate with the new selection
+    if (scenariosCalculated) {
+      calculateAllScenarios();
+    }
+  }
+  
+  // Function to reset all selections
+  function resetSelections() {
+    selectedWinners = {};
+    hasSelections = false;
+    prepareMatchDetails();
+    
+    // Recalculate if needed
+    if (scenariosCalculated) {
+      calculateAllScenarios();
+    }
   }
   
   // Generate all possible remaining scenarios and count winners
@@ -127,12 +250,22 @@
     // Start with the current master bracket
     const scenarioBracket = [...masterBracket];
     
+    // Apply any selected winners to the starting bracket
+    for (const [gameId, winner] of Object.entries(selectedWinners)) {
+      scenarioBracket[parseInt(gameId)] = winner;
+    }
+    
+    // Recalculate which games still need simulation
+    const filteredRemainingGames = remainingGames.filter(
+      gameId => !selectedWinners.hasOwnProperty(gameId)
+    );
+    
     // Calculate total number of scenarios
     // Each game has 2 possible outcomes, so total is 2^(number of remaining games)
-    totalScenarios = Math.pow(2, remainingGames.length);
+    totalScenarios = Math.pow(2, filteredRemainingGames.length);
     
     // Create a recursive function to explore all possible scenario branches
-    await exploreScenarios(scenarioBracket, 0);
+    await exploreScenarios(scenarioBracket, 0, filteredRemainingGames);
     
     // Convert win counts to percentages
     userWinCounts = userWinCounts.map(user => ({
@@ -162,9 +295,9 @@
   }
   
   // Recursive function to explore all possible scenario branches
-  async function exploreScenarios(bracket, gameIndex) {
+  async function exploreScenarios(bracket, gameIndex, gamesToSimulate) {
     // Base case: if we've assigned winners to all remaining games
-    if (gameIndex >= remainingGames.length) {
+    if (gameIndex >= gamesToSimulate.length) {
       // Calculate final standings for this scenario
       const scenarioScores = calculateScores(bracket, entries);
       
@@ -243,7 +376,7 @@
     }
     
     // For each remaining game, try both possible outcomes
-    const currentGame = remainingGames[gameIndex];
+    const currentGame = gamesToSimulate[gameIndex];
     
     // Get the teams playing in this game
     let teamA, teamB;
@@ -287,15 +420,15 @@
     // Try outcome 1: Team A wins
     const bracketWithA = [...bracket];
     bracketWithA[currentGame] = teamA;
-    await exploreScenarios(bracketWithA, gameIndex + 1);
+    await exploreScenarios(bracketWithA, gameIndex + 1, gamesToSimulate);
     
     // Try outcome 2: Team B wins
     const bracketWithB = [...bracket];
     bracketWithB[currentGame] = teamB;
-    await exploreScenarios(bracketWithB, gameIndex + 1);
+    await exploreScenarios(bracketWithB, gameIndex + 1, gamesToSimulate);
     
     // For large tournaments, we need to allow UI updates
-    if (gameIndex === 0 && remainingGames.length > 10) {
+    if (gameIndex === 0 && gamesToSimulate.length > 10) {
       await new Promise(resolve => setTimeout(resolve, 0));
     }
   }
@@ -385,7 +518,12 @@
           <div>
             <h2 class="text-xl font-bold text-amber-500">Tournament Outcome Probabilities</h2>
             <p class="text-zinc-400 text-sm mt-1">
-              Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'all possible'} tournament outcomes
+              {#if hasSelections}
+                Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'filtered'} tournament outcomes
+                <span class="text-amber-500">(filtered by {Object.keys(selectedWinners).length} selections)</span>
+              {:else}
+                Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'all possible'} tournament outcomes
+              {/if}
             </p>
             <p class="text-zinc-400 text-sm">
               Calculating with {entries.length} complete {entries.length === 1 ? 'entry' : 'entries'}
@@ -401,7 +539,7 @@
               <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
               Calculating...
             {:else}
-              Calculate All Scenarios
+              Calculate {hasSelections ? 'Filtered' : 'All'} Scenarios
             {/if}
           </button>
         </div>
@@ -455,6 +593,60 @@
 
           <!-- Desktop view (Full position probabilities only) -->
           <div class="hidden md:block">
+            <!-- Match Cards -->
+            <div class="mb-6">
+              <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-medium text-amber-500">Select Match Winners to Filter Scenarios</h3>
+                
+                {#if hasSelections}
+                  <button
+                    class="px-3 py-1 text-xs rounded bg-zinc-700 text-zinc-300 hover:bg-zinc-600 transition-colors"
+                    on:click={resetSelections}
+                  >
+                    Reset Selections
+                  </button>
+                {/if}
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {#each matchSimulationDetails as round}
+                  {#each round.games as game}
+                    <div class="bg-zinc-800/80 border border-zinc-700 rounded-lg overflow-hidden">
+                      <div class="bg-zinc-700/50 px-3 py-1.5 text-xs font-medium text-zinc-300">
+                        {round.name} - Game {game.gameId}
+                      </div>
+                      <div class="px-3 py-2">
+                        <button 
+                          class="w-full py-2 px-3 text-left mb-1 text-sm rounded 
+                                 {game.selected === game.teamA 
+                                  ? 'bg-amber-600/80 text-white' 
+                                  : 'bg-zinc-700/50 text-zinc-300 hover:bg-zinc-700'}"
+                          on:click={() => selectWinner(game.gameId, game.teamA)}
+                        >
+                          {game.teamA}
+                        </button>
+                        <button 
+                          class="w-full py-2 px-3 text-left text-sm rounded
+                                 {game.selected === game.teamB 
+                                  ? 'bg-amber-600/80 text-white' 
+                                  : 'bg-zinc-700/50 text-zinc-300 hover:bg-zinc-700'}"
+                          on:click={() => selectWinner(game.gameId, game.teamB)}
+                        >
+                          {game.teamB}
+                        </button>
+                      </div>
+                    </div>
+                  {/each}
+                {/each}
+                
+                {#if matchSimulationDetails.length === 0}
+                  <div class="col-span-full text-center py-4 text-zinc-500 italic">
+                    No upcoming games found in the tournament data.
+                  </div>
+                {/if}
+              </div>
+            </div>
+            
             <!-- Full position probability table -->
             <div class="mb-2 text-xs text-zinc-400 flex justify-between items-center">
               <p>Table sorted by best possible finish, then by probability of that finish. A dash (-) indicates zero scenarios. Total scenarios: {totalScenarios.toLocaleString()}</p>
