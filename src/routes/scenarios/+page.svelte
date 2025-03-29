@@ -15,7 +15,7 @@
   let totalScenarios = 0;
   let selectedTab = 'win'; // 'win' or 'full'
   let displayMode = 'percent'; // 'count' or 'percent'
-  
+
   // Match selections
   let selectedWinners = {}; // gameId -> winner team string
   let matchSimulationDetails = []; // Details about matches for the UI
@@ -121,6 +121,7 @@
       if (!round) continue;
       
       let teamA, teamB;
+      let teamASeoName, teamBSeoName;
       
       if (gameId >= 48 && gameId < 56) {
         // Sweet 16 games - teams come from the liveBracketData
@@ -128,6 +129,8 @@
         if (match?.teamA && match?.teamB) {
           teamA = `${match.teamA.seed} ${match.teamA.name}`;
           teamB = `${match.teamB.seed} ${match.teamB.name}`;
+          teamASeoName = match.teamA.seoName || match.teamA.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+          teamBSeoName = match.teamB.seoName || match.teamB.name.toLowerCase().replace(/[^a-z0-9]/g, '');
         } else {
           continue; // Skip if teams aren't available
         }
@@ -152,11 +155,23 @@
         }
         
         // Get teams from either master bracket or selected winners
-        teamA = masterBracket[prevGame1] || selectedWinners[prevGame1] || "TBD";
-        teamB = masterBracket[prevGame2] || selectedWinners[prevGame2] || "TBD";
+        teamA = masterBracket[prevGame1] || selectedWinners[prevGame1] || null;
+        teamB = masterBracket[prevGame2] || selectedWinners[prevGame2] || null;
         
-        if (teamA === "TBD" && teamB === "TBD") {
-          continue; // Skip if both teams are undetermined
+        // Skip games where both teams are undetermined
+        if (!teamA && !teamB) {
+          continue;
+        }
+        
+        // Get team seoNames if available
+        if (teamA) {
+          const teamAName = getTeamNameFromSelection(teamA);
+          teamASeoName = getTeamSeoName(teamAName);
+        }
+        
+        if (teamB) {
+          const teamBName = getTeamNameFromSelection(teamB);
+          teamBSeoName = getTeamSeoName(teamBName);
         }
       }
       
@@ -164,6 +179,8 @@
         gameId,
         teamA,
         teamB,
+        teamASeoName,
+        teamBSeoName,
         selected: selectedWinners[gameId] || null
       });
     }
@@ -177,6 +194,38 @@
         });
       }
     }
+  }
+  
+  // Helper function to extract team name from selection string (e.g. "1 Houston" -> "Houston")
+  function getTeamNameFromSelection(selection) {
+    if (!selection) return null;
+    const parts = selection.split(' ');
+    if (parts.length < 2) return selection; // Return original if can't parse
+    return parts.slice(1).join(' ');
+  }
+  
+  // Helper function to get team seoName for logo path
+  function getTeamSeoName(teamName) {
+    if (!teamName) return '';
+    
+    // First try to find the team in the live bracket data 
+    for (let i = 1; i <= 63; i++) {
+      const match = liveBracketData?.matches[i];
+      if (match?.teamA?.name === teamName && match.teamA.seoName) {
+        return match.teamA.seoName;
+      }
+      if (match?.teamB?.name === teamName && match.teamB.seoName) {
+        return match.teamB.seoName;
+      }
+    }
+    
+    // Fallback to simple transformation
+    return teamName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+  
+  // Handle image error for team logos
+  function handleImageError(event) {
+    event.target.src = '/images/placeholder-team.svg';
   }
   
   function initializePositionProbabilities() {
@@ -494,6 +543,22 @@
       return bHighestPos[1] - aHighestPos[1];
     });
   }
+
+  // Function to get correct ordinal suffix for numbers
+  function getOrdinalSuffix(num) {
+    const j = num % 10;
+    const k = num % 100;
+    if (j === 1 && k !== 11) {
+      return 'st';
+    }
+    if (j === 2 && k !== 12) {
+      return 'nd';
+    }
+    if (j === 3 && k !== 13) {
+      return 'rd';
+    }
+    return 'th';
+  }
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-9xl">
@@ -598,41 +663,80 @@
               <div class="flex justify-between items-center mb-3">
                 <h3 class="text-sm font-medium text-amber-500">Select Match Winners to Filter Scenarios</h3>
                 
-                {#if hasSelections}
+
                   <button
                     class="px-3 py-1 text-xs rounded bg-zinc-700 text-zinc-300 hover:bg-zinc-600 transition-colors"
                     on:click={resetSelections}
                   >
                     Reset Selections
                   </button>
-                {/if}
+
               </div>
               
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-1">
                 {#each matchSimulationDetails as round}
                   {#each round.games as game}
                     <div class="bg-zinc-800/80 border border-zinc-700 rounded-lg overflow-hidden">
-                      <div class="bg-zinc-700/50 px-3 py-1.5 text-xs font-medium text-zinc-300">
-                        {round.name} - Game {game.gameId}
+                      <div class="bg-zinc-700/50 px-2 py-1 text-xs font-medium text-zinc-300 truncate">
+                        {round.name}
                       </div>
-                      <div class="px-3 py-2">
+                      <div class="p-0.5">
+                        <!-- Team A -->
                         <button 
-                          class="w-full py-2 px-3 text-left mb-1 text-sm rounded 
-                                 {game.selected === game.teamA 
+                          class="w-full flex items-center gap-1 py-1.5 px-1 rounded mb-1 transition-colors
+                                 {game.selected === game.teamA && game.teamA 
                                   ? 'bg-amber-600/80 text-white' 
                                   : 'bg-zinc-700/50 text-zinc-300 hover:bg-zinc-700'}"
                           on:click={() => selectWinner(game.gameId, game.teamA)}
+                          disabled={!game.teamA}
+                          style={!game.teamA ? 'opacity: 0.7;' : ''}
                         >
-                          {game.teamA}
+                          {#if game.teamA}
+                            <div class="w-6 h-6 rounded-md overflow-hidden bg-zinc-800 flex-shrink-0 p-1">
+                              <img 
+                                src="/images/team-logos/{game.teamASeoName}.svg" 
+                                alt="Team logo"
+                                class="w-full h-full object-contain"
+                                style="filter: url(#teamLogoOutline);"
+                                on:error={handleImageError}
+                              />
+                            </div>
+                            <div class="truncate text-xs">{game.teamA}</div>
+                          {:else}
+                            <div class="w-6 h-6 rounded-md overflow-hidden bg-zinc-800 flex-shrink-0 p-1 flex items-center justify-center">
+                              <span class="text-xs text-zinc-400">?</span>
+                            </div>
+                            <div class="truncate text-xs text-zinc-400">TBD</div>
+                          {/if}
                         </button>
+                        
+                        <!-- Team B -->
                         <button 
-                          class="w-full py-2 px-3 text-left text-sm rounded
-                                 {game.selected === game.teamB 
+                          class="w-full flex items-center gap-1 py-1.5 px-1 rounded transition-colors
+                                 {game.selected === game.teamB && game.teamB 
                                   ? 'bg-amber-600/80 text-white' 
                                   : 'bg-zinc-700/50 text-zinc-300 hover:bg-zinc-700'}"
                           on:click={() => selectWinner(game.gameId, game.teamB)}
+                          disabled={!game.teamB}
+                          style={!game.teamB ? 'opacity: 0.7;' : ''}
                         >
-                          {game.teamB}
+                          {#if game.teamB}
+                            <div class="w-6 h-6 rounded-md overflow-hidden bg-zinc-800 flex-shrink-0 p-1">
+                              <img 
+                                src="/images/team-logos/{game.teamBSeoName}.svg" 
+                                alt="Team logo"
+                                class="w-full h-full object-contain"
+                                style="filter: url(#teamLogoOutline);"
+                                on:error={handleImageError}
+                              />
+                            </div>
+                            <div class="truncate text-xs">{game.teamB}</div>
+                          {:else}
+                            <div class="w-6 h-6 rounded-md overflow-hidden bg-zinc-800 flex-shrink-0 p-1 flex items-center justify-center">
+                              <span class="text-xs text-zinc-400">?</span>
+                            </div>
+                            <div class="truncate text-xs text-zinc-400">TBD</div>
+                          {/if}
                         </button>
                       </div>
                     </div>
@@ -651,7 +755,7 @@
             <div class="mb-2 text-xs text-zinc-400 flex justify-between items-center">
               <p>Table sorted by best possible finish, then by probability of that finish. A dash (-) indicates zero scenarios. Total scenarios: {totalScenarios.toLocaleString()}</p>
               
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1">
                 <span class="text-zinc-300">Display:</span>
                 <button 
                   class={`px-3 py-1 text-xs rounded ${displayMode === 'count' ? 'bg-amber-600 text-white' : 'bg-zinc-700 text-zinc-300'}`}
@@ -679,7 +783,7 @@
                           class="py-2 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider w-20 bg-zinc-800 transition-colors duration-150"
                           class:bg-amber-800={hoveredCol === i}
                       >
-                        {i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'}
+                        {i + 1}{getOrdinalSuffix(i + 1)}
                       </th>
                     {/each}
                   </tr>
