@@ -14,6 +14,12 @@
   let scenariosCalculated = false;
   let totalScenarios = 0;
   let selectedTab = 'win'; // 'win' or 'full'
+  let displayMode = 'percent'; // 'count' or 'percent'
+  
+  // Tracking hover state for highlighting
+  let hoveredRow = null;
+  let hoveredCol = null;
+  let hoveredCell = null; // Track the specific cell being hovered
   
   // Results tracking
   let userWinCounts = [];
@@ -178,26 +184,23 @@
         if (currentScore === null || score.total !== currentScore) {
           // Process previous tie group if it exists
           if (tieGroup.length > 0) {
-            // Award each person in the tie group a full win for each position they're tied for
-            const positions = tieGroup.map((_, index) => currentPosition + index);
+            // For ties, we'll use a "shared position" approach
+            // e.g., two users tied for 2nd place are both considered 2nd place
             
             for (const tiedScore of tieGroup) {
               // Update win count if tied for first
-              if (positions.includes(1)) {
+              if (currentPosition === 1) {
                 const winCounter = userWinCounts.find(u => u.entryId === tiedScore.entryId);
                 if (winCounter) {
                   winCounter.winCount += 1;
                 }
               }
               
-              // Update position counts
+              // Update position counts - each user gets exactly ONE position
               const positionCounter = positionProbabilities.find(p => p.entryId === tiedScore.entryId);
               if (positionCounter) {
-                // For each position in the tie range
-                for (const position of positions) {
-                  // Add a fractional count for the position (1/number of tied players)
-                  positionCounter.positions[position] += 1;
-                }
+                // Just increment the counter for their position
+                positionCounter.positions[currentPosition] += 1;
               }
             }
             
@@ -218,11 +221,9 @@
       
       // Process the final tie group if it exists
       if (tieGroup.length > 0) {
-        const positions = tieGroup.map((_, index) => currentPosition + index);
-        
         for (const tiedScore of tieGroup) {
           // Update win count if tied for first
-          if (positions.includes(1)) {
+          if (currentPosition === 1) {
             const winCounter = userWinCounts.find(u => u.entryId === tiedScore.entryId);
             if (winCounter) {
               winCounter.winCount += 1;
@@ -232,11 +233,8 @@
           // Update position counts
           const positionCounter = positionProbabilities.find(p => p.entryId === tiedScore.entryId);
           if (positionCounter) {
-            // For each position in the tie range
-            for (const position of positions) {
-              // Add a fractional count for the position
-              positionCounter.positions[position] += 1;
-            }
+            // Just increment the counter for their position
+            positionCounter.positions[currentPosition] += 1;
           }
         }
       }
@@ -409,7 +407,7 @@
         </div>
         
         {#if remainingGames.length > 12}
-          <div class="bg-amber-900/20 border border-amber-800/30 text-amber-400 p-3 rounded mb-4 text-sm">
+          <div class="bg-amber-800/20 border border-amber-800/30 text-amber-400 p-3 rounded mb-4 text-sm">
             Warning: There are {remainingGames.length} games remaining, which means {Math.pow(2, remainingGames.length).toLocaleString()} possible scenarios. 
             Calculation may take a long time or crash your browser.
           </div>
@@ -423,13 +421,13 @@
               <table class="w-full divide-y divide-zinc-700">
                 <thead class="bg-zinc-800">
                   <tr>
-                    <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                    <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
                       Name
                     </th>
-                    <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                    <th scope="col" class="px-2 py-2 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
                       Win %
                     </th>
-                    <th scope="col" class="px-2 py-3 text-right text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                    <th scope="col" class="px-2 py-2 text-right text-xs font-medium text-zinc-300 uppercase tracking-wider">
                       Wins
                     </th>
                   </tr>
@@ -437,15 +435,15 @@
                 <tbody class="bg-zinc-800/50 divide-y divide-zinc-700">
                   {#each userWinCounts as user, i}
                     <tr class={i % 2 === 0 ? 'bg-zinc-800' : ''}>
-                      <td class="px-2 py-3 whitespace-nowrap text-sm text-zinc-300">
+                      <td class="px-2 py-2 whitespace-nowrap text-sm text-zinc-300">
                         {user.firstName} {user.lastName}
                       </td>
-                      <td class="px-2 py-3 whitespace-nowrap text-sm text-zinc-300 text-center">
+                      <td class="px-2 py-2 whitespace-nowrap text-sm text-zinc-300 text-center">
                         <div class="inline-flex items-center">
                           <span class="text-amber-500 font-medium text-sm">{user.winProbability.toFixed(1)}%</span>
                         </div>
                       </td>
-                      <td class="px-2 py-3 whitespace-nowrap text-xs text-zinc-400 text-right">
+                      <td class="px-2 py-2 whitespace-nowrap text-xs text-zinc-400 text-right">
                         {user.winCount.toLocaleString(undefined, {maximumFractionDigits: 0})}
                       </td>
                     </tr>
@@ -458,18 +456,37 @@
           <!-- Desktop view (Full position probabilities only) -->
           <div class="hidden md:block">
             <!-- Full position probability table -->
-            <div class="mb-2 text-xs text-zinc-400">
-              <p>Table sorted by best possible finish, then by probability of that finish. A dash (-) indicates a 0% chance.</p>
+            <div class="mb-2 text-xs text-zinc-400 flex justify-between items-center">
+              <p>Table sorted by best possible finish, then by probability of that finish. A dash (-) indicates zero scenarios. Total scenarios: {totalScenarios.toLocaleString()}</p>
+              
+              <div class="flex items-center gap-2">
+                <span class="text-zinc-300">Display:</span>
+                <button 
+                  class={`px-3 py-1 text-xs rounded ${displayMode === 'count' ? 'bg-amber-600 text-white' : 'bg-zinc-700 text-zinc-300'}`}
+                  on:click={() => displayMode = 'count'}
+                >
+                  Counts
+                </button>
+                <button 
+                  class={`px-3 py-1 text-xs rounded ${displayMode === 'percent' ? 'bg-amber-600 text-white' : 'bg-zinc-700 text-zinc-300'}`}
+                  on:click={() => displayMode = 'percent'}
+                >
+                  Percentages
+                </button>
+              </div>
             </div>
-            <div class="overflow-x-auto pb-4">
+            <div class="overflow-x-auto pb-4 max-h-[70vh]">
               <table class="min-w-full divide-y divide-zinc-700 whitespace-nowrap">
-                <thead class="bg-zinc-800">
+                <thead class="bg-zinc-800 sticky top-0 z-10">
                   <tr>
-                    <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider sticky left-0 bg-zinc-800 z-10">
+                    <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider sticky left-0 bg-zinc-800 z-20">
                       Name
                     </th>
                     {#each Array(entries.length) as _, i}
-                      <th scope="col" class="px-1 py-2 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                      <th scope="col" 
+                          class="py-2 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider w-20 bg-zinc-800 transition-colors duration-150"
+                          class:bg-amber-800={hoveredCol === i}
+                      >
                         {i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'}
                       </th>
                     {/each}
@@ -480,16 +497,37 @@
                     {@const userProbabilities = Object.values(user.positionProbabilities)}
                     {@const maxProbability = Math.max(...userProbabilities, 0.1)}
                     <tr class={i % 2 === 0 ? 'bg-zinc-800' : ''}>
-                      <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-zinc-300 sticky left-0 {i % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} z-10">
+                      <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-zinc-300 sticky left-0 z-10 transition-colors duration-150"
+                          class:bg-amber-800={hoveredRow === i}
+                          class:bg-zinc-700={i % 2 === 0 && hoveredRow !== i}
+                          class:bg-zinc-800={i % 2 !== 0 && hoveredRow !== i}>
                         {user.firstName} {user.lastName}
                       </td>
                       {#each Array(entries.length) as _, j}
                         {@const position = j + 1}
+                        {@const count = user.positions[position] || 0}
                         {@const probability = user.positionProbabilities[position] || 0}
-                        <td class="px-1 py-2 whitespace-nowrap text-center" 
-                            style="background-color: {getRowHeatmapColor(probability, maxProbability)}">
-                          <span class="{probability === 0 ? 'text-zinc-500 font-normal' : 'text-white font-medium'} text-xs">
-                            {probability === 0 ? '-' : probability.toFixed(1) + '%'}
+                        <td class="py-2 whitespace-nowrap text-center min-w-[2.5rem]" 
+                            style="background-color: {getRowHeatmapColor(probability, maxProbability)}"
+                            on:mouseenter={() => { 
+                              hoveredRow = i; 
+                              hoveredCol = j; 
+                              hoveredCell = `${i}-${j}`; 
+                            }}
+                            on:mouseleave={() => { 
+                              hoveredRow = null; 
+                              hoveredCol = null; 
+                              hoveredCell = null; 
+                            }}
+                            class:ring-2={hoveredCell === `${i}-${j}`}
+                            class:ring-stone-300={hoveredCell === `${i}-${j}`}
+                            class:ring-inset={hoveredCell === `${i}-${j}`}>
+                          <span class="{count === 0 ? 'text-zinc-500 font-normal' : 'text-white font-medium'} text-xs">
+                            {#if displayMode === 'count'}
+                              {count === 0 ? '-' : count.toLocaleString()}
+                            {:else}
+                              {probability === 0 ? '-' : probability.toFixed(1) + '%'}
+                            {/if}
                           </span>
                         </td>
                       {/each}
@@ -503,19 +541,19 @@
               <div class="flex items-center justify-center gap-6 mb-2">
                 <div class="flex items-center gap-1">
                   <div class="w-4 h-4 rounded" style="background-color: hsla(120, 65%, 45%, 0.8)"></div>
-                  <span>Most likely position</span>
+                  <span>Most common position</span>
                 </div>
                 <div class="flex items-center gap-1">
                   <div class="w-4 h-4 rounded" style="background-color: hsla(60, 65%, 45%, 0.6)"></div>
-                  <span>Medium likelihood</span>
+                  <span>Medium frequency</span>
                 </div>
                 <div class="flex items-center gap-1">
                   <div class="w-4 h-4 rounded" style="background-color: hsla(0, 65%, 45%, 0.4)"></div>
-                  <span>Less likely position</span>
+                  <span>Less common position</span>
                 </div>
                 <div class="flex items-center gap-1">
                   <div class="w-4 h-4 rounded" style="background-color: rgba(50, 50, 50, 0.2)"></div>
-                  <span>0.0% (impossible)</span>
+                  <span>0 scenarios</span>
                 </div>
               </div>
             </div>
@@ -529,18 +567,3 @@
     </div>
   {/if}
 </div>
-
-<style>
-  :global(body) {
-    background-color: #18181b;
-    color: #f4f4f5;
-  }
-
-  /* Ensure text is readable in light mode too */
-  @media (prefers-color-scheme: light) {
-    .bg-gradient-to-r.from-amber-700.to-amber-600 {
-      color: white;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    }
-  }
-</style> 
