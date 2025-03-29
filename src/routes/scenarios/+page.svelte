@@ -15,6 +15,7 @@
   let totalScenarios = 0;
   let selectedTab = 'win'; // Default tab, will be updated based on screen size
   let displayMode = 'percent'; // 'count' or 'percent'
+  let currentUser = null; // Store the current user
 
   // Match selections
   let selectedWinners = {}; // gameId -> winner team string
@@ -65,7 +66,28 @@
       
       mediaQuery.addEventListener('change', handleResize);
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      currentUser = user;
+
       await fetchData();
+
+      // Automatically calculate scenarios when page loads
+      if (!scenariosCalculated && entries.length > 0) {
+        await calculateAllScenarios();
+      }
+
+      // If user is logged in, automatically select their bracket for the Root For tab
+      if (currentUser) {
+        // Find the entry that belongs to this user
+        const userEntry = entries.find(entry => entry.user_id === currentUser.id);
+        if (userEntry) {
+          selectedUser = userEntry.entryId;
+          calculateTeamContributions(selectedUser);
+          // Set the tab to Root For tab if user is logged in
+          selectedTab = 'root';
+        }
+      }
     } catch (err) {
       error = err.message;
     } finally {
@@ -109,6 +131,7 @@
     
     entries = data.map(bracket => ({
       entryId: bracket.id,
+      user_id: bracket.user_id,
       firstName: bracket.profiles?.first_name || 'Unknown',
       lastName: bracket.profiles?.last_name || 'User',
       selections: bracket.selections || [],
@@ -937,18 +960,20 @@
             </p>
           </div>
           
-          <button 
-            class="mt-4 md:mt-0 bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 flex items-center"
-            on:click={calculateAllScenarios}
-            disabled={simulationInProgress}
-          >
-            {#if simulationInProgress}
-              <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-              Calculating...
-            {:else}
-              Calculate {hasSelections ? 'Filtered' : 'All'} Scenarios
-            {/if}
-          </button>
+          <div>
+            <button 
+              class="mt-4 md:mt-0 bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 flex items-center"
+              on:click={calculateAllScenarios}
+              disabled={simulationInProgress}
+            >
+              {#if simulationInProgress}
+                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                Calculating...
+              {:else}
+                {scenariosCalculated ? 'Recalculate' : 'Calculate'} {hasSelections ? 'Filtered' : 'All'} Scenarios
+              {/if}
+            </button>
+          </div>
         </div>
         
         {#if remainingGames.length > 12}
@@ -1225,7 +1250,11 @@
               <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
                 <div>
                   <label for="userSelect" class="block text-sm font-medium text-zinc-300 mb-1">
-                    Select your bracket:
+                    {#if currentUser && selectedUser && entries.find(entry => entry.entryId === selectedUser && entry.user_id === currentUser.id)}
+                      Your bracket is automatically selected:
+                    {:else}
+                      Select a bracket:
+                    {/if}
                   </label>
                   <select 
                     id="userSelect"
@@ -1239,7 +1268,7 @@
                       const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
                       return nameA.localeCompare(nameB);
                     }) as entry}
-                      <option value={entry.entryId}>{entry.firstName} {entry.lastName}</option>
+                      <option value={entry.entryId}>{entry.firstName} {entry.lastName}{entry.user_id === currentUser?.id ? ' (You)' : ''}</option>
                     {/each}
                   </select>
                 </div>
@@ -1249,6 +1278,9 @@
                 <div class="bg-zinc-800/50 rounded-lg border border-zinc-700 p-4 mb-4">
                   <h3 class="text-lg font-medium text-amber-500 mb-2">
                     Rooting Guide for {entries.find(e => e.entryId === selectedUser)?.firstName} {entries.find(e => e.entryId === selectedUser)?.lastName}
+                    {#if currentUser && entries.find(e => e.entryId === selectedUser)?.user_id === currentUser.id}
+                      <span class="text-sm font-normal text-amber-400">(You)</span>
+                    {/if}
                   </h3>
                   <p class="text-zinc-300 text-sm mb-4">
                     {#if targetPosition === 1}
@@ -1347,9 +1379,6 @@
                                   <span class="text-amber-500">Root for <strong>{game.teamB}</strong> for best chances</span>
                                 {:else}
                                   <span class="text-zinc-400">This game has no significant impact</span>
-                                  <div class="text-zinc-500 mt-1">
-                                    <strong>{teamWinContributions[game.gameId].teamA.wins}</strong> scenarios with either team
-                                  </div>
                                 {/if}
                               </div>
                             </div>
@@ -1376,14 +1405,21 @@
                 </div>
               {:else}
                 <div class="text-center py-8 text-zinc-500">
-                  Please select a user to see rooting interests.
+                  {#if currentUser}
+                    No bracket found for your account. Please select another user's bracket to see rooting interests.
+                  {:else}
+                    Please select a user to see rooting interests. <span class="text-amber-500">Sign in to automatically see your bracket!</span>
+                  {/if}
                 </div>
               {/if}
             </div>
           {/if}
         {:else}
           <div class="text-center py-12 text-zinc-500">
-            Click "Calculate All Scenarios" to see each participant's probability of finishing in each position.
+            <div class="animate-pulse flex flex-col items-center">
+              <div class="w-10 h-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+              <p>Calculating tournament scenarios automatically...</p>
+            </div>
           </div>
         {/if}
       </div>
