@@ -41,8 +41,8 @@
     try {
       // Set default tab based on screen width
       if (window.matchMedia('(min-width: 768px)').matches) {
-        // Desktop - default to full standings since Win Chances is hidden on desktop
-        selectedTab = 'full';
+        // Desktop - default to win chances instead of full standings
+        selectedTab = 'win';
       } else {
         // Mobile - default to win chances since Full Standings is hidden on mobile
         selectedTab = 'win';
@@ -51,17 +51,8 @@
       // Add resize event listener to handle tab switching when screen size changes
       const mediaQuery = window.matchMedia('(min-width: 768px)');
       const handleResize = (e) => {
-        if (e.matches) {
-          // Changed to desktop
-          if (selectedTab === 'win') {
-            selectedTab = 'full';
-          }
-        } else {
-          // Changed to mobile
-          if (selectedTab === 'full') {
-            selectedTab = 'win';
-          }
-        }
+        // We no longer need to switch tabs based on screen size
+        // since all tabs are now available on all screen sizes
       };
       
       mediaQuery.addEventListener('change', handleResize);
@@ -955,9 +946,6 @@
                 Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'all possible'} tournament outcomes
               {/if}
             </p>
-            <p class="text-zinc-400 text-sm">
-              Calculating with {entries.length} complete {entries.length === 1 ? 'entry' : 'entries'}
-            </p>
           </div>
           
           <div class="hidden">
@@ -1079,7 +1067,7 @@
             <div class="border-b border-zinc-700">
               <div class="flex">
                 <button
-                  class={`py-2 px-4 font-medium text-sm md:hidden ${selectedTab === 'win' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
+                  class={`py-2 px-4 font-medium text-sm ${selectedTab === 'win' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
                   on:click={() => selectedTab = 'win'}
                 >
                   Win Chances
@@ -1105,7 +1093,7 @@
           <!-- Tab Content -->
           {#if selectedTab === 'win'}
             <!-- Win probability table -->
-            <div class="overflow-x-auto rounded-lg border border-zinc-700">
+            <div class="overflow-x-auto rounded-lg border border-zinc-700 max-w-2xl mx-auto">
               <table class="w-full divide-y divide-zinc-700">
                 <thead class="bg-zinc-800">
                   <tr>
@@ -1247,50 +1235,56 @@
           {:else if selectedTab === 'root'}
             <!-- Root For Who Tab -->
             <div class="mb-6">
-              <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
-                <div>
-                  <label for="userSelect" class="block text-sm font-medium text-zinc-300 mb-1">
-                    {#if currentUser && selectedUser && entries.find(entry => entry.entryId === selectedUser && entry.user_id === currentUser.id)}
-                      Your bracket is automatically selected:
-                    {:else}
-                      Select a bracket:
-                    {/if}
-                  </label>
-                  <select 
-                    id="userSelect"
-                    class="bg-zinc-700 border border-zinc-600 rounded px-3 py-2 text-zinc-200 w-full md:w-64"
-                    bind:value={selectedUser}
-                    on:change={() => calculateTeamContributions(selectedUser)}
-                  >
-                    <option value={null} disabled selected={!selectedUser}>Select a user...</option>
-                    {#each entries.slice().sort((a, b) => {
-                      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
-                      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
-                      return nameA.localeCompare(nameB);
-                    }) as entry}
-                      <option value={entry.entryId}>{entry.firstName} {entry.lastName}{entry.user_id === currentUser?.id ? ' (You)' : ''}</option>
-                    {/each}
-                  </select>
+              <div class="mb-4">
+                <div class="flex flex-col md:flex-row items-start gap-4">
+                  <div class="w-full md:w-auto">
+                    <label for="userSelect" class="block text-sm font-medium text-zinc-300 mb-1">
+                      {#if currentUser && selectedUser && entries.find(entry => entry.entryId === selectedUser && entry.user_id === currentUser.id)}
+                        Your bracket is automatically selected:
+                      {:else}
+                        Select a bracket:
+                      {/if}
+                    </label>
+                    <div class="flex flex-wrap items-center gap-3">
+                      <select 
+                        id="userSelect"
+                        class="bg-zinc-700 border border-zinc-600 rounded px-3 py-2 text-zinc-200 w-full md:w-64"
+                        bind:value={selectedUser}
+                        on:change={() => calculateTeamContributions(selectedUser)}
+                      >
+                        <option value={null} disabled selected={!selectedUser}>Select a user...</option>
+                        {#each entries.slice().sort((a, b) => {
+                          const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+                          const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+                          return nameA.localeCompare(nameB);
+                        }) as entry}
+                          <option value={entry.entryId}>{entry.firstName} {entry.lastName}{entry.user_id === currentUser?.id ? ' (You)' : ''}</option>
+                        {/each}
+                      </select>
+                      
+                      {#if selectedUser && scenariosCalculated}
+                        {#if targetPosition === 1}
+                          <div class="bg-zinc-800 border border-amber-600 rounded-lg p-2 flex items-center gap-2 flex-wrap">
+                            <span class="text-zinc-200 text-sm">Chances for 1st:</span> 
+                            <span class="bg-amber-600/20 text-amber-400 px-2 py-0.5 rounded text-sm font-semibold">
+                              {countWinScenariosForUser(selectedUser, remainingGames.filter(gameId => !selectedWinners.hasOwnProperty(gameId)))} of {totalScenarios}
+                            </span>
+                            <span class="text-base font-bold text-amber-500">{(positionProbabilities.find(p => p.entryId === selectedUser)?.positionProbabilities[1] || 0).toFixed(1)}%</span>
+                          </div>
+                        {:else}
+                          <div class="bg-zinc-800 border border-amber-800/50 rounded-lg p-2 flex items-center gap-2 flex-wrap">
+                            <span class="bg-amber-900/30 text-amber-400 px-2 py-0.5 rounded text-sm font-medium">No 1st place chance</span> 
+                            <span class="text-sm text-white">Best finish: <strong class="text-amber-500">{targetPosition}{getOrdinalSuffix(targetPosition)}</strong></span>
+                          </div>
+                        {/if}
+                      {/if}
+                    </div>
+                  </div>
                 </div>
               </div>
               
               {#if selectedUser && Object.keys(teamWinContributions).length > 0}
                 <div class="bg-zinc-800/50 rounded-lg border border-zinc-700 p-4 mb-4">
-                  <p class="text-zinc-300 text-sm mb-4">
-                    {#if targetPosition === 1}
-                      <div class="bg-zinc-800 border border-amber-600 rounded-lg p-3 inline-flex items-center gap-2">
-                        <span class="text-zinc-200">Chances for 1st place:</span> 
-                        <span class="bg-amber-600/20 text-amber-400 px-2 py-1 rounded font-semibold">
-                          {countWinScenariosForUser(selectedUser, remainingGames.filter(gameId => !selectedWinners.hasOwnProperty(gameId)))} of {totalScenarios}
-                        </span>
-                        <span class="text-lg font-bold text-amber-500">{(positionProbabilities.find(p => p.entryId === selectedUser)?.positionProbabilities[1] || 0).toFixed(1)}%</span>
-                      </div>
-                    {:else}
-                      <span class="bg-amber-900/30 text-amber-400 px-2 py-1 rounded font-medium">No chance for 1st place</span> 
-                      <span class="ml-2">Showing scenarios for best possible finish: <strong>{targetPosition}{getOrdinalSuffix(targetPosition)} place</strong></span>
-                    {/if}
-                  </p>
-                  
                   <div class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                     {#each matchSimulationDetails as round}
                       {#each round.games.filter(game => !selectedWinners[game.gameId] && game.teamA && game.teamB) as game}
@@ -1363,9 +1357,9 @@
                               
                               <!-- Root for summary -->
                               <div class="mt-2 text-center text-xs">
-                                {#if teamWinContributions[game.gameId].teamA.wins === 0}
+                                {#if teamWinContributions[game.gameId].teamA.wins === 0 && teamWinContributions[game.gameId].teamB.wins !== 0}
                                   <span class="text-red-400 font-semibold">Must root for <strong>{game.teamB}</strong> - only viable option</span>
-                                {:else if teamWinContributions[game.gameId].teamB.wins === 0}
+                                {:else if teamWinContributions[game.gameId].teamB.wins === 0 && teamWinContributions[game.gameId].teamA.wins !== 0}
                                   <span class="text-red-400 font-semibold">Must root for <strong>{game.teamA}</strong> - only viable option</span>
                                 {:else if teamWinContributions[game.gameId].favoredTeam === 'A'}
                                   <span class="text-amber-500">Root for <strong>{game.teamA}</strong> for best chances</span>
