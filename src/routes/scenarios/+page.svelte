@@ -328,13 +328,13 @@
     // Calculate relative strength (0 to 1)
     const relativeStrength = probability / maxInRow;
     
-    // Green for high probabilities, yellow for medium, red for low
+    // More muted green for high probabilities, yellow for medium, red for low
     const hue = Math.min(120, Math.round(relativeStrength * 120));
-    const saturation = 75;
-    const lightness = 50;
+    const saturation = 65; // Reduced from 75%
+    const lightness = 45; // Reduced from 50%
     
     // Alpha increases with relative strength
-    const alpha = Math.min(0.9, 0.2 + relativeStrength * 0.7);
+    const alpha = Math.min(0.85, 0.2 + relativeStrength * 0.65);
     
     return `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
   }
@@ -365,7 +365,7 @@
   }
 </script>
 
-<div class="container mx-auto px-4 py-8 max-w-7xl">
+<div class="container mx-auto px-4 py-8 max-w-9xl">
   {#if loading}
     <div class="flex justify-center items-center min-h-[400px]" in:fade={{ duration: 100 }}>
       <div class="flex flex-col items-center gap-3">
@@ -465,11 +465,11 @@
               <table class="min-w-full divide-y divide-zinc-700 whitespace-nowrap">
                 <thead class="bg-zinc-800">
                   <tr>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider sticky left-0 bg-zinc-800 z-10">
+                    <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider sticky left-0 bg-zinc-800 z-10">
                       Name
                     </th>
                     {#each Array(entries.length) as _, i}
-                      <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                      <th scope="col" class="px-1 py-2 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
                         {i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'}
                       </th>
                     {/each}
@@ -480,15 +480,15 @@
                     {@const userProbabilities = Object.values(user.positionProbabilities)}
                     {@const maxProbability = Math.max(...userProbabilities, 0.1)}
                     <tr class={i % 2 === 0 ? 'bg-zinc-800' : ''}>
-                      <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-zinc-300 sticky left-0 {i % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} z-10">
+                      <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-zinc-300 sticky left-0 {i % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} z-10">
                         {user.firstName} {user.lastName}
                       </td>
                       {#each Array(entries.length) as _, j}
                         {@const position = j + 1}
                         {@const probability = user.positionProbabilities[position] || 0}
-                        <td class="px-2 py-3 whitespace-nowrap text-center" 
+                        <td class="px-1 py-2 whitespace-nowrap text-center" 
                             style="background-color: {getRowHeatmapColor(probability, maxProbability)}">
-                          <span class="{probability === 0 ? 'text-zinc-500 font-normal' : 'text-white font-medium'} text-sm">
+                          <span class="{probability === 0 ? 'text-zinc-500 font-normal' : 'text-white font-medium'} text-xs">
                             {probability === 0 ? '-' : probability.toFixed(1) + '%'}
                           </span>
                         </td>
@@ -502,15 +502,15 @@
             <div class="mt-4 p-3 bg-zinc-800/30 rounded text-xs text-zinc-400">
               <div class="flex items-center justify-center gap-6 mb-2">
                 <div class="flex items-center gap-1">
-                  <div class="w-4 h-4 rounded" style="background-color: hsla(120, 75%, 50%, 0.8)"></div>
+                  <div class="w-4 h-4 rounded" style="background-color: hsla(120, 65%, 45%, 0.8)"></div>
                   <span>Most likely position</span>
                 </div>
                 <div class="flex items-center gap-1">
-                  <div class="w-4 h-4 rounded" style="background-color: hsla(60, 75%, 50%, 0.6)"></div>
+                  <div class="w-4 h-4 rounded" style="background-color: hsla(60, 65%, 45%, 0.6)"></div>
                   <span>Medium likelihood</span>
                 </div>
                 <div class="flex items-center gap-1">
-                  <div class="w-4 h-4 rounded" style="background-color: hsla(0, 75%, 50%, 0.4)"></div>
+                  <div class="w-4 h-4 rounded" style="background-color: hsla(0, 65%, 45%, 0.4)"></div>
                   <span>Less likely position</span>
                 </div>
                 <div class="flex items-center gap-1">
@@ -518,7 +518,6 @@
                   <span>0.0% (impossible)</span>
                 </div>
               </div>
-              <p class="text-center">Colors show relative likelihood for each player (row-based) rather than absolute percentages.</p>
             </div>
           </div>
         {:else}
