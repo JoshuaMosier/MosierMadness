@@ -960,7 +960,7 @@
             </p>
           </div>
           
-          <div>
+          <div class="hidden">
             <button 
               class="mt-4 md:mt-0 bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 flex items-center"
               on:click={calculateAllScenarios}
@@ -984,8 +984,8 @@
         {/if}
         
         {#if scenariosCalculated}
-          <!-- Match Cards (shown on both mobile and desktop) -->
-          <div class="mb-6">
+          <!-- Match Cards (hidden on mobile, shown on desktop) -->
+          <div class="mb-6 hidden md:block">
             <div class="flex justify-between items-center mb-3">
               <h3 class="text-sm font-medium text-amber-500">Select Match Winners to Filter Scenarios</h3>
               <button
@@ -996,7 +996,7 @@
               </button>
             </div>
             
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-1">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-9 gap-1">
               {#each matchSimulationDetails as round}
                 {#each round.games as game}
                   <div class="bg-zinc-800/80 border border-zinc-700 rounded-lg overflow-hidden">
@@ -1096,7 +1096,7 @@
                     selectedTab = 'root';
                   }}
                 >
-                  Root For Who?
+                  Rooting Guide
                 </button>
               </div>
             </div>
@@ -1276,12 +1276,6 @@
               
               {#if selectedUser && Object.keys(teamWinContributions).length > 0}
                 <div class="bg-zinc-800/50 rounded-lg border border-zinc-700 p-4 mb-4">
-                  <h3 class="text-lg font-medium text-amber-500 mb-2">
-                    Rooting Guide for {entries.find(e => e.entryId === selectedUser)?.firstName} {entries.find(e => e.entryId === selectedUser)?.lastName}
-                    {#if currentUser && entries.find(e => e.entryId === selectedUser)?.user_id === currentUser.id}
-                      <span class="text-sm font-normal text-amber-400">(You)</span>
-                    {/if}
-                  </h3>
                   <p class="text-zinc-300 text-sm mb-4">
                     {#if targetPosition === 1}
                       <div class="bg-zinc-800 border border-amber-600 rounded-lg p-3 inline-flex items-center gap-2">
