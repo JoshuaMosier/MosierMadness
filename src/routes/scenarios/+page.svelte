@@ -366,18 +366,6 @@
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-7xl">
-  <div class="text-center mb-8">
-    <h1 class="text-4xl font-bold mb-4">
-      <span class="bg-gradient-to-r from-amber-700 to-amber-600 text-white px-4 py-2 rounded-lg shadow-md inline-block">
-        Tournament Scenarios
-      </span>
-    </h1>
-    <p class="text-zinc-400 mt-4 max-w-2xl mx-auto">
-      Calculate the probability of each participant finishing in each position based on all possible outcomes 
-      for the {remainingGames.length} remaining games.
-    </p>
-  </div>
-
   {#if loading}
     <div class="flex justify-center items-center min-h-[400px]" in:fade={{ duration: 100 }}>
       <div class="flex flex-col items-center gap-3">
@@ -428,76 +416,47 @@
         {/if}
         
         {#if scenariosCalculated}
-          <div class="bg-zinc-800/30 rounded-lg p-3 mb-4 text-sm text-zinc-400">
-            <p><span class="text-amber-500 font-medium">Note on ties:</span> When multiple users tie for a position, each receives full credit for all positions in the tie range.</p>
-          </div>
-          
-          <!-- Tab navigation -->
-          <div class="border-b border-zinc-700 mb-4">
-            <div class="flex -mb-px">
-              <button
-                class="py-2 px-4 border-b-2 font-medium text-sm focus:outline-none 
-                      {selectedTab === 'win' ? 'border-amber-500 text-amber-500' : 'border-transparent text-zinc-400 hover:text-zinc-300'}"
-                on:click={() => selectedTab = 'win'}
-              >
-                Win Probability
-              </button>
-              <button
-                class="py-2 px-4 border-b-2 font-medium text-sm focus:outline-none 
-                      {selectedTab === 'full' ? 'border-amber-500 text-amber-500' : 'border-transparent text-zinc-400 hover:text-zinc-300'}"
-                on:click={() => selectedTab = 'full'}
-              >
-                Full Position Probabilities
-              </button>
-            </div>
-          </div>
-          
-          {#if selectedTab === 'win'}
+          <!-- Mobile view (Win probability only) -->
+          <div class="md:hidden">
             <!-- Win probability table -->
-            <div class="overflow-hidden rounded-lg border border-zinc-700">
-              <table class="min-w-full divide-y divide-zinc-700">
+            <div class="overflow-x-auto rounded-lg border border-zinc-700">
+              <table class="w-full divide-y divide-zinc-700">
                 <thead class="bg-zinc-800">
                   <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
-                      Rank
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                    <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
                       Name
                     </th>
-                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
-                      Win/Tie %
+                    <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                      Win %
                     </th>
-                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-zinc-300 uppercase tracking-wider">
-                      Win/Tie Scenarios
+                    <th scope="col" class="px-2 py-3 text-right text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                      Wins
                     </th>
                   </tr>
                 </thead>
                 <tbody class="bg-zinc-800/50 divide-y divide-zinc-700">
                   {#each userWinCounts as user, i}
                     <tr class={i % 2 === 0 ? 'bg-zinc-800' : ''}>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-300">
-                        {i + 1}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-300">
+                      <td class="px-2 py-3 whitespace-nowrap text-sm text-zinc-300">
                         {user.firstName} {user.lastName}
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-300 text-center">
+                      <td class="px-2 py-3 whitespace-nowrap text-sm text-zinc-300 text-center">
                         <div class="inline-flex items-center">
-                          <div class="relative w-full bg-zinc-700 rounded-full h-2.5 w-24 mx-auto">
-                            <div class="bg-amber-600 h-2.5 rounded-full" style="width: {Math.min(100, user.winProbability)}%"></div>
-                          </div>
-                          <span class="ml-3 text-amber-500 font-medium">{user.winProbability.toFixed(1)}%</span>
+                          <span class="text-amber-500 font-medium text-sm">{user.winProbability.toFixed(1)}%</span>
                         </div>
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-400 text-right">
-                        {user.winCount.toLocaleString(undefined, {maximumFractionDigits: 1})} / {totalScenarios.toLocaleString()}
+                      <td class="px-2 py-3 whitespace-nowrap text-xs text-zinc-400 text-right">
+                        {user.winCount.toLocaleString(undefined, {maximumFractionDigits: 0})}
                       </td>
                     </tr>
                   {/each}
                 </tbody>
               </table>
             </div>
-          {:else}
+          </div>
+
+          <!-- Desktop view (Full position probabilities only) -->
+          <div class="hidden md:block">
             <!-- Full position probability table -->
             <div class="mb-2 text-xs text-zinc-400">
               <p>Table sorted by best possible finish, then by probability of that finish. A dash (-) indicates a 0% chance.</p>
@@ -561,7 +520,7 @@
               </div>
               <p class="text-center">Colors show relative likelihood for each player (row-based) rather than absolute percentages.</p>
             </div>
-          {/if}
+          </div>
         {:else}
           <div class="text-center py-12 text-zinc-500">
             Click "Calculate All Scenarios" to see each participant's probability of finishing in each position.
