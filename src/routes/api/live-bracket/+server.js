@@ -31,8 +31,8 @@ async function getMasterBracket() {
         "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/28/scoreboard.json",
         "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/29/scoreboard.json",
         "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/03/30/scoreboard.json",
-        // "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/04/05/scoreboard.json",
-        // "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/04/07/scoreboard.json"
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/04/05/scoreboard.json",
+        "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2025/04/07/scoreboard.json"
     ];
 
     const region = {"SOUTH":'2',"WEST":'1',"EAST":'3',"MIDWEST":'4'};
