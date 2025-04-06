@@ -365,20 +365,20 @@
 
   // Update getTeamOverlayStyle to return more information
   function getTeamOverlayStyle(teamName, score, gameIndex) {
-    const isEliminated = eliminatedTeams.some(eliminatedTeam => {
+    const masterTeamName = getTeamNameFromSelection(masterBracket[gameIndex]);
+    const isCorrect = masterTeamName === teamName;
+    
+    const isEliminated = !isCorrect && eliminatedTeams.some(eliminatedTeam => {
       const eliminatedTeamName = getTeamNameFromSelection(eliminatedTeam);
       return eliminatedTeamName === teamName;
     });
     
-    const masterTeamName = getTeamNameFromSelection(masterBracket[gameIndex]);
-    const isCorrect = masterTeamName === teamName;
-    
     const styles = [];
     
-    if (isEliminated) {
-      styles.push('background: rgba(255, 0, 0, 0.6)');
-    } else if (isCorrect) {
+    if (isCorrect) {
       styles.push('background: rgba(34, 197, 94, 0.5)');
+    } else if (isEliminated) {
+      styles.push('background: rgba(255, 0, 0, 0.6)');
     }
     
     return {
