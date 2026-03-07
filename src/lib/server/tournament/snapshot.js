@@ -7,7 +7,7 @@ import { parseDateParts } from '$lib/server/tournament/dates';
 import { getStatusPriority, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
 import { formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils';
 import { getTournamentSettings } from '$lib/server/tournament/settings';
-import { loadTeamColors, getTeamColorSet } from '$lib/server/tournament/teamColors';
+import { loadTeamColors, getTeamColorSet, buildNormalizedTeam } from '$lib/server/tournament/teamColors';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { supabase } from '$lib/supabase';
 
@@ -164,23 +164,17 @@ function buildFirstRoundTeams(firstRoundDays) {
 
 function normalizeScoreboardTeam(teamData, canonicalByNcaaName) {
   const canonicalName = canonicalByNcaaName.get(teamData.names.short) || teamData.names.short;
-  const seoName = resolveTeamSeoName(canonicalName, teamData.names.seo);
-  const { primaryColor: color, secondaryColor } = getTeamColorSet(seoName);
-
-  return {
+  return buildNormalizedTeam({
     name: canonicalName,
     ncaaName: teamData.names.short,
     char6: teamData.names.char6,
-    displayName: canonicalName.length > 14 ? teamData.names.char6 : canonicalName,
+    seoName: resolveTeamSeoName(canonicalName, teamData.names.seo),
     score: parseScore(teamData.score),
     scoreText: teamData.score ?? '',
     seed: teamData.seed ? Number.parseInt(teamData.seed, 10) : null,
     winner: teamData.winner === true,
     description: teamData.description,
-    seoName,
-    color,
-    secondaryColor,
-  };
+  });
 }
 
 function normalizeScoreboardGame(wrapper, canonicalByNcaaName, options = {}) {

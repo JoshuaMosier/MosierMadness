@@ -4,7 +4,7 @@ import {
 } from '$lib/server/tournament/constants';
 import { fetchJsonWithCache } from '$lib/server/tournament/httpCache';
 import { formatContestDate, getSeasonYear } from '$lib/server/tournament/dates';
-import { loadTeamColors, getTeamColorSet } from '$lib/server/tournament/teamColors';
+import { loadTeamColors, buildNormalizedTeam } from '$lib/server/tournament/teamColors';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { getStatusPriority } from '$lib/utils/scoreboardUtils';
 
@@ -28,23 +28,17 @@ function buildContestsUrl(dateValue = new Date()) {
 
 function normalizeTeam(team) {
   const name = team.nameShort || 'TBD';
-  const seoName = resolveTeamSeoName(name, team.seoname);
-  const { primaryColor: color, secondaryColor } = getTeamColorSet(seoName);
-
-  return {
+  return buildNormalizedTeam({
     name,
     ncaaName: name,
     char6: team.name6Char || name.slice(0, 6).toUpperCase(),
-    displayName: name.length > 14 ? (team.name6Char || name) : name,
+    seoName: resolveTeamSeoName(name, team.seoname),
     score: Number.isFinite(team.score) ? team.score : null,
     scoreText: Number.isFinite(team.score) ? String(team.score) : '',
     seed: team.seed ? Number.parseInt(team.seed, 10) : null,
     winner: team.isWinner === true,
     description: name,
-    seoName,
-    color,
-    secondaryColor,
-  };
+  });
 }
 
 function getDisplayClock(contest) {

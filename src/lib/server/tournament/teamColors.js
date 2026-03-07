@@ -86,3 +86,25 @@ export function getTeamColorSet(seoName = '') {
 export function getAllTeamColors() {
   return colorCache.map || new Map();
 }
+
+/**
+ * Build a normalized team display object from pre-extracted fields.
+ * Shared by both the scoreboard and daily-scores normalizers.
+ */
+export function buildNormalizedTeam({ name, ncaaName, char6, seoName, score, scoreText, seed, winner, description }) {
+  const { primaryColor: color, secondaryColor } = getTeamColorSet(seoName);
+  return {
+    name,
+    ncaaName,
+    char6,
+    displayName: name.length > 14 ? char6 : name,
+    score,
+    scoreText,
+    seed,
+    winner,
+    description,
+    seoName,
+    color,
+    secondaryColor,
+  };
+}
