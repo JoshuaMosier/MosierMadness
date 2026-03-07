@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import teamColors from '$lib/ncaa_team_colors.json';
   import { getStatusColor, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
+  import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
   
   let matches = [];
   let loading = true;
@@ -50,21 +50,8 @@
   }
   
   // Helper function to get team background style
-  function getTeamStyle(teamName) {
-    if (teamName && teamColors[teamName]) {
-      const color = teamColors[teamName].primary_color;
-      const opacity = 0.8;
-      // Convert hex to RGB
-      const hex = color.replace('#', '');
-      const r = parseInt(hex.substring(0, 2), 16);
-      const g = parseInt(hex.substring(2, 4), 16);
-      const b = parseInt(hex.substring(4, 6), 16);
-      return `background: linear-gradient(to right, 
-        rgba(${r}, ${g}, ${b}, ${opacity}) 0%,
-        rgba(${r}, ${g}, ${b}, ${0.6}) 100%
-      )`;
-    }
-    return 'background-color: rgba(39, 39, 42, 0.8)'; // Default background for teams without colors
+  function getTeamStyle(team) {
+    return getGradientStyleFromColor(team?.color);
   }
 
   // Helper function to get appropriate team name based on length
@@ -124,7 +111,7 @@
                   <span class="rank text-xxs sm:text-xs bg-gray-700 text-white px-1 sm:px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 min-w-[1.5rem] sm:min-w-[2rem] inline-block text-center">#{game.awayTeam.seed}</span>
                 {/if}
                 <span class="text-sm sm:text-lg px-1 sm:px-2 py-0.5 sm:py-1 rounded-md flex-grow {isWinner(game.awayTeam) ? 'text-white font-semibold' : isWinner(game.homeTeam) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm truncate"
-                      style={getTeamStyle(game.awayTeam.name)}>
+                      style={getTeamStyle(game.awayTeam)}>
                   {getDisplayName(game.awayTeam)}
                 </span>
                 <span class="score-value text-lg sm:text-2xl font-bold tabular-nums flex-shrink-0 {isWinner(game.awayTeam) ? 'text-white' : 'text-gray-400'}">{game.awayTeam.scoreText}</span>
@@ -142,7 +129,7 @@
                   <span class="rank text-xxs sm:text-xs bg-gray-700 text-white px-1 sm:px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 min-w-[1.5rem] sm:min-w-[2rem] inline-block text-center">#{game.homeTeam.seed}</span>
                 {/if}
                 <span class="text-sm sm:text-lg px-1 sm:px-2 py-0.5 sm:py-1 rounded-md flex-grow {isWinner(game.homeTeam) ? 'text-white font-semibold' : isWinner(game.awayTeam) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm truncate"
-                      style={getTeamStyle(game.homeTeam.name)}>
+                      style={getTeamStyle(game.homeTeam)}>
                   {getDisplayName(game.homeTeam)}
                 </span>
                 <span class="score-value text-lg sm:text-2xl font-bold tabular-nums flex-shrink-0 {isWinner(game.homeTeam) ? 'text-white' : 'text-gray-400'}">{game.homeTeam.scoreText}</span>

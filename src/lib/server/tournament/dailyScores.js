@@ -1,20 +1,12 @@
-import teamColors from '$lib/ncaa_team_colors.json';
 import {
   NCAA_CONTESTS_WEB_SHA,
   NCAA_SDATA_API_URL,
   RESPONSE_TTL_MS,
 } from '$lib/server/tournament/constants';
+import { getTeamColorSet, resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { getStatusPriority } from '$lib/utils/scoreboardUtils';
 
 const responseCache = new Map();
-
-function getTeamColors(teamName) {
-  const colors = teamColors[teamName];
-  return {
-    color: colors?.primary_color || '#666666',
-    secondaryColor: colors?.secondary_color || '#666666',
-  };
-}
 
 function getEasternDateParts(date = new Date()) {
   const formatter = new Intl.DateTimeFormat('en-US', {
@@ -97,7 +89,8 @@ async function fetchJsonWithCache(url) {
 
 function normalizeTeam(team) {
   const name = team.nameShort || 'TBD';
-  const { color, secondaryColor } = getTeamColors(name);
+  const seoName = resolveTeamSeoName(name, team.seoname);
+  const { primaryColor: color, secondaryColor } = getTeamColorSet(name, seoName);
 
   return {
     name,
@@ -109,7 +102,7 @@ function normalizeTeam(team) {
     seed: team.seed ? Number.parseInt(team.seed, 10) : null,
     winner: team.isWinner === true,
     description: name,
-    seoName: team.seoname || name.toLowerCase().replace(/[^a-z0-9]/g, ''),
+    seoName,
     color,
     secondaryColor,
   };

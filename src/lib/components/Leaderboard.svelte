@@ -1,7 +1,7 @@
 <script>
   import { fade } from 'svelte/transition';
   import { goto } from '$app/navigation';
-  import teamColors from '$lib/ncaa_team_colors.json';
+  import { getTeamColorSet, hexToRgb, resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 
   export let leaderboard = null;
 
@@ -64,7 +64,7 @@
   }
 
   function getTeamSeoName(team) {
-    return teamSeoMap[team] || team.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return resolveTeamSeoName(team, teamSeoMap[team]);
   }
 
   // Function to handle name click and navigation
@@ -83,35 +83,28 @@
 
   // Add helper function to get team color
   function getTeamBackgroundColor(teamName) {
-    const colors = teamColors[teamName];
-    const baseColor = colors?.primary_color || '#27272a';
+    const { primaryColor: baseColor } = getTeamColorSet(teamName, getTeamSeoName(teamName));
     // Convert hex to rgba with 0.7 opacity
-    if (baseColor.startsWith('#')) {
-      const r = parseInt(baseColor.slice(1, 3), 16);
-      const g = parseInt(baseColor.slice(3, 5), 16);
-      const b = parseInt(baseColor.slice(5, 7), 16);
-      return `rgba(${r}, ${g}, ${b}, .8)`;
+    const rgb = hexToRgb(baseColor);
+    if (rgb) {
+      return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, .8)`;
     }
     return baseColor;
   }
 
   // Update getTeamContainerStyle to handle desaturation
   function getTeamContainerStyle(teamName, isEliminatedOrCorrect = false) {
-    const colors = teamColors[teamName];
-    const baseColor = colors?.primary_color || '#27272a';
+    const { primaryColor: baseColor } = getTeamColorSet(teamName, getTeamSeoName(teamName));
     let rgba;
     
-    if (baseColor.startsWith('#')) {
-      const r = parseInt(baseColor.slice(1, 3), 16);
-      const g = parseInt(baseColor.slice(3, 5), 16);
-      const b = parseInt(baseColor.slice(5, 7), 16);
-      
+    const rgb = hexToRgb(baseColor);
+    if (rgb) {
       if (isEliminatedOrCorrect) {
         // Convert to grayscale and reduce opacity further
-        const gray = Math.round((r + g + b) / 3);
+        const gray = Math.round((rgb.r + rgb.g + rgb.b) / 3);
         rgba = `rgba(${gray}, ${gray}, ${gray}, .5)`;
       } else {
-        rgba = `rgba(${r}, ${g}, ${b}, .8)`;
+        rgba = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, .8)`;
       }
     } else {
       rgba = baseColor;
