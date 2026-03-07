@@ -14,11 +14,12 @@ function getColorEntry(seoName) {
 
 export function getTeamColorSet(seoName = '') {
   const colors = getColorEntry(seoName);
+  const primaryColor = colors?.primary_color || '#666666';
 
   return {
     seoName,
-    primaryColor: colors?.primary_color || '#666666',
-    secondaryColor: colors?.secondary_color || '#666666',
+    primaryColor,
+    secondaryColor: colors?.secondary_color || primaryColor,
     tertiaryColor: colors?.tertiary_color || null,
   };
 }

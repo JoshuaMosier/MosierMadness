@@ -1,7 +1,11 @@
 import { getTournamentSettings } from '$lib/server/tournament/settings';
+import { getAdminHealthChecks } from '$lib/server/admin/healthChecks';
 
 export async function load() {
+  const tournamentSettings = await getTournamentSettings();
+
   return {
-    tournamentSettings: await getTournamentSettings(),
+    tournamentSettings,
+    healthChecks: await getAdminHealthChecks(tournamentSettings),
   };
 }

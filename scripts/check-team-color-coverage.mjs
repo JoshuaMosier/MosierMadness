@@ -18,7 +18,7 @@ const logoSlugs = fs.readdirSync(logoDir)
   .filter((fileName) => fileName.endsWith('.svg'))
   .map((fileName) => fileName.replace(/\.svg$/i, ''))
   .filter((slug) => !IGNORED_LOGO_SLUGS.has(slug))
-  .sort();
+  .sort((a, b) => a.localeCompare(b));
 
 const missingLogoSlugs = logoSlugs.filter((slug) => !TEAM_COLORS_BY_SEO[slug]);
 

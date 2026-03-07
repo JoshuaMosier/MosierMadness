@@ -13,6 +13,7 @@
   let success = null;
   let isAdmin = false;
   let seasons = [];
+  const healthChecks = data.healthChecks;
 
   let form = {
     entrySeasonYear: data.tournamentSettings?.entrySeasonYear || new Date().getFullYear(),
@@ -138,6 +139,22 @@
       saving = false;
     }
   }
+
+  function getHealthTone(count = 0) {
+    return count === 0 ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-300 bg-amber-500/10';
+  }
+
+  function formatTime(value) {
+    if (!value) {
+      return 'n/a';
+    }
+
+    return new Date(value).toLocaleString();
+  }
+
+  function truncateList(values = [], limit = 6) {
+    return values.slice(0, limit);
+  }
 </script>
 
 <svelte:head>
@@ -229,35 +246,165 @@
         </button>
       </div>
 
-      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-        <h2 class="text-xl font-semibold text-zinc-100 mb-4">Saved Seasons</h2>
+      <div class="space-y-6">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+          <h2 class="text-xl font-semibold text-zinc-100 mb-4">Saved Seasons</h2>
 
-        {#if seasons.length === 0}
-          <div class="text-zinc-500">No season rows found yet.</div>
-        {:else}
-          <div class="space-y-3">
-            {#each seasons as season}
-              <button
-                class="w-full text-left rounded-lg border border-zinc-800 bg-zinc-800/40 p-4 hover:bg-zinc-800 transition-colors"
-                on:click={() => selectSeason(season)}
-              >
-                <div class="flex justify-between items-center gap-3">
-                  <div>
-                    <div class="font-medium text-zinc-100">
-                      Entry {season.entry_season_year} / Display {season.display_season_year}
+          {#if seasons.length === 0}
+            <div class="text-zinc-500">No season rows found yet.</div>
+          {:else}
+            <div class="space-y-3">
+              {#each seasons as season}
+                <button
+                  class="w-full text-left rounded-lg border border-zinc-800 bg-zinc-800/40 p-4 hover:bg-zinc-800 transition-colors"
+                  on:click={() => selectSeason(season)}
+                >
+                  <div class="flex justify-between items-center gap-3">
+                    <div>
+                      <div class="font-medium text-zinc-100">
+                        Entry {season.entry_season_year} / Display {season.display_season_year}
+                      </div>
+                      <div class="text-sm text-zinc-400">
+                        {season.stage}
+                      </div>
                     </div>
-                    <div class="text-sm text-zinc-400">
-                      {season.stage}
+                    {#if season.is_active}
+                      <span class="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400">Active</span>
+                    {/if}
+                  </div>
+                </button>
+              {/each}
+            </div>
+          {/if}
+        </div>
+
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <h2 class="text-xl font-semibold text-zinc-100">Health Checks</h2>
+              <p class="text-sm text-zinc-400 mt-1">
+                Checked {formatTime(healthChecks?.checkedAt)}.
+              </p>
+            </div>
+            <span class="text-xs px-2 py-1 rounded-full {getHealthTone((healthChecks?.coverage?.missingLogoSlugCount || 0) + (healthChecks?.snapshot?.grayPrimaryFallbackTeams?.length || 0) + (healthChecks?.dailyScoreboard?.grayPrimaryFallbackTeams?.length || 0))}">
+              {(healthChecks?.coverage?.missingLogoSlugCount || 0) + (healthChecks?.snapshot?.grayPrimaryFallbackTeams?.length || 0) + (healthChecks?.dailyScoreboard?.grayPrimaryFallbackTeams?.length || 0)} open
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4">
+            <div class="rounded-lg border border-zinc-800 bg-zinc-800/30 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-sm font-medium text-zinc-200">Full Logo Coverage</div>
+                <span class="text-xs px-2 py-1 rounded-full {getHealthTone(healthChecks?.coverage?.missingLogoSlugCount || 0)}">
+                  {healthChecks?.coverage?.coveredLogoSlugCount || 0}/{healthChecks?.coverage?.logoSlugCount || 0}
+                </span>
+              </div>
+              <div class="mt-2 text-sm text-zinc-400">
+                Missing logo-color mappings: {healthChecks?.coverage?.missingLogoSlugCount || 0}
+              </div>
+              {#if healthChecks?.coverage?.missingLogoSlugs?.length}
+                <div class="mt-3 flex flex-wrap gap-2">
+                  {#each truncateList(healthChecks.coverage.missingLogoSlugs, 10) as slug}
+                    <span class="text-xs px-2 py-1 rounded-full bg-zinc-700/60 text-zinc-200 font-mono">{slug}</span>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+
+            <div class="rounded-lg border border-zinc-800 bg-zinc-800/30 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-sm font-medium text-zinc-200">Tournament Snapshot</div>
+                {#if healthChecks?.snapshot?.error}
+                  <span class="text-xs px-2 py-1 rounded-full bg-red-500/10 text-red-400">Error</span>
+                {:else}
+                  <span class="text-xs px-2 py-1 rounded-full {getHealthTone((healthChecks?.snapshot?.missingLogoSeoNames?.length || 0) + (healthChecks?.snapshot?.missingColorSeoNames?.length || 0) + (healthChecks?.snapshot?.grayPrimaryFallbackTeams?.length || 0) + (healthChecks?.snapshot?.missingSeoTeamNames?.length || 0))}">
+                    {healthChecks?.snapshot?.scoreboardGameCount || 0} games
+                  </span>
+                {/if}
+              </div>
+
+              {#if healthChecks?.snapshot?.error}
+                <div class="mt-2 text-sm text-red-400">{healthChecks.snapshot.error}</div>
+              {:else}
+                <div class="mt-2 text-sm text-zinc-400 space-y-1">
+                  <div>Fetched: {formatTime(healthChecks?.snapshot?.fetchedAt)}</div>
+                  <div>Age: {healthChecks?.snapshot?.ageMinutes ?? 'n/a'} min</div>
+                  <div>Tracked teams: {healthChecks?.snapshot?.trackedTeamCount || 0}</div>
+                  <div>Gray primary fallback teams: {healthChecks?.snapshot?.grayPrimaryFallbackTeams?.length || 0}</div>
+                </div>
+
+                {#if healthChecks?.snapshot?.grayPrimaryFallbackTeams?.length}
+                  <div class="mt-3">
+                    <div class="text-xs uppercase tracking-wide text-zinc-500 mb-2">Gray primary fallback</div>
+                    <div class="flex flex-wrap gap-2">
+                      {#each truncateList(healthChecks.snapshot.grayPrimaryFallbackTeams, 8) as team}
+                        <span class="text-xs px-2 py-1 rounded-full bg-zinc-700/60 text-zinc-200">{team}</span>
+                      {/each}
                     </div>
                   </div>
-                  {#if season.is_active}
-                    <span class="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400">Active</span>
-                  {/if}
+                {/if}
+              {/if}
+            </div>
+
+            <div class="rounded-lg border border-zinc-800 bg-zinc-800/30 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-sm font-medium text-zinc-200">Today's NCAA Scoreboard</div>
+                {#if healthChecks?.dailyScoreboard?.error}
+                  <span class="text-xs px-2 py-1 rounded-full bg-red-500/10 text-red-400">Error</span>
+                {:else}
+                  <span class="text-xs px-2 py-1 rounded-full {getHealthTone((healthChecks?.dailyScoreboard?.missingLogoSeoNames?.length || 0) + (healthChecks?.dailyScoreboard?.missingColorSeoNames?.length || 0) + (healthChecks?.dailyScoreboard?.grayPrimaryFallbackTeams?.length || 0) + (healthChecks?.dailyScoreboard?.missingSeoTeamNames?.length || 0))}">
+                    {healthChecks?.dailyScoreboard?.gameCount || 0} games
+                  </span>
+                {/if}
+              </div>
+
+              {#if healthChecks?.dailyScoreboard?.error}
+                <div class="mt-2 text-sm text-red-400">{healthChecks.dailyScoreboard.error}</div>
+              {:else}
+                <div class="mt-2 text-sm text-zinc-400 space-y-1">
+                  <div>Checked: {formatTime(healthChecks?.dailyScoreboard?.checkedAt)}</div>
+                  <div>Tracked teams: {healthChecks?.dailyScoreboard?.trackedTeamCount || 0}</div>
+                  <div>Gray primary fallback teams: {healthChecks?.dailyScoreboard?.grayPrimaryFallbackTeams?.length || 0}</div>
                 </div>
-              </button>
-            {/each}
+
+                {#if healthChecks?.dailyScoreboard?.grayPrimaryFallbackTeams?.length}
+                  <div class="mt-3">
+                    <div class="text-xs uppercase tracking-wide text-zinc-500 mb-2">Gray primary fallback</div>
+                    <div class="flex flex-wrap gap-2">
+                      {#each truncateList(healthChecks.dailyScoreboard.grayPrimaryFallbackTeams, 8) as team}
+                        <span class="text-xs px-2 py-1 rounded-full bg-zinc-700/60 text-zinc-200">{team}</span>
+                      {/each}
+                    </div>
+                  </div>
+                {/if}
+
+                {#if healthChecks?.dailyScoreboard?.missingSeoTeamNames?.length}
+                  <div class="mt-3">
+                    <div class="text-xs uppercase tracking-wide text-zinc-500 mb-2">Missing team ids</div>
+                    <div class="flex flex-wrap gap-2">
+                      {#each truncateList(healthChecks.dailyScoreboard.missingSeoTeamNames, 8) as team}
+                        <span class="text-xs px-2 py-1 rounded-full bg-zinc-700/60 text-zinc-200">{team}</span>
+                      {/each}
+                    </div>
+                  </div>
+                {/if}
+              {/if}
+            </div>
+
+            <div class="rounded-lg border border-zinc-800 bg-zinc-800/30 p-4">
+              <div class="text-sm font-medium text-zinc-200">Settings Validation</div>
+              {#if healthChecks?.settingsIssues?.length}
+                <ul class="mt-3 space-y-2 text-sm text-amber-300">
+                  {#each healthChecks.settingsIssues as issue}
+                    <li>{issue}</li>
+                  {/each}
+                </ul>
+              {:else}
+                <div class="mt-2 text-sm text-emerald-400">No obvious settings issues detected.</div>
+              {/if}
+            </div>
           </div>
-        {/if}
+        </div>
       </div>
     </div>
   {/if}
