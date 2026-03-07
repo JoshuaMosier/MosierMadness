@@ -62,15 +62,3 @@ export async function getTournamentScores(dateValue = null, explicitSettings = n
 
   return [];
 }
-
-export async function getScorePageScores(explicitSettings = null) {
-  const settings = explicitSettings || await getTournamentSettings();
-
-  if (settings.stage === 'tournament-live') {
-    return getCurrentRoundGames(settings);
-  }
-
-  return sortScoreboardGames(
-    await getDailyNcaaScoreboard(new Date()),
-  );
-}

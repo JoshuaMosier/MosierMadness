@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { getScorePageScores, getTickerScores, getTournamentScores } from '$lib/server/tournament/scores';
+import { getTickerScores, getTournamentScores } from '$lib/server/tournament/scores';
 
 /**
  * GET handler for /api/scores endpoint
@@ -14,7 +14,7 @@ export async function GET({ url }) {
     if (scope === 'ticker') {
       scores = await getTickerScores();
     } else if (scope === 'page') {
-      scores = await getScorePageScores();
+      scores = await getTickerScores();
     } else {
       scores = await getTournamentScores(dateParam);
     }

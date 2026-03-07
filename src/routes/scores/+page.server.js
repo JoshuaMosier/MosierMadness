@@ -1,11 +1,9 @@
 import { getTournamentSettings } from '$lib/server/tournament/settings';
-import { getScorePageScores } from '$lib/server/tournament/scores';
+import { getTickerScores } from '$lib/server/tournament/scores';
 
 export async function load() {
-  const [tournamentSettings, scores] = await Promise.all([
-    getTournamentSettings(),
-    getScorePageScores()
-  ]);
+  const tournamentSettings = await getTournamentSettings();
+  const scores = await getTickerScores(tournamentSettings);
   return {
     tournamentSettings,
     scores
