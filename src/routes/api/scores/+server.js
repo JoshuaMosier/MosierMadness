@@ -11,9 +11,7 @@ export async function GET({ url }) {
     const dateParam = url.searchParams.get('date');
 
     let scores;
-    if (scope === 'ticker') {
-      scores = await getTickerScores();
-    } else if (scope === 'page') {
+    if (scope === 'ticker' || scope === 'page') {
       scores = await getTickerScores();
     } else {
       scores = await getTournamentScores(dateParam);
