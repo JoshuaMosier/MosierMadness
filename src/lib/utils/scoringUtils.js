@@ -167,18 +167,20 @@ export function sortLeaderboardScores(scores) {
 }
 
 export function buildLeaderboardRanks(sortedScores) {
-  const positions = assignPositions(sortedScores);
+  const positions = assignPositions(sortedScores, { presorted: true });
   return sortedScores.map(score => positions.get(score.entryId));
 }
 
-export function assignPositions(scores) {
-  const sortedScores = [...scores].sort((a, b) => {
-    if (b.total !== a.total) {
-      return b.total - a.total;
-    }
+export function assignPositions(scores, { presorted = false } = {}) {
+  const sortedScores = presorted
+    ? scores
+    : [...scores].sort((a, b) => {
+        if (b.total !== a.total) {
+          return b.total - a.total;
+        }
 
-    return (b.potential ?? 0) - (a.potential ?? 0);
-  });
+        return (b.potential ?? 0) - (a.potential ?? 0);
+      });
 
   let currentPosition = 1;
   let currentScore = null;

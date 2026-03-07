@@ -305,7 +305,7 @@ export function getGameDetailProjection(game, entries, snapshot) {
 export function getScenarioSeedData(entries, snapshot) {
   const liveBracketData = getLiveBracketProjection(snapshot);
   const leaderboard = getLeaderboardProjection(entries, snapshot);
-  const positionLookup = assignPositions(leaderboard.rows);
+  const positionLookup = assignPositions(leaderboard.rows, { presorted: true });
 
   return {
     entries,
