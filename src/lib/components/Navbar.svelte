@@ -7,6 +7,7 @@
   let isMenuOpen = false;
   let user = null;
   let userEntry = null;
+  let isAdmin = false;
   let isSpinning = false;
   
   // Get current path for active state
@@ -21,12 +22,13 @@
       // Fetch the user's entry
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('first_name, last_name')
+        .select('first_name, last_name, is_admin')
         .eq('email', user.email)
         .single();
 
       if (profiles) {
         userEntry = profiles;
+        isAdmin = profiles.is_admin === true;
       }
     }
     
@@ -38,15 +40,17 @@
         // Fetch the user's entry on auth state change
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('first_name, last_name')
+          .select('first_name, last_name, is_admin')
           .eq('email', user.email)
           .single();
 
         if (profiles) {
           userEntry = profiles;
+          isAdmin = profiles.is_admin === true;
         }
       } else {
         userEntry = null;
+        isAdmin = false;
       }
     });
 
@@ -189,6 +193,11 @@
             <a href="/scenarios" class="nav-link">
               <div class="nav-button {isActive('/scenarios') ? 'active' : ''}">Scenarios</div>
             </a>
+            {#if isAdmin}
+              <a href="/admin" class="nav-link">
+                <div class="nav-button {isActive('/admin') ? 'active' : ''}">Admin</div>
+              </a>
+            {/if}
             {#if user}
               <button on:click={handleLogout} class="nav-link">
                 <div class="nav-button">Logout</div>
@@ -221,6 +230,9 @@
           <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a>
           <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a>
           <a href="/scenarios" class="mobile-nav-button" on:click={closeMenu}>Scenarios</a>
+          {#if isAdmin}
+            <a href="/admin" class="mobile-nav-button" on:click={closeMenu}>Admin</a>
+          {/if}
           {#if user}
             <button on:click={handleLogout} class="mobile-nav-button w-full">Logout</button>
           {:else}
