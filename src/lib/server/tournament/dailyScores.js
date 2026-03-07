@@ -90,7 +90,7 @@ async function fetchJsonWithCache(url) {
 function normalizeTeam(team) {
   const name = team.nameShort || 'TBD';
   const seoName = resolveTeamSeoName(name, team.seoname);
-  const { primaryColor: color, secondaryColor } = getTeamColorSet(name, seoName);
+  const { primaryColor: color, secondaryColor } = getTeamColorSet(seoName);
 
   return {
     name,

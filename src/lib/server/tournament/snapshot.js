@@ -133,7 +133,7 @@ function parseBracketId(bracketId) {
 
 function buildCanonicalTeam(teamData, canonicalName = getCanonicalTeamName(teamData)) {
   const seoName = resolveTeamSeoName(canonicalName, teamData.names.seo);
-  const { primaryColor: color, secondaryColor } = getTeamColorSet(canonicalName, seoName);
+  const { primaryColor: color, secondaryColor } = getTeamColorSet(seoName);
   return {
     name: canonicalName,
     seed: Number.parseInt(teamData.seed, 10),
@@ -186,8 +186,8 @@ function buildFirstRoundTeams(firstRoundDays) {
 
     team.name = override.name;
     team.seed = override.seed;
-    team.seoName = resolveTeamSeoName(override.name, team.seoName);
-    const { primaryColor: color, secondaryColor } = getTeamColorSet(override.name, team.seoName);
+    team.seoName = resolveTeamSeoName(override.name, override.seoName || team.seoName);
+    const { primaryColor: color, secondaryColor } = getTeamColorSet(team.seoName);
     team.color = color;
     team.secondaryColor = secondaryColor;
   });
@@ -205,7 +205,7 @@ function buildFirstRoundTeams(firstRoundDays) {
 function normalizeScoreboardTeam(teamData, canonicalByNcaaName) {
   const canonicalName = canonicalByNcaaName.get(teamData.names.short) || teamData.names.short;
   const seoName = resolveTeamSeoName(canonicalName, teamData.names.seo);
-  const { primaryColor: color, secondaryColor } = getTeamColorSet(canonicalName, seoName);
+  const { primaryColor: color, secondaryColor } = getTeamColorSet(seoName);
 
   return {
     name: canonicalName,
@@ -309,7 +309,7 @@ function buildTournamentResults(roundData, canonicalByNcaaName) {
   return { masterBracket, gamesById, gamesByIndex };
 }
 
-function createBracketTeam(selection, teamBySelection) {
+function createBracketTeam(selection, teamBySelection, teamByName) {
   if (!selection) {
     return null;
   }
@@ -324,8 +324,13 @@ function createBracketTeam(selection, teamBySelection) {
     return null;
   }
 
-  const seoName = resolveTeamSeoName(parsed.name);
-  const { primaryColor: color, secondaryColor } = getTeamColorSet(parsed.name, seoName);
+  const fromNameLookup = teamByName.get(parsed.name);
+  if (fromNameLookup) {
+    return { ...fromNameLookup };
+  }
+
+  const seoName = resolveTeamSeoName(parsed.name, fromNameLookup?.seoName);
+  const { primaryColor: color, secondaryColor } = getTeamColorSet(seoName);
   return {
     seed: parsed.seed,
     name: parsed.name,
@@ -357,9 +362,9 @@ function attachScores(matchTeam, game) {
   return matchTeam;
 }
 
-function buildMatch(selectionA, selectionB, winnerSelection, game, teamBySelection) {
-  const teamA = attachScores(createBracketTeam(selectionA, teamBySelection), game);
-  const teamB = attachScores(createBracketTeam(selectionB, teamBySelection), game);
+function buildMatch(selectionA, selectionB, winnerSelection, game, teamBySelection, teamByName) {
+  const teamA = attachScores(createBracketTeam(selectionA, teamBySelection, teamByName), game);
+  const teamB = attachScores(createBracketTeam(selectionB, teamBySelection, teamByName), game);
 
   let winner = null;
   if (winnerSelection && selectionA && winnerSelection === selectionA) {
@@ -384,7 +389,7 @@ function buildMatch(selectionA, selectionB, winnerSelection, game, teamBySelecti
   };
 }
 
-function buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamBySelection) {
+function buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamBySelection, teamByName) {
   const matches = {};
   const initialSelections = firstRoundTeams.map(team => formatTeamSelection(team));
 
@@ -395,6 +400,7 @@ function buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamB
       masterBracket[i],
       gamesByIndex.get(i + 1),
       teamBySelection,
+      teamByName,
     );
   }
 
@@ -405,6 +411,7 @@ function buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamB
       masterBracket[i + 32],
       gamesByIndex.get(i + 33),
       teamBySelection,
+      teamByName,
     );
   }
 
@@ -415,6 +422,7 @@ function buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamB
       masterBracket[i + 48],
       gamesByIndex.get(i + 49),
       teamBySelection,
+      teamByName,
     );
   }
 
@@ -425,6 +433,7 @@ function buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamB
       masterBracket[i + 56],
       gamesByIndex.get(i + 57),
       teamBySelection,
+      teamByName,
     );
   }
 
@@ -435,6 +444,7 @@ function buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamB
       masterBracket[i + 60],
       gamesByIndex.get(i + 61),
       teamBySelection,
+      teamByName,
     );
   }
 
@@ -444,6 +454,7 @@ function buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamB
     masterBracket[62],
     gamesByIndex.get(63),
     teamBySelection,
+    teamByName,
   );
 
   return matches;
@@ -493,7 +504,7 @@ async function buildTournamentSnapshot(settings) {
   const { teams: firstRoundTeams, canonicalByNcaaName } = buildFirstRoundTeams(firstRoundDays);
   const { teamByName, teamBySelection } = buildTeamLookup(firstRoundTeams);
   const { masterBracket, gamesById, gamesByIndex } = buildTournamentResults(roundData, canonicalByNcaaName);
-  const bracketMatches = buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamBySelection);
+  const bracketMatches = buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamBySelection, teamByName);
   const scoreboardGames = sortGames(Array.from(gamesById.values()));
 
   return {

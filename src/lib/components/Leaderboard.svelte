@@ -83,7 +83,7 @@
 
   // Add helper function to get team color
   function getTeamBackgroundColor(teamName) {
-    const { primaryColor: baseColor } = getTeamColorSet(teamName, getTeamSeoName(teamName));
+    const { primaryColor: baseColor } = getTeamColorSet(getTeamSeoName(teamName));
     // Convert hex to rgba with 0.7 opacity
     const rgb = hexToRgb(baseColor);
     if (rgb) {
@@ -94,7 +94,7 @@
 
   // Update getTeamContainerStyle to handle desaturation
   function getTeamContainerStyle(teamName, isEliminatedOrCorrect = false) {
-    const { primaryColor: baseColor } = getTeamColorSet(teamName, getTeamSeoName(teamName));
+    const { primaryColor: baseColor } = getTeamColorSet(getTeamSeoName(teamName));
     let rgba;
     
     const rgb = hexToRgb(baseColor);

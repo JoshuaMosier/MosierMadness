@@ -7,6 +7,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
+		"check:team-colors": "node scripts/check-team-color-coverage.mjs",
 		"generate:historical-seed": "python scripts/generate_historical_seed.py",
 		"prepare": "svelte-kit sync || echo ''"
 	},
