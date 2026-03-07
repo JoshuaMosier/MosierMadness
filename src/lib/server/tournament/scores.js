@@ -15,18 +15,22 @@ async function getGamesForDates(dates, options = {}) {
   return dedupeGames(gamesByDate.flat());
 }
 
-export async function getTickerScores() {
-  const settings = await getTournamentSettings();
+async function getCurrentRoundGames(settings) {
+  const round = getCurrentOrNextTickerRound(settings);
+  if (!round) {
+    return [];
+  }
+
+  return sortScoreboardGames(
+    await getGamesForDates(round.dates, { settings, allowNonTournament: false }),
+  );
+}
+
+export async function getTickerScores(explicitSettings = null) {
+  const settings = explicitSettings || await getTournamentSettings();
 
   if (settings.stage === 'tournament-live') {
-    const round = getCurrentOrNextTickerRound(settings);
-    if (!round) {
-      return [];
-    }
-
-    return sortScoreboardGames(
-      await getGamesForDates(round.dates, { settings, allowNonTournament: false }),
-    );
+    return getCurrentRoundGames(settings);
   }
 
   return sortScoreboardGames(
@@ -34,8 +38,8 @@ export async function getTickerScores() {
   );
 }
 
-export async function getTournamentScores(dateValue = null) {
-  const settings = await getTournamentSettings();
+export async function getTournamentScores(dateValue = null, explicitSettings = null) {
+  const settings = explicitSettings || await getTournamentSettings();
 
   if (dateValue) {
     return sortScoreboardGames(
@@ -53,24 +57,17 @@ export async function getTournamentScores(dateValue = null) {
   }
 
   if (settings.stage === 'tournament-live') {
-    const round = getCurrentOrNextTickerRound(settings);
-    if (!round) {
-      return [];
-    }
-
-    return sortScoreboardGames(
-      await getGamesForDates(round.dates, { settings, allowNonTournament: false }),
-    );
+    return getCurrentRoundGames(settings);
   }
 
   return [];
 }
 
-export async function getScorePageScores() {
-  const settings = await getTournamentSettings();
+export async function getScorePageScores(explicitSettings = null) {
+  const settings = explicitSettings || await getTournamentSettings();
 
   if (settings.stage === 'tournament-live') {
-    return getTournamentScores();
+    return getCurrentRoundGames(settings);
   }
 
   return sortScoreboardGames(
