@@ -1,4 +1,3 @@
-import teamColors from '$lib/ncaa_team_colors.json';
 import {
   NCAA_SCOREBOARD_BASE_URL,
   RESPONSE_TTL_MS,
@@ -7,6 +6,7 @@ import {
 import { getStatusPriority } from '$lib/utils/scoreboardUtils';
 import { formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils';
 import { getTournamentSettings } from '$lib/server/tournament/settings';
+import { getTeamColorSet, resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 
 const TEAM_OVERRIDES = {
   // Preserve the existing override hook used by the bracket entry page.
@@ -69,20 +69,8 @@ async function fetchJsonWithCache(url) {
   return value;
 }
 
-function getTeamColors(teamName) {
-  const colors = teamColors[teamName];
-  return {
-    color: colors?.primary_color || '#666666',
-    secondaryColor: colors?.secondary_color || '#666666',
-  };
-}
-
 function getCanonicalTeamName(teamData) {
   return teamData.names.short.length < 20 ? teamData.names.short : teamData.names.char6;
-}
-
-function getSeoFallback(teamName = '') {
-  return teamName.toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 function parseScore(scoreValue) {
@@ -144,11 +132,12 @@ function parseBracketId(bracketId) {
 }
 
 function buildCanonicalTeam(teamData, canonicalName = getCanonicalTeamName(teamData)) {
-  const { color, secondaryColor } = getTeamColors(teamData.names.short);
+  const seoName = resolveTeamSeoName(canonicalName, teamData.names.seo);
+  const { primaryColor: color, secondaryColor } = getTeamColorSet(canonicalName, seoName);
   return {
     name: canonicalName,
     seed: Number.parseInt(teamData.seed, 10),
-    seoName: teamData.names.seo || getSeoFallback(canonicalName),
+    seoName,
     color,
     secondaryColor,
     ncaaName: teamData.names.short,
@@ -197,7 +186,10 @@ function buildFirstRoundTeams(firstRoundDays) {
 
     team.name = override.name;
     team.seed = override.seed;
-    team.seoName = team.seoName || getSeoFallback(override.name);
+    team.seoName = resolveTeamSeoName(override.name, team.seoName);
+    const { primaryColor: color, secondaryColor } = getTeamColorSet(override.name, team.seoName);
+    team.color = color;
+    team.secondaryColor = secondaryColor;
   });
 
   for (const team of teams) {
@@ -212,7 +204,8 @@ function buildFirstRoundTeams(firstRoundDays) {
 
 function normalizeScoreboardTeam(teamData, canonicalByNcaaName) {
   const canonicalName = canonicalByNcaaName.get(teamData.names.short) || teamData.names.short;
-  const { color, secondaryColor } = getTeamColors(teamData.names.short);
+  const seoName = resolveTeamSeoName(canonicalName, teamData.names.seo);
+  const { primaryColor: color, secondaryColor } = getTeamColorSet(canonicalName, seoName);
 
   return {
     name: canonicalName,
@@ -224,7 +217,7 @@ function normalizeScoreboardTeam(teamData, canonicalByNcaaName) {
     seed: teamData.seed ? Number.parseInt(teamData.seed, 10) : null,
     winner: teamData.winner === true,
     description: teamData.description,
-    seoName: teamData.names.seo || getSeoFallback(canonicalName),
+    seoName,
     color,
     secondaryColor,
   };
@@ -331,11 +324,12 @@ function createBracketTeam(selection, teamBySelection) {
     return null;
   }
 
-  const { color, secondaryColor } = getTeamColors(parsed.name);
+  const seoName = resolveTeamSeoName(parsed.name);
+  const { primaryColor: color, secondaryColor } = getTeamColorSet(parsed.name, seoName);
   return {
     seed: parsed.seed,
     name: parsed.name,
-    seoName: getSeoFallback(parsed.name),
+    seoName,
     color,
     secondaryColor,
   };

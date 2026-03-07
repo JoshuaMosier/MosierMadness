@@ -10,6 +10,7 @@ import {
   formatTeamSelection,
   getTeamNameFromSelection,
 } from '$lib/utils/bracketUtils';
+import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 
 function cloneTeam(team) {
   return team ? { ...team } : null;
@@ -270,7 +271,7 @@ export function getGameDetailProjection(game, entries, snapshot) {
         count: users.length,
         seed: Number.parseInt(team.split(' ')[0], 10),
         name: teamName,
-        seoName: teamSeoMap[teamName] || teamName.toLowerCase().replace(/[^a-z0-9]/g, ''),
+        seoName: resolveTeamSeoName(teamName, teamSeoMap[teamName]),
       };
     })
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));

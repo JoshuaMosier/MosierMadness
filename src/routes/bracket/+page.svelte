@@ -4,8 +4,6 @@ import { onMount } from 'svelte';
   import { supabase } from '$lib/supabase';
   import BracketView from '$lib/components/BracketView.svelte';
   import { fade } from 'svelte/transition';
-  import teamColors from '$lib/ncaa_team_colors.json';
-
   export let data;
 
   let loading = true;

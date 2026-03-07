@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { supabase } from '$lib/supabase';
   import { assignPositions, calculateScores } from '$lib/utils/scoringUtils';
+  import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 
   export let data;
 
@@ -220,7 +221,7 @@
   function getTeamSeoName(teamName) {
     if (!teamName) return '';
 
-    return teamSeoMap[teamName] || teamName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return resolveTeamSeoName(teamName, teamSeoMap[teamName]);
   }
   
   // Handle image error for team logos
