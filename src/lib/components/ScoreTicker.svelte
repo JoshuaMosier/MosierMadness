@@ -404,7 +404,7 @@
   }
   
   :root {
-    --marquee-duration: 80s; /* Doubled the duration to slow it down */
+    --marquee-duration: 320s; /* 4x slower marquee speed */
   }
   
   @keyframes marquee {

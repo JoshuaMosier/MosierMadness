@@ -1,3 +1,4 @@
+import { getDailyNcaaScoreboard } from '$lib/server/tournament/dailyScores';
 import { getScoreboardGamesForDate } from '$lib/server/tournament/snapshot';
 import { getCurrentOrNextTickerRound, getTournamentSettings } from '$lib/server/tournament/settings';
 import { sortScoreboardGames } from '$lib/utils/scoreboardUtils';
@@ -29,7 +30,7 @@ export async function getTickerScores() {
   }
 
   return sortScoreboardGames(
-    await getScoreboardGamesForDate(new Date(), { settings, allowNonTournament: true }),
+    await getDailyNcaaScoreboard(new Date()),
   );
 }
 
@@ -63,4 +64,16 @@ export async function getTournamentScores(dateValue = null) {
   }
 
   return [];
+}
+
+export async function getScorePageScores() {
+  const settings = await getTournamentSettings();
+
+  if (settings.stage === 'tournament-live') {
+    return getTournamentScores();
+  }
+
+  return sortScoreboardGames(
+    await getDailyNcaaScoreboard(new Date()),
+  );
 }

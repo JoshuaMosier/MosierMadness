@@ -12,7 +12,7 @@
   async function fetchScores() {
     try {
       loading = true;
-      const response = await fetch('/api/scores?scope=tournament');
+      const response = await fetch('/api/scores?scope=page');
       if (!response.ok) {
         throw new Error(`Error fetching scores: ${response.statusText}`);
       }
@@ -71,6 +71,10 @@
   function getDisplayName(team) {
     return team?.displayName || team?.name || '';
   }
+
+  function getGameHref(game) {
+    return game?.isTournamentGame ? `/game/${game.gameId}` : null;
+  }
 </script>
 
 <div class="min-h-screen py-4 sm:py-8 px-2 sm:px-4 lg:px-8">
@@ -97,7 +101,11 @@
     {:else}
       <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6">
         {#each sortedMatches as game, index (game.gameId)}
-          <a href="/game/{game.gameId}" class="game-box bg-gradient-to-br from-stone-950/90 to-black/90 rounded-lg sm:rounded-xl p-2 sm:p-5 border border-white/10 hover:border-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02] hover:from-zinc-700/90 hover:to-zinc-800/90">
+          <svelte:element
+            this={getGameHref(game) ? 'a' : 'div'}
+            href={getGameHref(game)}
+            class="game-box bg-gradient-to-br from-stone-950/90 to-black/90 rounded-lg sm:rounded-xl p-2 sm:p-5 border border-white/10 transition-all duration-300 shadow-lg {getGameHref(game) ? 'hover:border-white/30 hover:shadow-xl hover:transform hover:scale-[1.02] hover:from-zinc-700/90 hover:to-zinc-800/90' : ''}"
+          >
             <div class="game-date flex justify-between items-center mb-2 sm:mb-3">
               <span class="text-xs sm:text-sm text-gray-400 font-semibold">{game.statusLabel !== 'FINAL' ? (game.displayClock || '') : ''}</span>
               <span class="game-prog {getStatusColor(game.statusLabel)} font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm {game.statusLabel === 'LIVE' ? 'bg-yellow-300/10 animate-pulse' : game.statusLabel === 'FINAL' ? 'bg-white/10' : 'bg-gray-700/50'}">{game.statusLabel}</span>
@@ -144,7 +152,7 @@
             <div class="mt-2 sm:mt-4 text-xs sm:text-sm text-gray-400 text-center font-semibold border-t border-white/5 pt-2 sm:pt-3">
               {game.matchup}
             </div>
-          </a>
+          </svelte:element>
         {/each}
       </div>
     {/if}
