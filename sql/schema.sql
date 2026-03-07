@@ -7,6 +7,7 @@ create table profiles (
   first_name text,
   last_name text,
   email text unique,
+  is_admin boolean default false not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -22,9 +23,29 @@ create table brackets (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+create unique index brackets_user_year_idx
+  on brackets (user_id, year);
+
+create table tournament_seasons (
+  entry_season_year integer primary key,
+  display_season_year integer not null,
+  stage text not null default 'archive' check (stage in ('archive', 'bracket-open', 'tournament-live', 'complete')),
+  is_active boolean not null default false,
+  archive_scoreboard_date date,
+  first_round_dates date[] not null default '{}',
+  ticker_rounds jsonb not null default '[]'::jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create unique index tournament_seasons_single_active_idx
+  on tournament_seasons (is_active)
+  where is_active = true;
+
 -- Set up RLS (Row Level Security)
 alter table profiles enable row level security;
 alter table brackets enable row level security;
+alter table tournament_seasons enable row level security;
 
 -- Profiles policies
 create policy "Public profiles are viewable by everyone"
@@ -38,6 +59,43 @@ create policy "Users can insert their own profile"
 create policy "Users can update own profile"
   on profiles for update
   using (auth.uid() = id);
+
+create policy "Tournament seasons are viewable by everyone"
+  on tournament_seasons for select
+  using (true);
+
+create policy "Admins can insert tournament seasons"
+  on tournament_seasons for insert
+  with check (
+    exists (
+      select 1
+      from profiles
+      where profiles.id = auth.uid()
+        and profiles.is_admin = true
+    )
+  );
+
+create policy "Admins can update tournament seasons"
+  on tournament_seasons for update
+  using (
+    exists (
+      select 1
+      from profiles
+      where profiles.id = auth.uid()
+        and profiles.is_admin = true
+    )
+  );
+
+create policy "Admins can delete tournament seasons"
+  on tournament_seasons for delete
+  using (
+    exists (
+      select 1
+      from profiles
+      where profiles.id = auth.uid()
+        and profiles.is_admin = true
+    )
+  );
 
 -- Brackets policies
 create policy "Brackets are viewable by everyone"
