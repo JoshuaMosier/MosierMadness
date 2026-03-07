@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
   import { page } from '$app/stores';
-  
+
   let isMenuOpen = false;
   let user = null;
   let userEntry = null;
@@ -12,7 +12,6 @@
   
   // Get current path for active state
   $: currentPath = $page.url.pathname;
-  
   onMount(async () => {
     // Get initial auth state
     const { data: { user: initialUser } } = await supabase.auth.getUser();
@@ -224,7 +223,7 @@
       <div class="md:hidden fixed inset-0 bg-black z-[20] pt-16">
         <div class="px-4 pt-2 pb-3 space-y-3">
           <a href="/" class="mobile-nav-button {isActive('/') ? 'active' : ''}" on:click={closeMenu}>Leaderboard</a>
-          <a href="/bracket" class="mobile-nav-button {isActive('/bracket') ? 'active' : ''}" on:click={closeMenu}>Submit Bracket</a>
+          <a href="/bracket" class="mobile-nav-button {isActive('/bracket') ? 'active' : ''}" on:click={closeMenu}>Submit Entry</a>
           <button on:click={handleEntriesClick} class="mobile-nav-button w-full {isActive('/entries') ? 'active' : ''}">Entries</button>
           <a href="/live-bracket" class="mobile-nav-button" on:click={closeMenu}>Live Bracket</a>
           <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a>

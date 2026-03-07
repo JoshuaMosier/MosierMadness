@@ -10,6 +10,8 @@
   let entries = data.scenario.entries || [];
   let loading = true;
   let error = null;
+  const tournamentStage = data.tournamentSettings?.stage || 'archive';
+  const scenariosAvailable = tournamentStage === 'tournament-live';
   let liveBracketData = data.scenario.liveBracketData;
   let masterBracket = data.scenario.masterBracket || [];
   let teamSeoMap = data.scenario.teamSeoMap || {};
@@ -43,6 +45,10 @@
 
   onMount(async () => {
     try {
+      if (!scenariosAvailable) {
+        return;
+      }
+
       // Set default tab based on screen width
       if (window.matchMedia('(min-width: 768px)').matches) {
         // Desktop - default to win chances instead of full standings
@@ -733,6 +739,13 @@
         <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
         <div class="text-amber-600 font-medium">Loading bracket data...</div>
       </div>
+    </div>
+  {:else if !scenariosAvailable}
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center">
+      <h2 class="text-2xl font-semibold text-zinc-100">Scenarios are not active yet</h2>
+      <p class="mt-3 text-zinc-400">
+        Scenario analysis becomes available once the tournament is live and there are remaining outcomes to simulate.
+      </p>
     </div>
   {:else if error}
     <div 

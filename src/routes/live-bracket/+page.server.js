@@ -8,5 +8,6 @@ export async function load() {
 
   return {
     bracketData: getLiveBracketProjection(snapshot),
+    tournamentSettings: settings,
   };
 }

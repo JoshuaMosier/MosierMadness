@@ -6,6 +6,7 @@
   import { invalidate } from '$app/navigation'
   import { onMount } from 'svelte'
   import { page } from '$app/stores'
+  export let data;
   // Define routes where ScoreTicker should be hidden
   const hideScoreTickerRoutes = [
     '/scores',
@@ -29,7 +30,7 @@
   <Navbar />
   <div class="container mx-auto px-4">
     {#if showScoreTicker}
-      <ScoreTicker />
+      <ScoreTicker tournamentSettings={data.tournamentSettings} />
     {/if}
   </div>
   <main class="flex-grow">

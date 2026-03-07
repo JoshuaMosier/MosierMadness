@@ -9,6 +9,13 @@
   let entriesLoading = false;
   let teamSelections = data.gameDetail?.teamSelections || { home: [], away: [], other: [] };
   let currentUserId = null; // Store the current user's ID
+  const tournamentStage = data.tournamentSettings?.stage || 'archive';
+  const gamePageContext =
+    tournamentStage === 'tournament-live'
+      ? 'Live tournament game details'
+      : tournamentStage === 'bracket-open'
+        ? 'Tournament game details unlock after tipoff'
+        : 'Tournament game details';
   
   // Get the current user's ID on mount
   onMount(async () => {
@@ -46,6 +53,10 @@
 
 <div class="max-w-6xl mx-auto px-4 py-8">
   <div class="p-4 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+  <div class="mb-4 text-center">
+    <h1 class="text-2xl font-semibold text-zinc-100">Game Detail</h1>
+    <p class="mt-2 text-sm text-zinc-400">{gamePageContext}</p>
+  </div>
   {#if entriesLoading}
     <div class="w-full py-12 text-center">
       <div class="inline-block animate-pulse text-white">
@@ -56,7 +67,11 @@
     <div class="bg-black bg-opacity-30 rounded-lg p-6 shadow-lg border border-white/10 max-w-2xl mx-auto">
       <div class="text-center py-8">
         <div class="text-red-500 mb-4">{pageError}</div>
-        <p class="text-white">There are no games scheduled at this time. Check back during tournament play.</p>
+        <p class="text-white">
+          {tournamentStage === 'bracket-open'
+            ? 'Game details will populate once tournament games begin.'
+            : 'There are no games scheduled at this time. Check back once scoreboard data is available.'}
+        </p>
         
         <div class="mt-8">
           <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">

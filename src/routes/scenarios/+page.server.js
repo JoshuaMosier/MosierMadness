@@ -12,5 +12,6 @@ export async function load() {
 
   return {
     scenario: getScenarioSeedData(entries, snapshot),
+    tournamentSettings: settings,
   };
 }

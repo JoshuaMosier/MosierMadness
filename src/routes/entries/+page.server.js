@@ -35,5 +35,6 @@ export async function load({ url }) {
     entries,
     selectedEntrantId: selectedEntry?.id || '',
     selectedBracketData: buildEntrantBracketData(selectedEntry?.brackets?.[0], snapshot),
+    tournamentSettings: settings,
   };
 }

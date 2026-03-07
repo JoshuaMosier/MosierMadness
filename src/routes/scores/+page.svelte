@@ -1,5 +1,7 @@
 <script>
   import ScoreboardGrid from '$lib/components/ScoreboardGrid.svelte';
+
+  export let data;
 </script>
 
-<ScoreboardGrid /> 
+<ScoreboardGrid tournamentSettings={data.tournamentSettings} />

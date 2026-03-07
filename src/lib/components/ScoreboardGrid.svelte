@@ -2,11 +2,26 @@
   import { onMount, onDestroy } from 'svelte';
   import { getStatusColor, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
+
+  export let tournamentSettings = {};
   
   let matches = [];
   let loading = true;
   let error = null;
   let interval;
+  $: tournamentStage = tournamentSettings?.stage || 'archive';
+  $: scoreboardTitle =
+    tournamentStage === 'tournament-live'
+      ? 'Tournament Scoreboard'
+      : 'Live Scoreboard';
+  $: scoreboardSubtitle =
+    tournamentStage === 'tournament-live'
+      ? 'Showing active tournament games from the current settings window'
+      : 'Showing today\'s NCAA games based on the current tournament settings';
+  $: emptyStateMessage =
+    tournamentStage === 'tournament-live'
+      ? 'No tournament games are scheduled in the current settings window.'
+      : 'No NCAA games are scheduled today.';
   
   // Function to fetch NCAA score data
   async function fetchScores() {
@@ -67,7 +82,10 @@
 <div class="min-h-screen py-4 sm:py-8 px-2 sm:px-4 lg:px-8">
   <div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-4 sm:mb-6">
-      <h1 class="text-xl sm:text-2xl font-bold text-white">Live Scoreboard</h1>
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-white">{scoreboardTitle}</h1>
+        <div class="mt-1 text-xs sm:text-sm text-gray-400">{scoreboardSubtitle}</div>
+      </div>
       <div class="text-xs sm:text-sm text-gray-400">Auto-updates every 10 seconds</div>
     </div>
 
@@ -83,7 +101,7 @@
       </div>
     {:else if matches.length === 0}
       <div class="w-full py-4 text-center text-white">
-        No games scheduled at this time.
+        {emptyStateMessage}
       </div>
     {:else}
       <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6">

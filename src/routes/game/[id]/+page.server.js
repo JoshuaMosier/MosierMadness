@@ -18,5 +18,6 @@ export async function load({ params }) {
 
   return {
     gameDetail: getGameDetailProjection(game, entries, snapshot),
+    tournamentSettings: settings,
   };
 }

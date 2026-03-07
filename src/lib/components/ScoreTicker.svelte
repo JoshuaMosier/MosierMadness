@@ -2,12 +2,20 @@
   import { onMount, onDestroy } from 'svelte';
   import { getStatusColor, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
+
+  export let tournamentSettings = {};
   
   let matches = [];
   let loading = true;
   let error = null;
   let interval;
   let duplicatedMatches = [];
+  $: tournamentStage = tournamentSettings?.stage || 'archive';
+  $: viewAllLabel = tournamentStage === 'tournament-live' ? 'Tournament Scores' : 'Today\'s Scores';
+  $: emptyStateMessage =
+    tournamentStage === 'tournament-live'
+      ? 'No tournament games scheduled right now.'
+      : 'No games scheduled at this time.';
   
   // Function to fetch NCAA score data
   async function fetchScores() {
@@ -100,7 +108,7 @@
   </div>
 {:else if matches.length === 0}
   <div class="w-full py-4 text-center text-white">
-    No games scheduled at this time.
+    {emptyStateMessage}
   </div>
 {:else}
   <div class="w-full bg-black bg-opacity-20 backdrop-blur-sm rounded-lg shadow-lg">
@@ -234,7 +242,7 @@
         <!-- Desktop View All Scores Button -->
         <div class="absolute -top-10 right-0 hidden md:block">
           <a href="/scores" class="bg-black/40 hover:bg-black/60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border border-white/10 hover:border-white/30 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02]">
-            <span>View All Scores</span>
+            <span>{viewAllLabel}</span>
           </a>
         </div>
 
@@ -243,7 +251,7 @@
           <a href="/scores" 
              on:click|preventDefault={(e) => { window.location.href = '/scores'; }}
              class="bg-black/40 hover:bg-black/60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border border-white/10 hover:border-white/30 shadow-lg active:bg-black/70 touch-manipulation">
-            <span>View All Scores</span>
+            <span>{viewAllLabel}</span>
           </a>
         </div>
 

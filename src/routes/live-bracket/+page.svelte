@@ -9,6 +9,8 @@
     let isLoading = true;
     let error = null;
     let refreshInterval;
+    const tournamentStage = data.tournamentSettings?.stage || 'archive';
+    const isLiveBracketAvailable = tournamentStage === 'tournament-live' || tournamentStage === 'complete';
     
     async function fetchBracketData() {
         try {
@@ -30,6 +32,11 @@
     }
     
     onMount(() => {
+        if (!isLiveBracketAvailable) {
+            isLoading = false;
+            return;
+        }
+
         isLoading = false;
         refreshInterval = setInterval(fetchBracketData, 30000);
     });
@@ -41,10 +48,15 @@
 
 <div class="max-w-7xl mx-auto px-4 py-8">
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        
-        <!-- Bracket Content -->
         <div class="p-6">
-            {#if isLoading}
+            {#if !isLiveBracketAvailable}
+                <div class="text-center py-10">
+                    <h2 class="text-2xl font-semibold text-zinc-100">Live bracket unavailable</h2>
+                    <p class="mt-3 text-zinc-400">
+                        The live bracket becomes available once the tournament is underway.
+                    </p>
+                </div>
+            {:else if isLoading}
                 <div class="text-center">
                     <p class="text-lg">Loading bracket data...</p>
                 </div>
