@@ -2,6 +2,38 @@ import { supabase } from '$lib/supabase';
 
 export const TOURNAMENT_STAGES = ['archive', 'bracket-open', 'tournament-live', 'complete'];
 
+function padNumber(value) {
+  return String(value).padStart(2, '0');
+}
+
+function getNthWeekdayOfMonth(year, monthIndex, weekday, occurrence) {
+  const firstOfMonth = new Date(Date.UTC(year, monthIndex, 1));
+  const firstWeekdayOffset = (weekday - firstOfMonth.getUTCDay() + 7) % 7;
+  const date = 1 + firstWeekdayOffset + ((occurrence - 1) * 7);
+  return new Date(Date.UTC(year, monthIndex, date));
+}
+
+function buildEasternTimestamp(date, hour, minute = 0) {
+  const year = date.getUTCFullYear();
+  const month = padNumber(date.getUTCMonth() + 1);
+  const day = padNumber(date.getUTCDate());
+  const formattedHour = padNumber(hour);
+  const formattedMinute = padNumber(minute);
+  return `${year}-${month}-${day}T${formattedHour}:${formattedMinute}:00-04:00`;
+}
+
+function getDefaultBracketRevealAt(entrySeasonYear) {
+  const selectionSunday = getNthWeekdayOfMonth(entrySeasonYear, 2, 0, 3);
+  return buildEasternTimestamp(selectionSunday, 18);
+}
+
+function getDefaultEntryDeadlineAt(entrySeasonYear) {
+  const selectionSunday = getNthWeekdayOfMonth(entrySeasonYear, 2, 0, 3);
+  const tipoffThursday = new Date(selectionSunday);
+  tipoffThursday.setUTCDate(tipoffThursday.getUTCDate() + 4);
+  return buildEasternTimestamp(tipoffThursday, 12);
+}
+
 export const DEFAULT_TICKER_ROUNDS = [
   { key: 'round-1', label: 'First Round', dates: ['2025-03-20', '2025-03-21'] },
   { key: 'round-2', label: 'Second Round', dates: ['2025-03-22', '2025-03-23'] },
@@ -52,13 +84,14 @@ function normalizeTickerRounds(value, fallback) {
 
 function normalizeSettingsRow(row) {
   if (!row) {
-    return { ...DEFAULT_TOURNAMENT_SETTINGS };
+    return getDefaultTournamentSettings();
   }
 
+  const entrySeasonYear = row.entry_season_year || DEFAULT_TOURNAMENT_SETTINGS.entrySeasonYear;
   const stage = TOURNAMENT_STAGES.includes(row.stage) ? row.stage : DEFAULT_TOURNAMENT_SETTINGS.stage;
 
   return {
-    entrySeasonYear: row.entry_season_year || DEFAULT_TOURNAMENT_SETTINGS.entrySeasonYear,
+    entrySeasonYear,
     displaySeasonYear: row.display_season_year || row.entry_season_year || DEFAULT_TOURNAMENT_SETTINGS.displaySeasonYear,
     stage,
     archiveScoreboardDate: row.archive_scoreboard_date || DEFAULT_TOURNAMENT_SETTINGS.archiveScoreboardDate,
@@ -110,6 +143,14 @@ export async function getTournamentSettings() {
 
   settingsCache.expiresAt = now + SETTINGS_TTL_MS;
   return settingsCache.value;
+}
+
+export function getBracketRevealAt(entrySeasonYear) {
+  return getDefaultBracketRevealAt(entrySeasonYear);
+}
+
+export function getEntryDeadlineAt(entrySeasonYear) {
+  return getDefaultEntryDeadlineAt(entrySeasonYear);
 }
 
 export function getTodayEtDateString(date = new Date()) {
