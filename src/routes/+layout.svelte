@@ -30,11 +30,11 @@
   <Navbar />
   <div class="container mx-auto px-4">
     {#if showScoreTicker}
-      <ScoreTicker tournamentSettings={data.tournamentSettings} />
+      <ScoreTicker tournamentSettings={data.tournamentSettings} tickerScores={data.tickerScores ?? []} />
     {/if}
   </div>
   <main class="flex-grow">
     <slot />
   </main>
 
-</div> 
+</div>

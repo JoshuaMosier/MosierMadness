@@ -1,45 +1,21 @@
 <script>
-import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
   import BracketView from '$lib/components/BracketView.svelte';
   import { fade } from 'svelte/transition';
   export let data;
 
-  let loading = true;
-  let error = null;
-  let user = null;
-  let bracket = null;
+  let loading = false;
+  let error = data.loadError ?? data.bracketTeamsError ?? null;
+  let user = data.user ?? null;
+  let bracket = data.bracket ?? null;
   let saving = false;
   let showResetModal = false;
-  let teamSelectionSaving = false; // Separate saving state for team selections
-  let bracketActionSaving = false; // Separate saving state for major bracket actions
-  let firstRoundTeams = []; // Will be populated dynamically
+  let teamSelectionSaving = false;
+  let bracketActionSaving = false;
+  let firstRoundTeams = data.firstRoundTeams ?? [];
   const tournamentStage = data.tournamentSettings?.stage || 'archive';
   const entrySeasonYear = data.tournamentSettings?.entrySeasonYear || new Date().getFullYear();
   const entriesOpen = tournamentStage === 'bracket-open';
-
-  // Function to fetch and format teams from NCAA API
-  async function fetchBracketTeams() {
-    try {
-      // Fetch teams from our server endpoint
-      const response = await fetch('/api/bracket-teams');
-      if (!response.ok) {
-        throw new Error(`Error fetching teams: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      firstRoundTeams = data;
-      
-    } catch (err) {
-      console.error('Error fetching bracket teams:', err);
-      error = err.message;
-    }
-  }
 
   // Helper function to format team string (e.g., "1 Houston")
   function formatTeamString(team) {
@@ -343,38 +319,6 @@ import { onMount } from 'svelte';
     }
   }
 
-  // Modified onMount to fetch teams first
-  onMount(async () => {
-    try {
-      // Get current user
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      user = currentUser;
-
-      if (!user) {
-        goto('/login');
-        return;
-      }
-
-      // Fetch teams first
-      await fetchBracketTeams();
-
-      // Fetch user's bracket
-      const { data, error: bracketError } = await supabase
-        .from('brackets')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('year', entrySeasonYear)
-        .single();
-
-      if (bracketError && bracketError.code !== 'PGRST116') throw bracketError;
-      bracket = data;
-    } catch (err) {
-      console.error('Error in initialization:', err);
-      error = err.message;
-    } finally {
-      loading = false;
-    }
-  });
 </script>
 
 <svelte:head>

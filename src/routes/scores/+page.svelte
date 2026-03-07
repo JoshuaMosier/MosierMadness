@@ -4,4 +4,4 @@
   export let data;
 </script>
 
-<ScoreboardGrid tournamentSettings={data.tournamentSettings} />
+<ScoreboardGrid tournamentSettings={data.tournamentSettings} scores={data.scores ?? []} />

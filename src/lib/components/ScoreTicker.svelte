@@ -4,9 +4,10 @@
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
 
   export let tournamentSettings = {};
-  
-  let matches = [];
-  let loading = true;
+  export let tickerScores = [];
+
+  let matches = tickerScores;
+  let loading = false;
   let error = null;
   let interval;
   let duplicatedMatches = [];
@@ -16,8 +17,7 @@
     tournamentStage === 'tournament-live'
       ? 'No tournament games scheduled right now.'
       : 'No games scheduled at this time.';
-  
-  // Function to fetch NCAA score data
+
   async function fetchScores() {
     try {
       const response = await fetch('/api/scores?scope=ticker');
@@ -25,16 +25,8 @@
         throw new Error(`Error fetching scores: ${response.statusText}`);
       }
       const newMatches = await response.json();
-      
-      // Compare new data with existing data before updating
       if (JSON.stringify(newMatches) !== JSON.stringify(matches)) {
         matches = newMatches;
-        // Update duplicatedMatches while preserving animation
-        if (matches.length > 4) {
-          duplicatedMatches = [...matches, ...matches, ...matches]; // Triple the content
-        } else {
-          duplicatedMatches = matches;
-        }
       }
       loading = false;
     } catch (err) {
@@ -43,11 +35,8 @@
       loading = false;
     }
   }
-  
-  // Set up auto-refresh
+
   onMount(() => {
-    fetchScores();
-    // Refresh scores every 30 seconds
     interval = setInterval(fetchScores, 30000);
   });
   
@@ -85,11 +74,10 @@
     return game?.isTournamentGame ? `/game/${game.gameId}` : '/scores';
   }
 
-  // Update the duplicatedMatches computation to use sorted matches
+  // Build duplicatedMatches for marquee: triple for seamless scroll when 5+ games
   $: {
-    // Only duplicate if we have enough games to warrant scrolling
     if (matches.length > 4) {
-      duplicatedMatches = [...sortedGames, ...sortedGames];
+      duplicatedMatches = [...sortedGames, ...sortedGames, ...sortedGames];
     } else {
       duplicatedMatches = sortedGames;
     }

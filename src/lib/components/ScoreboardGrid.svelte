@@ -4,9 +4,10 @@
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
 
   export let tournamentSettings = {};
-  
-  let matches = [];
-  let loading = true;
+  export let scores = [];
+
+  let matches = scores;
+  let loading = false;
   let error = null;
   let interval;
   $: tournamentStage = tournamentSettings?.stage || 'archive';
@@ -22,28 +23,23 @@
     tournamentStage === 'tournament-live'
       ? 'No tournament games are scheduled in the current settings window.'
       : 'No NCAA games are scheduled today.';
-  
-  // Function to fetch NCAA score data
+
   async function fetchScores() {
     try {
-      loading = true;
       const response = await fetch('/api/scores?scope=page');
       if (!response.ok) {
         throw new Error(`Error fetching scores: ${response.statusText}`);
       }
       matches = await response.json();
-      loading = false;
     } catch (err) {
       console.error('Failed to fetch scores:', err);
       error = err.message;
+    } finally {
       loading = false;
     }
   }
-  
-  // Set up auto-refresh
+
   onMount(() => {
-    fetchScores();
-    // Refresh scores every 10 seconds
     interval = setInterval(fetchScores, 10000);
   });
   

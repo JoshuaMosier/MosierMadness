@@ -6,7 +6,7 @@
     export let data;
 
     let bracketData = data.bracketData;
-    let isLoading = true;
+    let isLoading = false;
     let error = null;
     let refreshInterval;
     const tournamentStage = data.tournamentSettings?.stage || 'archive';
@@ -32,13 +32,9 @@
     }
     
     onMount(() => {
-        if (!isLiveBracketAvailable) {
-            isLoading = false;
-            return;
+        if (isLiveBracketAvailable) {
+            refreshInterval = setInterval(fetchBracketData, 30000);
         }
-
-        isLoading = false;
-        refreshInterval = setInterval(fetchBracketData, 30000);
     });
 
     onDestroy(() => {
