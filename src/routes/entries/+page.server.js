@@ -22,7 +22,8 @@ function findEntryBySelection(entries, selectedValue) {
   );
 }
 
-export async function load({ url }) {
+export async function load({ url, depends }) {
+  depends('app:tournament');
   const settings = await getTournamentSettings();
   const [entries, snapshot] = await Promise.all([
     getEntriesWithProfiles(settings.displaySeasonYear),

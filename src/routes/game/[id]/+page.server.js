@@ -4,7 +4,8 @@ import { getGameDetailProjection, resolveGame } from '$lib/server/tournament/pro
 import { getTournamentSnapshot } from '$lib/server/tournament/snapshot';
 import { getTournamentSettings } from '$lib/server/tournament/settings';
 
-export async function load({ params }) {
+export async function load({ params, depends }) {
+  depends('app:tournament');
   const settings = await getTournamentSettings();
   const [snapshot, entries] = await Promise.all([
     getTournamentSnapshot(settings),

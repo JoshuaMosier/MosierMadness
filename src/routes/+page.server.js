@@ -7,7 +7,8 @@ import {
   getTournamentSettings,
 } from '$lib/server/tournament/settings';
 
-export async function load() {
+export async function load({ depends }) {
+  depends('app:tournament');
   const settings = await getTournamentSettings();
   const frontDoor = {
     bracketRevealAt: getBracketRevealAt(settings.entrySeasonYear),

@@ -3,7 +3,7 @@
   import Navbar from '$lib/components/Navbar.svelte';
   import ScoreTicker from '$lib/components/ScoreTicker.svelte';
   import { supabase } from '$lib/supabase'
-  import { invalidate, invalidateAll } from '$app/navigation'
+  import { invalidate } from '$app/navigation'
   import { onMount } from 'svelte'
   import { page } from '$app/stores'
   import { dataRefreshSignal, initRealtimeRefresh } from '$lib/stores/realtimeUpdates'
@@ -18,7 +18,7 @@
   $: showScoreTicker = !hideScoreTickerRoutes.includes($page.url.pathname);
 
   $: if ($dataRefreshSignal) {
-    invalidateAll();
+    invalidate('app:tournament');
   }
 
   onMount(() => {
