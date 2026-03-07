@@ -15,6 +15,19 @@
   let seasons = [];
   const healthChecks = data.healthChecks;
 
+  let teamColors = Object.entries(data.teamColors || {})
+    .map(([seoName, colors]) => ({ seoName, ...colors }))
+    .sort((a, b) => a.seoName.localeCompare(b.seoName));
+  let colorFilter = '';
+  let colorSaving = false;
+  let colorError = null;
+  let colorSuccess = null;
+  let newColor = { seoName: '', primaryColor: '#000000', secondaryColor: '#FFFFFF', tertiaryColor: '' };
+
+  $: filteredColors = colorFilter
+    ? teamColors.filter(c => c.seoName.includes(colorFilter.toLowerCase()))
+    : teamColors;
+
   let form = {
     entrySeasonYear: data.tournamentSettings?.entrySeasonYear || new Date().getFullYear(),
     displaySeasonYear: data.tournamentSettings?.displaySeasonYear || new Date().getFullYear(),
@@ -154,6 +167,88 @@
 
   function truncateList(values = [], limit = 6) {
     return values.slice(0, limit);
+  }
+
+  async function saveTeamColor(entry) {
+    colorSaving = true;
+    colorError = null;
+    colorSuccess = null;
+
+    try {
+      const { error: upsertError } = await supabase
+        .from('team_colors')
+        .upsert({
+          seo_name: entry.seoName,
+          primary_color: entry.primaryColor,
+          secondary_color: entry.secondaryColor,
+          tertiary_color: entry.tertiaryColor || null,
+        }, { onConflict: 'seo_name' });
+
+      if (upsertError) throw upsertError;
+      colorSuccess = `Saved ${entry.seoName}.`;
+    } catch (err) {
+      colorError = err.message;
+    } finally {
+      colorSaving = false;
+    }
+  }
+
+  async function addTeamColor() {
+    if (!newColor.seoName.trim()) return;
+    colorSaving = true;
+    colorError = null;
+    colorSuccess = null;
+
+    try {
+      const payload = {
+        seo_name: newColor.seoName.trim().toLowerCase(),
+        primary_color: newColor.primaryColor,
+        secondary_color: newColor.secondaryColor,
+        tertiary_color: newColor.tertiaryColor || null,
+      };
+
+      const { error: insertError } = await supabase
+        .from('team_colors')
+        .insert(payload);
+
+      if (insertError) throw insertError;
+
+      teamColors = [...teamColors, {
+        seoName: payload.seo_name,
+        primaryColor: payload.primary_color,
+        secondaryColor: payload.secondary_color,
+        tertiaryColor: payload.tertiary_color,
+      }].sort((a, b) => a.seoName.localeCompare(b.seoName));
+
+      newColor = { seoName: '', primaryColor: '#000000', secondaryColor: '#FFFFFF', tertiaryColor: '' };
+      colorSuccess = `Added ${payload.seo_name}.`;
+    } catch (err) {
+      colorError = err.message;
+    } finally {
+      colorSaving = false;
+    }
+  }
+
+  async function deleteTeamColor(seoName) {
+    colorSaving = true;
+    colorError = null;
+    colorSuccess = null;
+
+    try {
+      const { error: deleteError } = await supabase
+        .from('team_colors')
+        .delete()
+        .eq('seo_name', seoName);
+
+      if (deleteError) throw deleteError;
+
+      teamColors = teamColors.filter(c => c.seoName !== seoName);
+      colorSuccess = `Deleted ${seoName}.`;
+    } catch (err) {
+      colorError = err.message;
+    } finally {
+      colorSaving = false;
+    }
   }
 </script>
 
@@ -404,6 +499,114 @@
               {/if}
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <h2 class="text-xl font-semibold text-zinc-100">Team Colors</h2>
+        <span class="text-sm text-zinc-400">{teamColors.length} teams</span>
+      </div>
+
+      <input
+        bind:value={colorFilter}
+        type="text"
+        placeholder="Filter by seo_name..."
+        class="input mb-4"
+      />
+
+      {#if colorError}
+        <div class="mb-4 bg-red-950/50 border border-red-900 text-red-400 rounded-lg p-3">{colorError}</div>
+      {/if}
+
+      {#if colorSuccess}
+        <div class="mb-4 bg-emerald-950/40 border border-emerald-900 text-emerald-400 rounded-lg p-3">{colorSuccess}</div>
+      {/if}
+
+      <div class="rounded-lg border border-zinc-800 overflow-hidden mb-4">
+        <div class="grid grid-cols-[1fr_80px_80px_80px_80px] gap-2 px-4 py-2 bg-zinc-800/50 text-xs text-zinc-400 uppercase tracking-wide">
+          <div>SEO Name</div>
+          <div>Primary</div>
+          <div>Secondary</div>
+          <div>Tertiary</div>
+          <div></div>
+        </div>
+
+        <div class="max-h-96 overflow-y-auto divide-y divide-zinc-800/50">
+          {#each filteredColors as entry (entry.seoName)}
+            <div class="grid grid-cols-[1fr_80px_80px_80px_80px] gap-2 px-4 py-2 items-center hover:bg-zinc-800/30">
+              <div class="text-sm text-zinc-200 font-mono truncate">{entry.seoName}</div>
+              <div class="flex items-center gap-1">
+                <input
+                  type="color"
+                  bind:value={entry.primaryColor}
+                  class="w-6 h-6 rounded border border-zinc-700 cursor-pointer"
+                  style="padding: 0;"
+                />
+                <span class="text-xs text-zinc-400 font-mono hidden xl:inline">{entry.primaryColor}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <input
+                  type="color"
+                  bind:value={entry.secondaryColor}
+                  class="w-6 h-6 rounded border border-zinc-700 cursor-pointer"
+                  style="padding: 0;"
+                />
+              </div>
+              <div class="flex items-center gap-1">
+                {#if entry.tertiaryColor}
+                  <input
+                    type="color"
+                    bind:value={entry.tertiaryColor}
+                    class="w-6 h-6 rounded border border-zinc-700 cursor-pointer"
+                    style="padding: 0;"
+                  />
+                {:else}
+                  <span class="text-xs text-zinc-600">--</span>
+                {/if}
+              </div>
+              <div class="flex items-center gap-1">
+                <button
+                  class="text-xs px-2 py-1 rounded bg-amber-600/20 text-amber-400 hover:bg-amber-600/30"
+                  on:click={() => saveTeamColor(entry)}
+                  disabled={colorSaving}
+                >Save</button>
+                <button
+                  class="text-xs px-2 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/30"
+                  on:click={() => deleteTeamColor(entry.seoName)}
+                  disabled={colorSaving}
+                >X</button>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+
+      <div class="rounded-lg border border-zinc-800 bg-zinc-800/30 p-4">
+        <div class="text-sm font-medium text-zinc-200 mb-3">Add Team Color</div>
+        <div class="grid grid-cols-[1fr_80px_80px_80px_auto] gap-2 items-end">
+          <label class="block">
+            <span class="block text-xs text-zinc-400 mb-1">SEO Name</span>
+            <input bind:value={newColor.seoName} type="text" class="input text-sm" placeholder="team-name" />
+          </label>
+          <label class="block">
+            <span class="block text-xs text-zinc-400 mb-1">Primary</span>
+            <input bind:value={newColor.primaryColor} type="color" class="w-full h-9 rounded border border-zinc-700 cursor-pointer" />
+          </label>
+          <label class="block">
+            <span class="block text-xs text-zinc-400 mb-1">Secondary</span>
+            <input bind:value={newColor.secondaryColor} type="color" class="w-full h-9 rounded border border-zinc-700 cursor-pointer" />
+          </label>
+          <label class="block">
+            <span class="block text-xs text-zinc-400 mb-1">Tertiary</span>
+            <input bind:value={newColor.tertiaryColor} type="color" class="w-full h-9 rounded border border-zinc-700 cursor-pointer" />
+          </label>
+          <button
+            class="px-4 py-2 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 text-sm font-medium"
+            on:click={addTeamColor}
+            disabled={colorSaving || !newColor.seoName.trim()}
+          >Add</button>
         </div>
       </div>
     </div>
