@@ -1,7 +1,7 @@
 <script>
   import { fade } from 'svelte/transition';
   import { goto } from '$app/navigation';
-  import { getTeamColorSet, hexToRgb, resolveTeamSeoName } from '$lib/utils/teamColorUtils';
+  import { hexToRgb } from '$lib/utils/teamColorUtils';
 
   export let leaderboard = null;
 
@@ -13,6 +13,7 @@
   $: masterBracket = leaderboard?.masterBracket || [];
   $: eliminatedTeams = leaderboard?.eliminatedTeams || [];
   $: teamSeoMap = leaderboard?.teamSeoMap || {};
+  $: teamColorMap = leaderboard?.teamColorMap || {};
   $: teamSelectionsByEntryId = leaderboard?.teamSelectionsByEntryId || {};
 
   function handleImageError(event) {
@@ -64,7 +65,7 @@
   }
 
   function getTeamSeoName(team) {
-    return resolveTeamSeoName(team, teamSeoMap[team]);
+    return teamSeoMap[team] || '';
   }
 
   // Function to handle name click and navigation
@@ -81,20 +82,12 @@
     `.trim();
   }
 
-  // Add helper function to get team color
-  function getTeamBackgroundColor(teamName) {
-    const { primaryColor: baseColor } = getTeamColorSet(getTeamSeoName(teamName));
-    // Convert hex to rgba with 0.7 opacity
-    const rgb = hexToRgb(baseColor);
-    if (rgb) {
-      return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, .8)`;
-    }
-    return baseColor;
+  function getTeamPrimaryColor(teamName) {
+    return teamColorMap[teamName]?.primaryColor || '#666666';
   }
 
-  // Update getTeamContainerStyle to handle desaturation
   function getTeamContainerStyle(teamName, isEliminatedOrCorrect = false) {
-    const { primaryColor: baseColor } = getTeamColorSet(getTeamSeoName(teamName));
+    const baseColor = getTeamPrimaryColor(teamName);
     let rgba;
     
     const rgb = hexToRgb(baseColor);

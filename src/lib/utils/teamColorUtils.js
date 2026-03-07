@@ -1,4 +1,70 @@
-import { TEAM_COLORS_BY_SEO, TEAM_NAME_TO_SEO } from '$lib/teamColorData';
+const TEAM_NAME_TO_SEO = {
+  'App State': 'appalachian-st',
+  Bellarmine: 'bellarmine',
+  CSUBAK: 'bakersfield',
+  'Central Ark.': 'central-ark',
+  'Charleston So.': 'charleston-so',
+  'Co Car': 'coastal-caro',
+  'Col. of Charleston': 'col-of-charleston',
+  'Eastern Ky.': 'eastern-ky',
+  ETSU: 'east-tenn-st',
+  'Fla. Atlantic': 'fla-atlantic',
+  'Ga. Southern': 'ga-southern',
+  'Idaho St.': 'idaho-st',
+  'Idaho St': 'idaho-st',
+  'Idaho State': 'idaho-st',
+  LIU: 'long-island',
+  'Loyola (Chicago)': 'loyola-chicago',
+  'Loyola Chicago': 'loyola-chicago',
+  Mercyhurst: 'mercyhurst',
+  'Mt St My': 'mt-st-marys',
+  'Mt St Mary': 'mt-st-marys',
+  "Mount St. Mary's": 'mt-st-marys',
+  NIU: 'northern-ill',
+  'NC State': 'north-carolina-st',
+  'ND St.': 'north-dakota-st',
+  'ND St': 'north-dakota-st',
+  'North Dakota State': 'north-dakota-st',
+  'Northern Ariz.': 'northern-ariz',
+  'Northern Ariz': 'northern-ariz',
+  'Northern Arizona': 'northern-ariz',
+  'Northern Illinois': 'northern-ill',
+  'Northern Iowa': 'uni',
+  Omaha: 'neb-omaha',
+  'Sacramento St.': 'sacramento-st',
+  'Sacramento St': 'sacramento-st',
+  'Sacramento State': 'sacramento-st',
+  "Saint Joseph's": 'saint-josephs',
+  'Saint Louis': 'saint-louis',
+  "Saint Mary's (CA)": 'st-marys-ca',
+  'Saint Thomas': 'st-thomas-mn',
+  'Sam Houston': 'sam-houston-st',
+  SEMO: 'southeast-mo-st',
+  'Southeast Mo. St.': 'southeast-mo-st',
+  'Southeast Missouri State': 'southeast-mo-st',
+  'South Fla.': 'south-fla',
+  'Southern Utah': 'southern-utah',
+  'St. Thomas': 'st-thomas-mn',
+  'St. Thomas (MN)': 'st-thomas-mn',
+  Stthom: 'st-thomas-mn',
+  Stonehill: 'stonehill',
+  'Texas A&M': 'tex-am',
+  'The Citadel': 'citadel',
+  UIC: 'ill-chicago',
+  UAlbany: 'albany-ny',
+  UMass: 'massachusetts',
+  'UMass Lowell': 'umass-lowell',
+  UNCW: 'unc-wilmington',
+  UNI: 'uni',
+  'UT Arlington': 'texas-arlington',
+  'Utah Tech': 'utah-tech',
+  'West Ga.': 'west-ga',
+  'West Georgia': 'west-ga',
+  'Western Caro.': 'western-caro',
+  'Western Caro': 'western-caro',
+  'Western Carolina': 'western-caro',
+  'William & Mary': 'william-mary',
+};
 
 export function resolveTeamSeoName(teamName, seoName) {
   if (seoName) {
@@ -6,22 +72,6 @@ export function resolveTeamSeoName(teamName, seoName) {
   }
 
   return TEAM_NAME_TO_SEO[teamName] || '';
-}
-
-function getColorEntry(seoName) {
-  return TEAM_COLORS_BY_SEO[seoName] || null;
-}
-
-export function getTeamColorSet(seoName = '') {
-  const colors = getColorEntry(seoName);
-  const primaryColor = colors?.primary_color || '#666666';
-
-  return {
-    seoName,
-    primaryColor,
-    secondaryColor: colors?.secondary_color || primaryColor,
-    tertiaryColor: colors?.tertiary_color || null,
-  };
 }
 
 export function hexToRgb(color) {
@@ -47,9 +97,4 @@ export function getGradientStyleFromColor(primaryColor) {
     rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.8) 0%,
     rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.6) 100%
   )`;
-}
-
-export function getTeamGradientStyle(seoName) {
-  const { primaryColor } = getTeamColorSet(seoName);
-  return getGradientStyleFromColor(primaryColor);
 }

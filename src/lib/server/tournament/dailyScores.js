@@ -4,7 +4,8 @@ import {
 } from '$lib/server/tournament/constants';
 import { fetchJsonWithCache } from '$lib/server/tournament/httpCache';
 import { formatContestDate, getSeasonYear } from '$lib/server/tournament/dates';
-import { getTeamColorSet, resolveTeamSeoName } from '$lib/utils/teamColorUtils';
+import { loadTeamColors, getTeamColorSet } from '$lib/server/tournament/teamColors';
+import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { getStatusPriority } from '$lib/utils/scoreboardUtils';
 
 function buildContestsUrl(dateValue = new Date()) {
@@ -97,6 +98,7 @@ function normalizeContest(contest) {
 }
 
 export async function getDailyNcaaScoreboard(dateValue = new Date()) {
+  await loadTeamColors();
   const url = buildContestsUrl(dateValue);
   const payload = await fetchJsonWithCache(url);
   return (payload?.data?.contests || [])

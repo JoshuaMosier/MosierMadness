@@ -7,7 +7,8 @@ import { parseDateParts } from '$lib/server/tournament/dates';
 import { getStatusPriority, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
 import { formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils';
 import { getTournamentSettings } from '$lib/server/tournament/settings';
-import { getTeamColorSet, resolveTeamSeoName } from '$lib/utils/teamColorUtils';
+import { loadTeamColors, getTeamColorSet } from '$lib/server/tournament/teamColors';
+import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 
 const TEAM_OVERRIDES = {
   // Preserve the existing override hook used by the bracket entry page.
@@ -439,6 +440,7 @@ function buildSnapshotCacheKey(settings) {
 }
 
 async function buildTournamentSnapshot(settings) {
+  await loadTeamColors();
   const firstRoundUrls = (settings.firstRoundDates || []).map(getScoreboardUrlForDate);
   const roundUrls = getUniqueRoundDates(settings).map(getScoreboardUrlForDate);
   const [firstRoundDays, roundData] = await Promise.all([

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { TEAM_COLORS_BY_SEO } from '../../teamColorData.js';
+import { loadTeamColors, getAllTeamColors } from '../tournament/teamColors.js';
 import { getDailyNcaaScoreboard } from '../tournament/dailyScores.js';
 import { getTournamentSnapshot } from '../tournament/snapshot.js';
 
@@ -25,7 +25,8 @@ export function getLogoSlugs() {
 
 export function getTeamColorCoverageSummary() {
   const logoSlugs = getLogoSlugs();
-  const missingLogoSlugs = logoSlugs.filter((slug) => !TEAM_COLORS_BY_SEO[slug]);
+  const teamColors = getAllTeamColors();
+  const missingLogoSlugs = logoSlugs.filter((slug) => !teamColors.has(slug));
 
   return {
     logoSlugCount: logoSlugs.length,
@@ -50,7 +51,7 @@ function summarizeScoreboardTeams(games, logoSlugs) {
     ),
     missingColorSeoNames: uniqueSorted(
       teams
-        .filter((team) => team.seoName && !TEAM_COLORS_BY_SEO[team.seoName])
+        .filter((team) => team.seoName && !getAllTeamColors().has(team.seoName))
         .map((team) => team.seoName)
     ),
     grayPrimaryFallbackTeams: uniqueSorted(
@@ -101,6 +102,7 @@ function validateSettings(settings) {
 }
 
 export async function getAdminHealthChecks(settings) {
+  await loadTeamColors();
   const checkedAt = new Date().toISOString();
   const logoSlugs = getLogoSlugs();
   const health = {

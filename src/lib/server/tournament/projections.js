@@ -11,6 +11,7 @@ import {
   getTeamNameFromSelection,
 } from '$lib/utils/bracketUtils';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
+import { getTeamColorSet } from '$lib/server/tournament/teamColors';
 
 function cloneTeam(team) {
   return team ? { ...team } : null;
@@ -36,6 +37,17 @@ function buildTeamSeoMap(snapshot) {
   }
 
   return teamSeoMap;
+}
+
+function buildTeamColorMap(teamSeoMap) {
+  const teamColorMap = {};
+
+  for (const [teamName, seoName] of Object.entries(teamSeoMap)) {
+    const { primaryColor, secondaryColor } = getTeamColorSet(seoName);
+    teamColorMap[teamName] = { primaryColor, secondaryColor };
+  }
+
+  return teamColorMap;
 }
 
 export function getLiveBracketProjection(snapshot) {
@@ -80,13 +92,16 @@ export function getLeaderboardProjection(entries, snapshot) {
   const sortedRows = sortLeaderboardScores(rows);
   const ranks = buildLeaderboardRanks(sortedRows);
 
+  const teamSeoMap = buildTeamSeoMap(snapshot);
+
   return {
     fetchedAt: snapshot.fetchedAt,
     rows: sortedRows,
     ranks,
     masterBracket,
     eliminatedTeams,
-    teamSeoMap: buildTeamSeoMap(snapshot),
+    teamSeoMap,
+    teamColorMap: buildTeamColorMap(teamSeoMap),
     teamSelectionsByEntryId,
   };
 }
