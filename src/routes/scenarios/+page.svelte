@@ -2,13 +2,16 @@
   import { fade } from 'svelte/transition';
   import { onMount } from 'svelte';
   import { supabase } from '$lib/supabase';
-  import { calculateScores } from '$lib/utils/scoringUtils';
+  import { assignPositions, calculateScores } from '$lib/utils/scoringUtils';
 
-  let entries = [];
+  export let data;
+
+  let entries = data.scenario.entries || [];
   let loading = true;
   let error = null;
-  let liveBracketData = null;
-  let masterBracket = [];
+  let liveBracketData = data.scenario.liveBracketData;
+  let masterBracket = data.scenario.masterBracket || [];
+  let teamSeoMap = data.scenario.teamSeoMap || {};
   let remainingGames = []; // Games that haven't been played yet
   let simulationInProgress = false;
   let scenariosCalculated = false;
@@ -61,7 +64,7 @@
       const { data: { user } } = await supabase.auth.getUser();
       currentUser = user;
 
-      await fetchData();
+      initializeScenarioState();
 
       // Automatically calculate scenarios when page loads
       if (!scenariosCalculated && entries.length > 0) {
@@ -85,54 +88,17 @@
       loading = false;
     }
   });
-  
-  async function fetchData() {
-    // Fetch the live bracket data
-    const liveResponse = await fetch('/api/live-bracket');
-    if (!liveResponse.ok) {
-      throw new Error('Failed to fetch live bracket data');
-    }
-    liveBracketData = await liveResponse.json();
-    
-    // Fetch the master bracket data
-    const masterResponse = await fetch('/api/master-bracket');
-    if (!masterResponse.ok) {
-      throw new Error('Failed to fetch master bracket data');
-    }
-    const masterData = await masterResponse.json();
-    masterBracket = masterData.masterBracket;
-    
-    // Find all remaining games (empty winners) starting from Sweet 16
+
+  function initializeScenarioState() {
     remainingGames = [];
     for (let i = 48; i < 63; i++) {
       if (!masterBracket[i]) {
         remainingGames.push(i);
       }
     }
-    
-    // Setup match simulation details
+
     prepareMatchDetails();
-    
-    // Fetch all brackets with user profiles
-    const { data, error: bracketsError } = await supabase
-      .from('brackets')
-      .select('*, profiles(*)');
-    
-    if (bracketsError) throw new Error('Failed to fetch brackets: ' + bracketsError.message);
-    
-    entries = data.map(bracket => ({
-      entryId: bracket.id,
-      user_id: bracket.user_id,
-      firstName: bracket.profiles?.first_name || 'Unknown',
-      lastName: bracket.profiles?.last_name || 'User',
-      selections: bracket.selections || [],
-      is_submitted: bracket.is_submitted || false
-    }));
-    
-    // Filter out incomplete entries
-    entries = entries.filter(entry => entry.is_submitted && entry.selections && entry.selections.length > 0);
-    
-    // Initialize user win counters
+
     userWinCounts = entries.map(entry => ({
       entryId: entry.entryId,
       firstName: entry.firstName,
@@ -140,8 +106,7 @@
       winCount: 0,
       winProbability: 0
     }));
-    
-    // Initialize position probabilities
+
     initializePositionProbabilities();
   }
   
@@ -176,8 +141,8 @@
         if (match?.teamA && match?.teamB) {
           teamA = `${match.teamA.seed} ${match.teamA.name}`;
           teamB = `${match.teamB.seed} ${match.teamB.name}`;
-          teamASeoName = match.teamA.seoName || match.teamA.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-          teamBSeoName = match.teamB.seoName || match.teamB.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+          teamASeoName = getTeamSeoName(match.teamA.name);
+          teamBSeoName = getTeamSeoName(match.teamB.name);
         } else {
           continue; // Skip if teams aren't available
         }
@@ -254,20 +219,8 @@
   // Helper function to get team seoName for logo path
   function getTeamSeoName(teamName) {
     if (!teamName) return '';
-    
-    // First try to find the team in the live bracket data 
-    for (let i = 1; i <= 63; i++) {
-      const match = liveBracketData?.matches[i];
-      if (match?.teamA?.name === teamName && match.teamA.seoName) {
-        return match.teamA.seoName;
-      }
-      if (match?.teamB?.name === teamName && match.teamB.seoName) {
-        return match.teamB.seoName;
-      }
-    }
-    
-    // Fallback to simple transformation
-    return teamName.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    return teamSeoMap[teamName] || teamName.toLowerCase().replace(/[^a-z0-9]/g, '');
   }
   
   // Handle image error for team logos
@@ -401,75 +354,20 @@
     if (gameIndex >= gamesToSimulate.length) {
       // Calculate final standings for this scenario
       const scenarioScores = calculateScores(bracket, entries);
-      
-      // Sort scores to determine rankings
-      const sortedScores = [...scenarioScores].sort((a, b) => b.total - a.total);
-      
-      // Process tie groups and assign positions
-      let currentPosition = 1;
-      let currentScore = null;
-      let tieGroup = [];
-      
-      // Process all scores
-      for (let i = 0; i < sortedScores.length; i++) {
-        const score = sortedScores[i];
-        
-        // If this is a new score (or the first score), start a new tie group
-        if (currentScore === null || score.total !== currentScore) {
-          // Process previous tie group if it exists
-          if (tieGroup.length > 0) {
-            // For ties, we'll use a "shared position" approach
-            // e.g., two users tied for 2nd place are both considered 2nd place
-            
-            for (const tiedScore of tieGroup) {
-              // Update win count if tied for first
-              if (currentPosition === 1) {
-                const winCounter = userWinCounts.find(u => u.entryId === tiedScore.entryId);
-                if (winCounter) {
-                  winCounter.winCount += 1;
-                }
-              }
-              
-              // Update position counts - each user gets exactly ONE position
-              const positionCounter = positionProbabilities.find(p => p.entryId === tiedScore.entryId);
-              if (positionCounter) {
-                // Just increment the counter for their position
-                positionCounter.positions[currentPosition] += 1;
-              }
-            }
-            
-            // Update position for the next group
-            currentPosition += tieGroup.length;
-            // Clear the tie group
-            tieGroup = [];
+
+      const positions = assignPositions(scenarioScores);
+      for (const score of scenarioScores) {
+        const position = positions.get(score.entryId);
+        if (position === 1) {
+          const winCounter = userWinCounts.find(user => user.entryId === score.entryId);
+          if (winCounter) {
+            winCounter.winCount += 1;
           }
-          
-          // Start new tie group with this score
-          currentScore = score.total;
-          tieGroup.push(score);
-        } else {
-          // This score is tied with the previous one, add to tie group
-          tieGroup.push(score);
         }
-      }
-      
-      // Process the final tie group if it exists
-      if (tieGroup.length > 0) {
-        for (const tiedScore of tieGroup) {
-          // Update win count if tied for first
-          if (currentPosition === 1) {
-            const winCounter = userWinCounts.find(u => u.entryId === tiedScore.entryId);
-            if (winCounter) {
-              winCounter.winCount += 1;
-            }
-          }
-          
-          // Update position counts
-          const positionCounter = positionProbabilities.find(p => p.entryId === tiedScore.entryId);
-          if (positionCounter) {
-            // Just increment the counter for their position
-            positionCounter.positions[currentPosition] += 1;
-          }
+
+        const positionCounter = positionProbabilities.find(user => user.entryId === score.entryId);
+        if (positionCounter && position) {
+          positionCounter.positions[position] += 1;
         }
       }
       
@@ -742,52 +640,8 @@
       
       // Calculate scores and determine final positions
       const scenarioScores = calculateScores(bracket, entries);
-      const sortedScores = [...scenarioScores].sort((a, b) => b.total - a.total);
-      
-      // Process scores to determine positions (handling ties)
-      let currentPosition = 1;
-      let currentScore = null;
-      let tieGroup = [];
-      let userPosition = null;
-      
-      // Process all scores
-      for (let i = 0; i < sortedScores.length; i++) {
-        const score = sortedScores[i];
-        
-        // If this is a new score (or the first score), process previous tie group
-        if (currentScore === null || score.total !== currentScore) {
-          // Process previous tie group if it exists
-          if (tieGroup.length > 0) {
-            // Check if our user is in this tie group
-            if (tieGroup.some(s => s.entryId === userId)) {
-              userPosition = currentPosition;
-            }
-            
-            // Update position for the next group
-            currentPosition += tieGroup.length;
-            // Clear the tie group
-            tieGroup = [];
-          }
-          
-          // Start new tie group with this score
-          currentScore = score.total;
-          tieGroup.push(score);
-        } else {
-          // This score is tied with the previous one, add to tie group
-          tieGroup.push(score);
-        }
-      }
-      
-      // Process the final tie group if it exists
-      if (tieGroup.length > 0 && userPosition === null) {
-        // Check if our user is in this tie group
-        if (tieGroup.some(s => s.entryId === userId)) {
-          userPosition = currentPosition;
-        }
-      }
-      
-      // Return 1 if user finishes in target position, 0 otherwise
-      return userPosition === targetPosition ? 1 : 0;
+      const positions = assignPositions(scenarioScores);
+      return positions.get(userId) === targetPosition ? 1 : 0;
     }
     
     // If there are remaining games, we need to simulate both outcomes for each
@@ -805,54 +659,8 @@
       if (gameIndex >= gamesToSimulate.length) {
         // Calculate final standings for this scenario
         const scenarioScores = calculateScores(bracket, entries);
-        
-        // Find positions
-        const sortedScores = [...scenarioScores].sort((a, b) => b.total - a.total);
-        
-        // Process scores to determine positions (handling ties)
-        let currentPosition = 1;
-        let currentScore = null;
-        let tieGroup = [];
-        let userPosition = null;
-        
-        // Process all scores
-        for (let i = 0; i < sortedScores.length; i++) {
-          const score = sortedScores[i];
-          
-          // If this is a new score (or the first score), process previous tie group
-          if (currentScore === null || score.total !== currentScore) {
-            // Process previous tie group if it exists
-            if (tieGroup.length > 0) {
-              // Check if our user is in this tie group
-              if (tieGroup.some(s => s.entryId === userId)) {
-                userPosition = currentPosition;
-              }
-              
-              // Update position for the next group
-              currentPosition += tieGroup.length;
-              // Clear the tie group
-              tieGroup = [];
-            }
-            
-            // Start new tie group with this score
-            currentScore = score.total;
-            tieGroup.push(score);
-          } else {
-            // This score is tied with the previous one, add to tie group
-            tieGroup.push(score);
-          }
-        }
-        
-        // Process the final tie group if it exists
-        if (tieGroup.length > 0 && userPosition === null) {
-          // Check if our user is in this tie group
-          if (tieGroup.some(s => s.entryId === userId)) {
-            userPosition = currentPosition;
-          }
-        }
-        
-        // Count this scenario if user finishes in target position
-        if (userPosition === targetPosition) {
+
+        if (assignPositions(scenarioScores).get(userId) === targetPosition) {
           positionCount += 1;
         }
         

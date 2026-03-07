@@ -6,6 +6,8 @@ import { onMount } from 'svelte';
   import { fade } from 'svelte/transition';
   import teamColors from '$lib/ncaa_team_colors.json';
 
+  export let data;
+
   let loading = true;
   let error = null;
   let user = null;
@@ -15,7 +17,9 @@ import { onMount } from 'svelte';
   let teamSelectionSaving = false; // Separate saving state for team selections
   let bracketActionSaving = false; // Separate saving state for major bracket actions
   let firstRoundTeams = []; // Will be populated dynamically
-  const tournamentStarted = true; // Set this to true when tournament begins
+  const tournamentStage = data.tournamentSettings?.stage || 'archive';
+  const entrySeasonYear = data.tournamentSettings?.entrySeasonYear || new Date().getFullYear();
+  const entriesOpen = tournamentStage === 'bracket-open';
 
   // Function to fetch and format teams from NCAA API
   async function fetchBracketTeams() {
@@ -191,7 +195,8 @@ import { onMount } from 'svelte';
           selections: newSelections,
           updated_at: new Date().toISOString()
         })
-        .eq('id', bracket.id);
+        .eq('id', bracket.id)
+        .eq('year', entrySeasonYear);
 
       if (updateError) throw updateError;
 
@@ -223,7 +228,8 @@ import { onMount } from 'svelte';
           selections: new Array(63).fill(null),
           updated_at: new Date().toISOString()
         })
-        .eq('id', bracket.id);
+        .eq('id', bracket.id)
+        .eq('year', entrySeasonYear);
 
       if (updateError) throw updateError;
 
@@ -256,7 +262,8 @@ import { onMount } from 'svelte';
           is_submitted: true,
           updated_at: new Date().toISOString()
         })
-        .eq('id', bracket.id);
+        .eq('id', bracket.id)
+        .eq('year', entrySeasonYear);
 
       if (updateError) throw updateError;
 
@@ -286,6 +293,7 @@ import { onMount } from 'svelte';
         .from('brackets')
         .insert({
           user_id: user.id,
+          year: entrySeasonYear,
           selections: new Array(63).fill(null), // Space for 63 matches
           is_submitted: false,
           created_at: new Date().toISOString(),
@@ -319,7 +327,8 @@ import { onMount } from 'svelte';
           is_submitted: false,
           updated_at: new Date().toISOString()
         })
-        .eq('id', bracket.id);
+        .eq('id', bracket.id)
+        .eq('year', entrySeasonYear);
 
       if (updateError) throw updateError;
 
@@ -356,6 +365,7 @@ import { onMount } from 'svelte';
         .from('brackets')
         .select('*')
         .eq('user_id', user.id)
+        .eq('year', entrySeasonYear)
         .single();
 
       if (bracketError && bracketError.code !== 'PGRST116') throw bracketError;
@@ -424,11 +434,17 @@ import { onMount } from 'svelte';
         Login
       </a>
     </div>
-  {:else if tournamentStarted}
+  {:else if !entriesOpen}
     <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center"
          in:fade={{ duration: 100, delay: 100 }}>
-      <h2 class="text-xl font-semibold text-zinc-200 mb-3">Tournament In Progress</h2>
-      <p class="text-zinc-300">Bracket submission is now closed as the tournament has begun.</p>
+      <h2 class="text-xl font-semibold text-zinc-200 mb-3">
+        {tournamentStage === 'tournament-live' || tournamentStage === 'complete' ? 'Tournament In Progress' : 'Bracket Entries Closed'}
+      </h2>
+      <p class="text-zinc-300">
+        {tournamentStage === 'archive'
+          ? 'Bracket submissions are not open yet. Check back once the new bracket is released.'
+          : 'Bracket submission is now closed as the tournament has begun.'}
+      </p>
     </div>
   {:else if bracket}
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"

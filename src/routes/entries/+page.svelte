@@ -1,44 +1,11 @@
 <script>
-  import { onMount } from 'svelte';
-  import { supabase } from '$lib/supabase';
-  import { fade } from 'svelte/transition';
   import EntriesList from '$lib/components/EntriesList.svelte';
   import EntrantBracketView from '$lib/components/EntrantBracketView.svelte';
 
+  export let data;
+
   // Hardcoded tournament state - change this to true when tournament starts
   const TOURNAMENT_STARTED = true;
-
-  let loading = true;
-  let error = null;
-  let entries = [];
-
-  onMount(async () => {
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          first_name,
-          last_name,
-          email,
-          brackets (
-            id,
-            is_submitted,
-            selections,
-            updated_at
-          )
-        `)
-        .order('last_name', { ascending: true });
-
-      if (fetchError) throw fetchError;
-      entries = data;
-    } catch (err) {
-      console.error('Error fetching entries:', err);
-      error = err.message;
-    } finally {
-      loading = false;
-    }
-  });
 </script>
 
 <svelte:head>
@@ -47,7 +14,11 @@
 </svelte:head>
 
 {#if TOURNAMENT_STARTED}
-  <EntrantBracketView {entries} {loading} {error} />
+  <EntrantBracketView
+    entries={data.entries}
+    selectedEntrantId={data.selectedEntrantId}
+    selectedBracketData={data.selectedBracketData}
+  />
 {:else}
-  <EntriesList {entries} {loading} {error} />
+  <EntriesList entries={data.entries} loading={false} error={null} />
 {/if}

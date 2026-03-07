@@ -1,38 +1,25 @@
 <!-- LiveBracket.svelte -->
 <script>
     import BracketView from '$lib/components/BracketView.svelte';
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     
-    let bracketData = {
-        matches: {},
-        champion: null
-    };
+    export let data;
+
+    let bracketData = data.bracketData;
     let isLoading = true;
     let error = null;
+    let refreshInterval;
     
     async function fetchBracketData() {
         try {
-            isLoading = true;
             error = null;
             
-            // Fetch live results
             const liveRes = await fetch('/api/live-bracket');
-            const { matches } = await liveRes.json();
-            
-            // Find champion if match 63 is completed
-            const championMatch = matches[63];
-            const champion = championMatch?.teamA || null;
-            
-            bracketData = {
-                matches,
-                champion
-            };
-            
-            console.log('Bracket data loaded:', {
-                totalMatches: Object.keys(matches).length,
-                firstRoundSample: matches[1],
-                champion
-            });
+            if (!liveRes.ok) {
+                throw new Error(`Error fetching live bracket data: ${liveRes.statusText}`);
+            }
+
+            bracketData = await liveRes.json();
             
         } catch (err) {
             console.error('Error fetching bracket data:', err);
@@ -43,7 +30,12 @@
     }
     
     onMount(() => {
-        fetchBracketData();
+        isLoading = false;
+        refreshInterval = setInterval(fetchBracketData, 30000);
+    });
+
+    onDestroy(() => {
+        if (refreshInterval) clearInterval(refreshInterval);
     });
 </script>
 

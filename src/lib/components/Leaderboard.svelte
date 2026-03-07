@@ -1,56 +1,34 @@
 <script>
   import { fade } from 'svelte/transition';
-  import { onMount } from 'svelte';
-  import { supabase } from '$lib/supabase';
-  import { calculateScores, calculatePotential, getEliminatedTeams } from '$lib/utils/scoringUtils';
   import { goto } from '$app/navigation';
   import teamColors from '$lib/ncaa_team_colors.json';
 
-  export let entries = [];
-  export let loading = false;
-  export let error = null;
+  export let leaderboard = null;
 
-  let masterBracket = [];
-  let eliminatedTeams = [];
-  let scores = [];
-  let potentials = [];
-  let loadingLeaderboard = true;
-  let teamSelections = new Map();
-  let liveBracketData = null;
+  const teamLogoClass = 'w-full h-full object-contain p-0.5 opacity-90';
+  const teamLogoContainerClass = 'w-10 h-10 rounded-lg p-1 overflow-hidden shadow-inner relative';
 
-  let cachedData = {
-    masterBracket: null,
-    liveBracket: null,
-    lastFetch: null,
-    // Cache for 1 hour
-    cacheTimeout: 60 * 60 * 1000
-  };
+  $: sortedScores = leaderboard?.rows || [];
+  $: ranks = leaderboard?.ranks || [];
+  $: masterBracket = leaderboard?.masterBracket || [];
+  $: eliminatedTeams = leaderboard?.eliminatedTeams || [];
+  $: teamSeoMap = leaderboard?.teamSeoMap || {};
+  $: teamSelectionsByEntryId = leaderboard?.teamSelectionsByEntryId || {};
 
-  // Let's modify our approach to use a filter for the SVGs instead of container outlines
   function handleImageError(event) {
     event.target.src = '/images/placeholder-team.svg';
   }
 
-  // We'll use a filter to create the outline effect on the SVG content itself
-  const teamLogoClass = "w-full h-full object-contain p-0.5 opacity-90";
-  const teamLogoContainerClass = "w-10 h-10 rounded-lg p-1 overflow-hidden shadow-inner relative";
-
-  // Revised SVG filter to reverse drawing order (black first, then white on top)
   let svgFilter = `
   <svg width="0" height="0" style="position: absolute;">
     <defs>
       <filter id="teamLogoOutline" x="-20%" y="-20%" width="140%" height="140%">
-        <!-- Black outline (first, larger) -->
         <feMorphology operator="dilate" radius="1" in="SourceAlpha" result="blackThicken" />
         <feFlood flood-color="black" result="blackOutline" />
         <feComposite in="blackOutline" in2="blackThicken" operator="in" result="blackOutline" />
-        
-        <!-- White outline (second, smaller) -->
         <feMorphology operator="dilate" radius="0.5" in="SourceAlpha" result="whiteThicken" />
         <feFlood flood-color="white" result="whiteOutline" />
         <feComposite in="whiteOutline" in2="whiteThicken" operator="in" result="whiteOutline" />
-        
-        <!-- Stack with proper layer order: black on bottom, white in middle, original on top -->
         <feComposite in="whiteOutline" in2="blackOutline" operator="over" result="outlines" />
         <feComposite in="SourceGraphic" in2="outlines" operator="over" />
       </filter>
@@ -58,257 +36,39 @@
   </svg>
   `;
 
-  $: sortedScores = [...scores].sort((a, b) => {
-    // Sort by total score (descending)
-    if (a.total > b.total) return -1;
-    if (a.total < b.total) return 1;
-    
-    // If totals are equal, sort by potential (descending)
-    if (a.potential > b.potential) return -1;
-    if (a.potential < b.potential) return 1;
-    
-    // If both total and potential are equal, sort by name
-    return a.firstName.localeCompare(b.firstName);
-  });
-  
-  // Generate golf-style ranks
-  $: ranks = sortedScores.reduce((acc, score, index) => {
-    if (index === 0) {
-      acc.push(1); // First entry is always rank 1
-    } else {
-      // If current total equals previous total, use the same rank
-      const prevScore = sortedScores[index - 1];
-      const prevRank = acc[index - 1];
-      
-      if (score.total === prevScore.total) {
-        acc.push(prevRank); // Same rank for tied scores
-      } else {
-        acc.push(index + 1); // Rank is the position + 1 (skipping tied positions)
-      }
-    }
-    return acc;
-  }, []);
-
   function getRankLabel(rank) {
     const lastDigit = rank % 10;
     const lastTwoDigits = rank % 100;
-    
-    // Handle special cases for 11th, 12th, 13th
+
     if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
-        return `${rank}th`;
+      return `${rank}th`;
     }
-    
-    // Handle other cases
+
     switch (lastDigit) {
-        case 1: return `${rank}st`;
-        case 2: return `${rank}nd`;
-        case 3: return `${rank}rd`;
-        default: return `${rank}th`;
+      case 1:
+        return `${rank}st`;
+      case 2:
+        return `${rank}nd`;
+      case 3:
+        return `${rank}rd`;
+      default:
+        return `${rank}th`;
     }
   }
 
-  function toggleSort(field) {
-    if (sortField === field) {
-      sortDirection = sortDirection === 'desc' ? 'asc' : 'desc';
-    } else {
-      sortField = field;
-      sortDirection = 'desc';
-    }
-  }
-  
-  // Helper function to extract team name from selection string (e.g. "1 Houston" -> "Houston")
   function getTeamNameFromSelection(selection) {
     if (!selection) return null;
     const parts = selection.split(' ');
     if (parts.length < 2) return null;
     return parts.slice(1).join(' ');
   }
-  
-  // Modify the getTeamSeoName function to use seoName from live bracket data
+
   function getTeamSeoName(team) {
-    // First try to find the team in the live bracket data 
-    for (let i = 1; i <= 63; i++) {
-      const match = liveBracketData?.matches[i];
-      if (match?.teamA?.name === team && match.teamA.seoName) {
-        return match.teamA.seoName;
-      }
-      if (match?.teamB?.name === team && match.teamB.seoName) {
-        return match.teamB.seoName;
-      }
-    }
-    // Fallback to the old method
-    return team.toLowerCase().replace(/[^a-z0-9]/g, '');
-  }
-  
-  // Move the data fetching logic into a separate function
-  async function fetchBracketData() {
-    const now = Date.now();
-    
-    if (cachedData.lastFetch && (now - cachedData.lastFetch) < cachedData.cacheTimeout) {
-      console.log('📦 Using cached bracket data');
-      return {
-        liveBracketData: cachedData.liveBracket,
-        masterData: { masterBracket: cachedData.masterBracket }
-      };
-    }
-
-    console.log('🔄 Fetching fresh bracket data...');
-    const [liveResponse, masterResponse] = await Promise.all([
-      fetch('/api/live-bracket'),
-      fetch('/api/master-bracket')
-    ]);
-
-    if (!liveResponse.ok || !masterResponse.ok) {
-      console.error('❌ API responses not OK:', { 
-        live: liveResponse.status, 
-        master: masterResponse.status 
-      });
-      throw new Error('Failed to fetch bracket data');
-    }
-
-    const liveBracketData = await liveResponse.json();
-    const masterData = await masterResponse.json();
-
-    console.log('💾 Updating cache with fresh data');
-    cachedData = {
-      masterBracket: masterData.masterBracket,
-      liveBracket: liveBracketData,
-      lastFetch: now,
-      cacheTimeout: cachedData.cacheTimeout
-    };
-
-    return { liveBracketData, masterData };
-  }
-
-  // Memoize team selections processing
-  let memoizedTeamSelections = null;
-  function processTeamSelections(entries) {
-    // If entries haven't changed and we have memoized data, return it
-    if (memoizedTeamSelections && memoizedTeamSelections.entries === entries) {
-      return memoizedTeamSelections.selections;
-    }
-
-    const selections = new Map();
-    entries.forEach(entry => {
-      const entrySelections = entry.selections || entry.brackets?.[0]?.selections || [];
-      const entryId = entry.entryId || entry.id;
-      
-      const e8Teams = entrySelections.slice(56, 60).map(getTeamNameFromSelection).filter(Boolean);
-      const f4Teams = entrySelections.slice(60, 62).map(getTeamNameFromSelection).filter(Boolean);
-      const champTeam = getTeamNameFromSelection(entrySelections[62]);
-      
-      selections.set(entryId, {
-        e8: e8Teams,
-        f4: f4Teams,
-        champ: champTeam
-      });
-    });
-
-    // Store memoized result
-    memoizedTeamSelections = {
-      entries,
-      selections
-    };
-
-    return selections;
-  }
-
-  // Add retry count and interval
-  let retryCount = 0;
-  const MAX_RETRIES = 5;
-  const RETRY_INTERVAL = 1000; // 1 second
-
-  // Replace onMount with a reactive statement
-  $: if (entries.length && !loading) {
-    console.log('🚀 Entries available, triggering initialization...', { entriesCount: entries.length, loading });
-    initializeLeaderboard();
-  }
-
-  async function initializeLeaderboard() {
-    if (!entries.length) {
-      console.log('❌ No entries available for initialization');
-      loadingLeaderboard = false;
-      return;
-    }
-
-    console.log('📊 Starting leaderboard initialization...');
-    try {
-      loadingLeaderboard = true;
-      
-      console.log('🏀 Fetching bracket data...');
-      const bracketData = await fetchBracketDataWithRetry();
-      if (!bracketData) {
-        throw new Error('Failed to fetch bracket data after retries');
-      }
-      console.log('✅ Bracket data fetched successfully');
-      
-      const { liveBracketData: fetchedLiveBracket, masterData } = bracketData;
-      
-      if (fetchedLiveBracket.error) {
-        throw new Error(fetchedLiveBracket.error);
-      }
-      
-      console.log('🔄 Processing bracket data...');
-      liveBracketData = fetchedLiveBracket;
-      eliminatedTeams = getEliminatedTeams(liveBracketData);
-      masterBracket = masterData.masterBracket;
-      
-      console.log('📈 Calculating scores...');
-      scores = calculateScores(masterBracket, entries).map(score => {
-        const entry = entries.find(e => e.entryId === score.entryId || e.id === score.entryId);
-        return {
-          ...score,
-          userId: entry?.user_id
-        };
-      });
-      
-      console.log('🎯 Calculating potentials...');
-      potentials = calculatePotential(masterBracket, eliminatedTeams, entries);
-      
-      console.log('👥 Processing team selections...');
-      teamSelections = processTeamSelections(entries);
-      
-      console.log('🔄 Merging score data...');
-      scores = scores.map(score => {
-        const potential = potentials.find(p => p.entryId === score.entryId)?.potential || 0;
-        return { ...score, potential };
-      });
-
-      retryCount = 0;
-      console.log('✅ Leaderboard initialization complete!');
-    } catch (err) {
-      console.error('❌ Error loading leaderboard data:', err);
-      error = err.message;
-    } finally {
-      loadingLeaderboard = false;
-      console.log('🏁 Loading state cleared');
-    }
-  }
-
-  // Add retry mechanism to fetchBracketData
-  async function fetchBracketDataWithRetry() {
-    while (retryCount < MAX_RETRIES) {
-      try {
-        console.log(`🔄 Attempt ${retryCount + 1} of ${MAX_RETRIES} to fetch bracket data...`);
-        const data = await fetchBracketData();
-        console.log('✅ Bracket data fetch successful');
-        return data;
-      } catch (err) {
-        console.log(`❌ Attempt ${retryCount + 1} failed, retrying...`, err);
-        retryCount++;
-        if (retryCount < MAX_RETRIES) {
-          console.log(`⏳ Waiting ${RETRY_INTERVAL}ms before next attempt...`);
-          await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        }
-      }
-    }
-    console.log('❌ All retry attempts exhausted');
-    return null;
+    return teamSeoMap[team] || team.toLowerCase().replace(/[^a-z0-9]/g, '');
   }
 
   // Function to handle name click and navigation
   function handleNameClick(score) {
-    // Create a URL-safe identifier using first and last name
     const nameIdentifier = `${score.firstName}|${score.lastName}`;
     goto(`/entries?selected=${nameIdentifier}`);
   }
@@ -416,19 +176,12 @@
 <!-- Add the SVG filter definition to the page -->
   {@html svgFilter}
   
-  {#if loading || loadingLeaderboard}
-    <div class="flex justify-center items-center min-h-[400px]" in:fade={{ duration: 100 }}>
-      <div class="flex flex-col items-center gap-3">
-        <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
-        <div class="text-amber-600 font-medium">Calculating scores...</div>
-      </div>
-    </div>
-  {:else if error}
+  {#if !leaderboard}
     <div 
       class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center mb-4" 
       in:fade={{ duration: 100, delay: 100 }}
     >
-      {error}
+      Leaderboard data is unavailable.
     </div>
   {:else}
     <div 
@@ -549,8 +302,8 @@
                 <td class="px-2 whitespace-nowrap text-center text-white">{score.round3}</td>
                 <td class="px-2 whitespace-nowrap text-center">
                   <div class="flex justify-center gap-1">
-                    {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).e8.length > 0}
-                      {#each teamSelections.get(score.entryId).e8 as team, idx}
+                    {#if teamSelectionsByEntryId[score.entryId]?.e8?.length > 0}
+                      {#each teamSelectionsByEntryId[score.entryId].e8 as team, idx}
                         {@const overlayInfo = getTeamOverlayStyle(team, score, 56 + idx)}
                         <div 
                           class={teamLogoContainerClass} 
@@ -575,8 +328,8 @@
                 </td>
                 <td class="px-2 whitespace-nowrap text-center">
                   <div class="flex justify-center gap-1">
-                    {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).f4.length > 0}
-                      {#each teamSelections.get(score.entryId).f4 as team, idx}
+                    {#if teamSelectionsByEntryId[score.entryId]?.f4?.length > 0}
+                      {#each teamSelectionsByEntryId[score.entryId].f4 as team, idx}
                         {@const overlayInfo = getTeamOverlayStyle(team, score, 60 + idx)}
                         <div 
                           class={teamLogoContainerClass} 
@@ -601,8 +354,8 @@
                 </td>
                 <td class="px-2 whitespace-nowrap text-center">
                   <div class="flex justify-center">
-                    {#if teamSelections.has(score.entryId) && teamSelections.get(score.entryId).champ}
-                      {@const champTeam = teamSelections.get(score.entryId).champ}
+                    {#if teamSelectionsByEntryId[score.entryId]?.champ}
+                      {@const champTeam = teamSelectionsByEntryId[score.entryId].champ}
                       {@const overlayInfo = getTeamOverlayStyle(champTeam, score, 62)}
                       <div 
                         class={teamLogoContainerClass} 
