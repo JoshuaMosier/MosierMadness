@@ -21,6 +21,9 @@ const snapshotCache = {
   expiresAt: 0,
 };
 
+let inflightSnapshotPromise = null;
+let inflightSnapshotCacheKey = null;
+
 export function getScoreboardUrlForDate(dateValue = new Date()) {
   const { year, month, day } = parseDateParts(dateValue);
   return `${NCAA_SCOREBOARD_BASE_URL}/${year}/${month}/${day}/scoreboard.json`;
@@ -479,18 +482,32 @@ export async function getTournamentSnapshot(explicitSettings = null) {
     return snapshotCache.value;
   }
 
-  const snapshot = await buildTournamentSnapshot(settings);
-  snapshotCache.value = snapshot;
-  snapshotCache.cacheKey = cacheKey;
-  snapshotCache.expiresAt = now + SNAPSHOT_TTL_MS;
+  // Coalesce concurrent requests: share a single in-flight build
+  if (inflightSnapshotPromise && inflightSnapshotCacheKey === cacheKey) {
+    return inflightSnapshotPromise;
+  }
 
-  supabase
-    .from('realtime_updates')
-    .upsert({ scope: 'tournament', updated_at: new Date().toISOString() })
-    .then(() => {})
-    .catch(err => console.warn('Realtime notify failed:', err.message));
+  inflightSnapshotCacheKey = cacheKey;
+  inflightSnapshotPromise = buildTournamentSnapshot(settings)
+    .then(snapshot => {
+      snapshotCache.value = snapshot;
+      snapshotCache.cacheKey = cacheKey;
+      snapshotCache.expiresAt = Date.now() + SNAPSHOT_TTL_MS;
 
-  return snapshot;
+      supabase
+        .from('realtime_updates')
+        .upsert({ scope: 'tournament', updated_at: new Date().toISOString() })
+        .then(() => {})
+        .catch(err => console.warn('Realtime notify failed:', err.message));
+
+      return snapshot;
+    })
+    .finally(() => {
+      inflightSnapshotPromise = null;
+      inflightSnapshotCacheKey = null;
+    });
+
+  return inflightSnapshotPromise;
 }
 
 export async function getScoreboardGamesForDate(date = new Date(), options = {}) {
