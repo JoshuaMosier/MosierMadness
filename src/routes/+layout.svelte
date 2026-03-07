@@ -3,9 +3,11 @@
   import Navbar from '$lib/components/Navbar.svelte';
   import ScoreTicker from '$lib/components/ScoreTicker.svelte';
   import { supabase } from '$lib/supabase'
-  import { invalidate } from '$app/navigation'
+  import { invalidate, invalidateAll } from '$app/navigation'
   import { onMount } from 'svelte'
   import { page } from '$app/stores'
+  import { dataRefreshSignal, initRealtimeRefresh } from '$lib/stores/realtimeUpdates'
+
   export let data;
   // Define routes where ScoreTicker should be hidden
   const hideScoreTickerRoutes = [
@@ -15,14 +17,23 @@
   // Reactive statement to determine if ScoreTicker should be visible
   $: showScoreTicker = !hideScoreTickerRoutes.includes($page.url.pathname);
 
-  onMount(() => {  
+  $: if ($dataRefreshSignal) {
+    invalidateAll();
+  }
+
+  onMount(() => {
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(() => {
       invalidate('supabase:auth')
     })
 
-    return () => subscription.unsubscribe()
+    const cleanupRealtime = initRealtimeRefresh(supabase);
+
+    return () => {
+      subscription.unsubscribe();
+      cleanupRealtime();
+    }
   })
 </script>
 

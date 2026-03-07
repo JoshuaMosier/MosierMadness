@@ -1,15 +1,11 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
   import { getStatusColor, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
 
   export let tournamentSettings = {};
   export let tickerScores = [];
 
-  let matches = tickerScores;
-  let loading = false;
-  let error = null;
-  let interval;
+  $: matches = tickerScores;
   let duplicatedMatches = [];
   $: tournamentStage = tournamentSettings?.stage || 'archive';
   $: viewAllLabel = tournamentStage === 'tournament-live' ? 'Tournament Scores' : 'Today\'s Scores';
@@ -17,32 +13,6 @@
     tournamentStage === 'tournament-live'
       ? 'No tournament games scheduled right now.'
       : 'No games scheduled at this time.';
-
-  async function fetchScores() {
-    try {
-      const response = await fetch('/api/scores?scope=ticker');
-      if (!response.ok) {
-        throw new Error(`Error fetching scores: ${response.statusText}`);
-      }
-      const newMatches = await response.json();
-      if (JSON.stringify(newMatches) !== JSON.stringify(matches)) {
-        matches = newMatches;
-      }
-      loading = false;
-    } catch (err) {
-      console.error('Failed to fetch scores:', err);
-      error = err.message;
-      loading = false;
-    }
-  }
-
-  onMount(() => {
-    interval = setInterval(fetchScores, 30000);
-  });
-  
-  onDestroy(() => {
-    if (interval) clearInterval(interval);
-  });
   
   // Helper function to determine if a team is a winner
   function isWinner(team) {
@@ -84,17 +54,7 @@
   }
 </script>
 
-{#if loading && matches.length === 0}
-  <div class="w-full py-4 text-center text-white">
-    <div class="inline-block animate-pulse">
-      Loading scores...
-    </div>
-  </div>
-{:else if error}
-  <div class="w-full py-4 text-center text-red-500">
-    {error}
-  </div>
-{:else if matches.length === 0}
+{#if matches.length === 0}
   <div class="w-full py-4 text-center text-white">
     {emptyStateMessage}
   </div>

@@ -1,15 +1,11 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
   import { getStatusColor, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
 
   export let tournamentSettings = {};
   export let scores = [];
 
-  let matches = scores;
-  let loading = false;
-  let error = null;
-  let interval;
+  $: matches = scores;
   $: tournamentStage = tournamentSettings?.stage || 'archive';
   $: scoreboardTitle =
     tournamentStage === 'tournament-live'
@@ -23,29 +19,6 @@
     tournamentStage === 'tournament-live'
       ? 'No tournament games are scheduled in the current settings window.'
       : 'No NCAA games are scheduled today.';
-
-  async function fetchScores() {
-    try {
-      const response = await fetch('/api/scores?scope=page');
-      if (!response.ok) {
-        throw new Error(`Error fetching scores: ${response.statusText}`);
-      }
-      matches = await response.json();
-    } catch (err) {
-      console.error('Failed to fetch scores:', err);
-      error = err.message;
-    } finally {
-      loading = false;
-    }
-  }
-
-  onMount(() => {
-    interval = setInterval(fetchScores, 10000);
-  });
-  
-  onDestroy(() => {
-    if (interval) clearInterval(interval);
-  });
   
   // Helper function to determine if a team is a winner
   function isWinner(team) {
@@ -82,20 +55,10 @@
         <h1 class="text-xl sm:text-2xl font-bold text-white">{scoreboardTitle}</h1>
         <div class="mt-1 text-xs sm:text-sm text-gray-400">{scoreboardSubtitle}</div>
       </div>
-      <div class="text-xs sm:text-sm text-gray-400">Auto-updates every 10 seconds</div>
+      <div class="text-xs sm:text-sm text-gray-400">Live updates</div>
     </div>
 
-    {#if loading && matches.length === 0}
-      <div class="w-full py-4 text-center text-white">
-        <div class="inline-block animate-pulse">
-          Loading scores...
-        </div>
-      </div>
-    {:else if error}
-      <div class="w-full py-4 text-center text-red-500">
-        {error}
-      </div>
-    {:else if matches.length === 0}
+    {#if matches.length === 0}
       <div class="w-full py-4 text-center text-white">
         {emptyStateMessage}
       </div>

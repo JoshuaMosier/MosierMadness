@@ -9,6 +9,7 @@ import { formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils
 import { getTournamentSettings } from '$lib/server/tournament/settings';
 import { loadTeamColors, getTeamColorSet } from '$lib/server/tournament/teamColors';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
+import { supabase } from '$lib/supabase';
 
 const TEAM_OVERRIDES = {
   // Preserve the existing override hook used by the bracket entry page.
@@ -482,6 +483,13 @@ export async function getTournamentSnapshot(explicitSettings = null) {
   snapshotCache.value = snapshot;
   snapshotCache.cacheKey = cacheKey;
   snapshotCache.expiresAt = now + SNAPSHOT_TTL_MS;
+
+  supabase
+    .from('realtime_updates')
+    .upsert({ scope: 'tournament', updated_at: new Date().toISOString() })
+    .then(() => {})
+    .catch(err => console.warn('Realtime notify failed:', err.message));
+
   return snapshot;
 }
 
