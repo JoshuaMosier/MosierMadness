@@ -1,52 +1,11 @@
 import {
   NCAA_CONTESTS_WEB_SHA,
   NCAA_SDATA_API_URL,
-  RESPONSE_TTL_MS,
 } from '$lib/server/tournament/constants';
+import { fetchJsonWithCache } from '$lib/server/tournament/httpCache';
+import { formatContestDate, getSeasonYear } from '$lib/server/tournament/dates';
 import { getTeamColorSet, resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { getStatusPriority } from '$lib/utils/scoreboardUtils';
-
-const responseCache = new Map();
-
-function getEasternDateParts(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-
-  const [month, day, year] = formatter.format(date).split('/');
-  return { year, month, day };
-}
-
-function getContestDateString(dateValue = new Date()) {
-  if (typeof dateValue === 'string') {
-    const [year, month, day] = dateValue.split('-');
-    return `${month}/${day}/${year}`;
-  }
-
-  const { year, month, day } = getEasternDateParts(dateValue);
-  return `${month}/${day}/${year}`;
-}
-
-function getSeasonYear(dateValue = new Date()) {
-  const { year, month } = typeof dateValue === 'string'
-    ? (() => {
-        const [rawYear, rawMonth] = dateValue.split('-');
-        return { year: rawYear, month: rawMonth };
-      })()
-    : getEasternDateParts(dateValue);
-
-  const numericYear = Number.parseInt(year, 10);
-  const numericMonth = Number.parseInt(month, 10);
-
-  if (!Number.isFinite(numericYear) || !Number.isFinite(numericMonth)) {
-    return new Date().getFullYear();
-  }
-
-  return numericMonth >= 11 ? numericYear : numericYear - 1;
-}
 
 function buildContestsUrl(dateValue = new Date()) {
   const url = new URL(NCAA_SDATA_API_URL);
@@ -61,30 +20,9 @@ function buildContestsUrl(dateValue = new Date()) {
     sportCode: 'MBB',
     division: 1,
     seasonYear: getSeasonYear(dateValue),
-    contestDate: getContestDateString(dateValue),
+    contestDate: formatContestDate(dateValue),
   }));
   return url.toString();
-}
-
-async function fetchJsonWithCache(url) {
-  const now = Date.now();
-  const cached = responseCache.get(url);
-  if (cached && cached.expiresAt > now) {
-    return cached.value;
-  }
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`NCAA sdata API responded with status ${response.status} for ${url}`);
-  }
-
-  const value = await response.json();
-  responseCache.set(url, {
-    value,
-    expiresAt: now + RESPONSE_TTL_MS,
-  });
-
-  return value;
 }
 
 function normalizeTeam(team) {

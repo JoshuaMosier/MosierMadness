@@ -1,4 +1,5 @@
 import { supabase } from '$lib/supabase';
+import { getTodayEtDateString } from '$lib/server/tournament/dates';
 
 export const TOURNAMENT_STAGES = ['archive', 'bracket-open', 'tournament-live', 'complete'];
 
@@ -153,16 +154,7 @@ export function getEntryDeadlineAt(entrySeasonYear) {
   return getDefaultEntryDeadlineAt(entrySeasonYear);
 }
 
-export function getTodayEtDateString(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/New_York',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-
-  return formatter.format(date);
-}
+export { getTodayEtDateString } from '$lib/server/tournament/dates';
 
 export function getCurrentOrNextTickerRound(settings, date = new Date()) {
   const today = getTodayEtDateString(date);

@@ -1,9 +1,10 @@
 import {
   NCAA_SCOREBOARD_BASE_URL,
-  RESPONSE_TTL_MS,
   SNAPSHOT_TTL_MS,
 } from '$lib/server/tournament/constants';
-import { getStatusPriority } from '$lib/utils/scoreboardUtils';
+import { fetchJsonWithCache } from '$lib/server/tournament/httpCache';
+import { parseDateParts } from '$lib/server/tournament/dates';
+import { getStatusPriority, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
 import { formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils';
 import { getTournamentSettings } from '$lib/server/tournament/settings';
 import { getTeamColorSet, resolveTeamSeoName } from '$lib/utils/teamColorUtils';
@@ -18,55 +19,9 @@ const snapshotCache = {
   expiresAt: 0,
 };
 
-const responseCache = new Map();
-
-function getCurrentEtDateParts(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-
-  const [month, day, year] = formatter.format(date).split('/');
-  return { year, month, day };
-}
-
-function getDateParts(dateValue = new Date()) {
-  if (typeof dateValue === 'string') {
-    const [year, month, day] = dateValue.split('-');
-    return { year, month, day };
-  }
-
-  return getCurrentEtDateParts(dateValue);
-}
-
 export function getScoreboardUrlForDate(dateValue = new Date()) {
-  const { year, month, day } = getDateParts(dateValue);
+  const { year, month, day } = parseDateParts(dateValue);
   return `${NCAA_SCOREBOARD_BASE_URL}/${year}/${month}/${day}/scoreboard.json`;
-}
-
-async function fetchJsonWithCache(url) {
-  const now = Date.now();
-  const cached = responseCache.get(url);
-  if (cached && cached.expiresAt > now) {
-    return cached.value;
-  }
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    const error = new Error(`NCAA API responded with status ${response.status} for ${url}`);
-    error.status = response.status;
-    throw error;
-  }
-
-  const value = await response.json();
-  responseCache.set(url, {
-    value,
-    expiresAt: now + RESPONSE_TTL_MS,
-  });
-
-  return value;
 }
 
 function getCanonicalTeamName(teamData) {
@@ -473,16 +428,6 @@ function getUniqueRoundDates(settings) {
   return [...new Set((settings.tickerRounds || []).flatMap(round => round.dates || []))].sort();
 }
 
-function sortGames(games) {
-  return [...games].sort((a, b) => {
-    if (a.sortPriority !== b.sortPriority) {
-      return a.sortPriority - b.sortPriority;
-    }
-
-    return (a.bracketIndex || 999) - (b.bracketIndex || 999);
-  });
-}
-
 function buildSnapshotCacheKey(settings) {
   return JSON.stringify({
     displaySeasonYear: settings.displaySeasonYear,
@@ -505,7 +450,7 @@ async function buildTournamentSnapshot(settings) {
   const { teamByName, teamBySelection } = buildTeamLookup(firstRoundTeams);
   const { masterBracket, gamesById, gamesByIndex } = buildTournamentResults(roundData, canonicalByNcaaName);
   const bracketMatches = buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamBySelection, teamByName);
-  const scoreboardGames = sortGames(Array.from(gamesById.values()));
+  const scoreboardGames = sortScoreboardGames(Array.from(gamesById.values()));
 
   return {
     fetchedAt: new Date().toISOString(),
@@ -552,7 +497,7 @@ export async function getScoreboardGamesForDate(date = new Date(), options = {})
     throw error;
   }
 
-  return sortGames(
+  return sortScoreboardGames(
     (dayData.games || [])
       .map(game => normalizeScoreboardGame(game, snapshot.canonicalByNcaaName, {
         allowNonTournament: options.allowNonTournament,
