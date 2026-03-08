@@ -34,6 +34,7 @@ create table tournament_seasons (
   archive_scoreboard_date date,
   first_round_dates date[] not null default '{}',
   ticker_rounds jsonb not null default '[]'::jsonb,
+  first_four_config jsonb not null default '{}'::jsonb,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

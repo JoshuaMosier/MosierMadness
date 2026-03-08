@@ -35,8 +35,20 @@
     archiveScoreboardDate: data.tournamentSettings?.archiveScoreboardDate || '',
     firstRoundDatesText: (data.tournamentSettings?.firstRoundDates || []).join(', '),
     tickerRoundsText: JSON.stringify(data.tournamentSettings?.tickerRounds || [], null, 2),
+    firstFourConfigText: JSON.stringify(data.tournamentSettings?.firstFourConfig || {}, null, 2),
     isActive: true,
   };
+
+  $: firstFourStatus = (() => {
+    try {
+      const config = JSON.parse(form.firstFourConfigText);
+      if (config.replacementCompletedAt) return { label: `Resolved ${new Date(config.replacementCompletedAt).toLocaleString()}`, tone: 'text-emerald-400' };
+      if (config.games?.length > 0) return { label: `Active (${config.games.length} games)`, tone: 'text-amber-300' };
+      return { label: 'Not configured', tone: 'text-zinc-500' };
+    } catch {
+      return { label: 'Invalid JSON', tone: 'text-red-400' };
+    }
+  })();
 
   onMount(async () => {
     try {
@@ -91,6 +103,7 @@
       archiveScoreboardDate: row.archive_scoreboard_date || '',
       firstRoundDatesText: (row.first_round_dates || []).join(', '),
       tickerRoundsText: JSON.stringify(row.ticker_rounds || [], null, 2),
+      firstFourConfigText: JSON.stringify(row.first_four_config || {}, null, 2),
       isActive: row.is_active === true,
     };
     success = null;
@@ -117,6 +130,7 @@
         archive_scoreboard_date: form.archiveScoreboardDate || null,
         first_round_dates: parseDates(form.firstRoundDatesText),
         ticker_rounds: JSON.parse(form.tickerRoundsText),
+        first_four_config: JSON.parse(form.firstFourConfigText),
         is_active: form.isActive,
         updated_at: new Date().toISOString(),
       };
@@ -308,6 +322,18 @@
             class="input"
             placeholder="2026-03-19, 2026-03-20"
           />
+        </label>
+
+        <label class="block mt-4">
+          <span class="block text-sm text-zinc-400 mb-2">
+            First Four Config
+            <span class="ml-2 {firstFourStatus.tone}">{firstFourStatus.label}</span>
+          </span>
+          <textarea
+            bind:value={form.firstFourConfigText}
+            rows="10"
+            class="input font-mono text-sm"
+          ></textarea>
         </label>
 
         <label class="block mt-4">

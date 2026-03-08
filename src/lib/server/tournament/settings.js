@@ -44,6 +44,12 @@ export const DEFAULT_TICKER_ROUNDS = [
   { key: 'championship', label: 'Championship', dates: ['2025-04-07'] },
 ];
 
+export const DEFAULT_FIRST_FOUR_CONFIG = {
+  dates: [],
+  games: [],
+  replacementCompletedAt: null,
+};
+
 export const DEFAULT_TOURNAMENT_SETTINGS = {
   // Default to the upcoming entry season while still displaying the prior completed tournament in archive mode.
   entrySeasonYear: 2026,
@@ -52,6 +58,7 @@ export const DEFAULT_TOURNAMENT_SETTINGS = {
   archiveScoreboardDate: '2025-04-07',
   firstRoundDates: ['2025-03-20', '2025-03-21'],
   tickerRounds: DEFAULT_TICKER_ROUNDS,
+  firstFourConfig: DEFAULT_FIRST_FOUR_CONFIG,
 };
 
 const settingsCache = {
@@ -67,6 +74,25 @@ function normalizeDateArray(value, fallback) {
   }
 
   return value.filter(Boolean);
+}
+
+function normalizeFirstFourConfig(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { ...DEFAULT_FIRST_FOUR_CONFIG };
+  }
+
+  return {
+    dates: normalizeDateArray(value.dates, []),
+    games: Array.isArray(value.games)
+      ? value.games.map(g => ({
+          firstFourBracketId: String(g?.firstFourBracketId || ''),
+          firstRoundBracketId: String(g?.firstRoundBracketId || ''),
+          seed: Number(g?.seed) || 16,
+          compositeDisplayName: String(g?.compositeDisplayName || ''),
+        })).filter(g => g.firstFourBracketId && g.firstRoundBracketId && g.compositeDisplayName)
+      : [],
+    replacementCompletedAt: value.replacementCompletedAt || null,
+  };
 }
 
 function normalizeTickerRounds(value, fallback) {
@@ -98,6 +124,7 @@ function normalizeSettingsRow(row) {
     archiveScoreboardDate: row.archive_scoreboard_date || DEFAULT_TOURNAMENT_SETTINGS.archiveScoreboardDate,
     firstRoundDates: normalizeDateArray(row.first_round_dates, DEFAULT_TOURNAMENT_SETTINGS.firstRoundDates),
     tickerRounds: normalizeTickerRounds(row.ticker_rounds, DEFAULT_TOURNAMENT_SETTINGS.tickerRounds),
+    firstFourConfig: normalizeFirstFourConfig(row.first_four_config),
   };
 }
 
@@ -109,7 +136,13 @@ export function getDefaultTournamentSettings() {
       ...round,
       dates: [...round.dates],
     })),
+    firstFourConfig: { ...DEFAULT_FIRST_FOUR_CONFIG },
   };
+}
+
+export function invalidateSettingsCache() {
+  settingsCache.value = null;
+  settingsCache.expiresAt = 0;
 }
 
 export async function getTournamentSettings() {
@@ -127,7 +160,8 @@ export async function getTournamentSettings() {
         stage,
         archive_scoreboard_date,
         first_round_dates,
-        ticker_rounds
+        ticker_rounds,
+        first_four_config
       `)
       .eq('is_active', true)
       .maybeSingle();

@@ -10,10 +10,7 @@ import { getTournamentSettings } from '$lib/server/tournament/settings';
 import { loadTeamColors, getTeamColorSet, buildNormalizedTeam } from '$lib/server/tournament/teamColors';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { supabase } from '$lib/supabase';
-
-const TEAM_OVERRIDES = {
-  // Preserve the existing override hook used by the bracket entry page.
-};
+import { getFirstFourOverrides, checkAndResolveFirstFour } from '$lib/server/tournament/firstFour';
 
 const snapshotCache = {
   value: null,
@@ -29,7 +26,7 @@ export function getScoreboardUrlForDate(dateValue = new Date()) {
   return `${NCAA_SCOREBOARD_BASE_URL}/${year}/${month}/${day}/scoreboard.json`;
 }
 
-function getCanonicalTeamName(teamData) {
+export function getCanonicalTeamName(teamData) {
   return teamData.names.short.length < 20 ? teamData.names.short : teamData.names.char6;
 }
 
@@ -105,7 +102,7 @@ function buildCanonicalTeam(teamData, canonicalName = getCanonicalTeamName(teamD
   };
 }
 
-function buildFirstRoundTeams(firstRoundDays) {
+function buildFirstRoundTeams(firstRoundDays, overrides = {}) {
   const teams = new Array(64).fill(null);
   const canonicalByNcaaName = new Map();
 
@@ -139,7 +136,7 @@ function buildFirstRoundTeams(firstRoundDays) {
   }
 
   teams.forEach((team, index) => {
-    const override = TEAM_OVERRIDES[index];
+    const override = overrides[index];
     if (!override || !team) {
       return;
     }
@@ -434,6 +431,7 @@ function buildSnapshotCacheKey(settings) {
     archiveScoreboardDate: settings.archiveScoreboardDate,
     firstRoundDates: settings.firstRoundDates,
     tickerRounds: settings.tickerRounds,
+    firstFourConfig: settings.firstFourConfig,
   });
 }
 
@@ -446,7 +444,8 @@ async function buildTournamentSnapshot(settings) {
     Promise.all(roundUrls.map(fetchJsonWithCache)),
   ]);
 
-  const { teams: firstRoundTeams, canonicalByNcaaName } = buildFirstRoundTeams(firstRoundDays);
+  const overrides = getFirstFourOverrides(settings);
+  const { teams: firstRoundTeams, canonicalByNcaaName } = buildFirstRoundTeams(firstRoundDays, overrides);
   const { teamByName, teamBySelection } = buildTeamLookup(firstRoundTeams);
   const { masterBracket, gamesById, gamesByIndex } = buildTournamentResults(roundData, canonicalByNcaaName);
   const bracketMatches = buildBracketMatches(firstRoundTeams, masterBracket, gamesByIndex, teamBySelection, teamByName);
@@ -493,6 +492,8 @@ export async function getTournamentSnapshot(explicitSettings = null) {
         .upsert({ scope: 'tournament', updated_at: new Date().toISOString() })
         .then(() => {})
         .catch(err => console.warn('Realtime notify failed:', err.message));
+
+      checkAndResolveFirstFour(settings).catch(() => {});
 
       return snapshot;
     })
