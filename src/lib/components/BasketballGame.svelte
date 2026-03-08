@@ -464,6 +464,7 @@
 
         if (shotsRemaining <= 0 && gameActive) {
             setTimeout(() => {
+                if (!gameActive) return;
                 gameActive = false;
                 showGameOverModal();
             }, 300);
