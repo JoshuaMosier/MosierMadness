@@ -18,9 +18,9 @@
 </svelte:head>
 
 {#if stage === 'archive'}
-  <div class="max-w-5xl mx-auto px-4 py-8">
+  <div class="max-w-7xl mx-auto px-4 py-8">
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center">
-      <h1 class="text-2xl font-semibold text-zinc-100">Entries are not available yet</h1>
+      <h2 class="text-2xl font-semibold text-zinc-100">Entries are not available yet</h2>
       <p class="mt-3 text-zinc-400">
         Check back when bracket season opens to browse entrants, then return during the tournament to inspect full brackets.
       </p>

@@ -3600,7 +3600,7 @@ values (
   2008,
   'completed',
   'Mosier Madness 2008',
-  'Champion tracked manually; full entrant-level results were not included in the source workbook.',
+  null,
   '7dbf1199-103c-5338-ac72-4549b1b088fd',
   null,
   null,

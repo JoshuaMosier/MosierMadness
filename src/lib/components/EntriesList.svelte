@@ -6,12 +6,7 @@
   export let error = null;
 </script>
 
-<div class="max-w-4xl mx-auto px-4 py-8">
-  <div class="text-center mb-8" in:fade={{ duration: 100 }}>
-    <h1 class="text-4xl font-bold text-amber-600 mb-2">Tournament Entries</h1>
-    <p class="text-xl text-zinc-400">View all bracket submissions and their status</p>
-  </div>
-
+<div class="max-w-7xl mx-auto px-4 py-8">
   {#if loading}
     <div class="flex justify-center items-center min-h-[400px]" in:fade={{ duration: 100 }}>
       <div class="flex flex-col items-center gap-3">
@@ -20,13 +15,19 @@
       </div>
     </div>
   {:else if error}
-    <div class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center mb-4" 
+    <div class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center mb-4"
          in:fade={{ duration: 100, delay: 100 }}>
       {error}
     </div>
   {:else}
     <div in:fade={{ duration: 300, delay: 100 }}>
       <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        <div class="border-b border-zinc-800 bg-zinc-900/50">
+          <div class="p-6">
+            <h2 class="text-2xl font-semibold text-zinc-100">Tournament Entries</h2>
+            <p class="text-sm text-zinc-400 mt-1">View all bracket submissions and their status</p>
+          </div>
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full">
             <thead>

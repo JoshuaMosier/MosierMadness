@@ -292,7 +292,7 @@
   }
 </script>
 
-<div class="container mx-auto px-4 py-8 max-w-9xl">
+<div class="max-w-7xl mx-auto px-4 py-8">
   {#if loading}
     <div class="flex justify-center items-center min-h-[400px]" in:fade={{ duration: 100 }}>
       <div class="flex flex-col items-center gap-3">
@@ -315,37 +315,26 @@
       {error}
     </div>
   {:else}
-    <div class="grid grid-cols-1 gap-8">
-      <div class="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl p-6 shadow-lg border border-zinc-700">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-          <div>
-            <h2 class="text-xl font-bold text-amber-500">Tournament Outcome Probabilities</h2>
-            <p class="text-zinc-400 text-sm mt-1">
-              {#if hasSelections}
-                Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'filtered'} tournament outcomes
-                <span class="text-amber-500">(filtered by {Object.keys(selectedWinners).length} selections)</span>
-              {:else}
-                Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'all possible'} tournament outcomes
-              {/if}
-            </p>
-          </div>
-
-          <div class="hidden">
-            <button
-              class="mt-4 md:mt-0 bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 flex items-center"
-              on:click={calculateAllScenarios}
-              disabled={simulationInProgress}
-            >
-              {#if simulationInProgress}
-                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                Calculating...
-              {:else}
-                {scenariosCalculated ? 'Recalculate' : 'Calculate'} {hasSelections ? 'Filtered' : 'All'} Scenarios
-              {/if}
-            </button>
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div class="border-b border-zinc-800 bg-zinc-900/50">
+        <div class="p-6">
+          <div class="flex flex-col md:flex-row justify-between items-center">
+            <div>
+              <h2 class="text-2xl font-semibold text-zinc-100">Tournament Outcome Probabilities</h2>
+              <p class="text-sm text-zinc-400 mt-1">
+                {#if hasSelections}
+                  Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'filtered'} tournament outcomes
+                  <span class="text-amber-500">(filtered by {Object.keys(selectedWinners).length} selections)</span>
+                {:else}
+                  Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'all possible'} tournament outcomes
+                {/if}
+              </p>
+            </div>
           </div>
         </div>
+      </div>
 
+      <div class="p-6">
         {#if remainingGames.length > 12}
           <div class="bg-amber-800/20 border border-amber-800/30 text-amber-400 p-3 rounded mb-4 text-sm">
             Warning: There are {remainingGames.length} games remaining, which means {Math.pow(2, remainingGames.length).toLocaleString()} possible scenarios.

@@ -4,14 +4,33 @@
   import { supabase } from '$lib/supabase';
   import { page } from '$app/stores';
 
+  export let stage = 'archive';
+
   let isMenuOpen = false;
   let user = null;
   let userEntry = null;
   let isAdmin = false;
   let isSpinning = false;
-  
+
   // Get current path for active state
   $: currentPath = $page.url.pathname;
+
+  // Determine which nav links are disabled based on tournament stage
+  // archive: Submit Entry, Entries, Scenarios disabled
+  // bracket-open: Scenarios disabled
+  // tournament-live: Submit Entry disabled
+  // complete: Submit Entry, Scenarios disabled
+  $: disabledLinks = {
+    '/bracket': stage === 'archive' || stage === 'tournament-live' || stage === 'complete',
+    '/entries': stage === 'archive',
+    '/scenarios': stage !== 'tournament-live',
+  };
+
+  $: disabledReasons = {
+    '/bracket': stage === 'archive' ? 'Available when brackets open' : 'Brackets are locked',
+    '/entries': 'Available when brackets open',
+    '/scenarios': stage === 'bracket-open' ? 'Available during tournament' : 'Available during tournament',
+  };
   onMount(async () => {
     // Get initial auth state
     const { data: { user: initialUser } } = await supabase.auth.getUser();
@@ -152,12 +171,24 @@
             <a href="/" class="nav-link">
               <div class="nav-button {isActive('/') ? 'active' : ''}">Leaderboard</div>
             </a>
-            <a href="/bracket" class="nav-link">
-              <div class="nav-button {isActive('/bracket') ? 'active' : ''}">Submit Entry</div>
-            </a>
-            <button on:click={handleEntriesClick} class="nav-link">
-              <div class="nav-button {isActive('/entries') ? 'active' : ''}">Entries</div>
-            </button>
+            {#if disabledLinks['/bracket']}
+              <span class="nav-link" title={disabledReasons['/bracket']} aria-label="Submit Entry - {disabledReasons['/bracket']}">
+                <div class="nav-button disabled">Submit Entry</div>
+              </span>
+            {:else}
+              <a href="/bracket" class="nav-link">
+                <div class="nav-button {isActive('/bracket') ? 'active' : ''}">Submit Entry</div>
+              </a>
+            {/if}
+            {#if disabledLinks['/entries']}
+              <span class="nav-link" title={disabledReasons['/entries']} aria-label="Entries - {disabledReasons['/entries']}">
+                <div class="nav-button disabled">Entries</div>
+              </span>
+            {:else}
+              <button on:click={handleEntriesClick} class="nav-link">
+                <div class="nav-button {isActive('/entries') ? 'active' : ''}">Entries</div>
+              </button>
+            {/if}
             <a href="/live-bracket" class="nav-link">
               <div class="nav-button {isActive('/live-bracket') ? 'active' : ''}">Live Bracket</div>
             </a>
@@ -189,9 +220,15 @@
             <a href="/stats" class="nav-link">
               <div class="nav-button {isActive('/stats') ? 'active' : ''}">Statistics</div>
             </a>
-            <a href="/scenarios" class="nav-link">
-              <div class="nav-button {isActive('/scenarios') ? 'active' : ''}">Scenarios</div>
-            </a>
+            {#if disabledLinks['/scenarios']}
+              <span class="nav-link" title={disabledReasons['/scenarios']} aria-label="Scenarios - {disabledReasons['/scenarios']}">
+                <div class="nav-button disabled">Scenarios</div>
+              </span>
+            {:else}
+              <a href="/scenarios" class="nav-link">
+                <div class="nav-button {isActive('/scenarios') ? 'active' : ''}">Scenarios</div>
+              </a>
+            {/if}
             {#if isAdmin}
               <a href="/admin" class="nav-link">
                 <div class="nav-button {isActive('/admin') ? 'active' : ''}">Admin</div>
@@ -223,12 +260,24 @@
       <div class="md:hidden fixed inset-0 bg-black z-[20] pt-16">
         <div class="px-4 pt-2 pb-3 space-y-3">
           <a href="/" class="mobile-nav-button {isActive('/') ? 'active' : ''}" on:click={closeMenu}>Leaderboard</a>
-          <a href="/bracket" class="mobile-nav-button {isActive('/bracket') ? 'active' : ''}" on:click={closeMenu}>Submit Entry</a>
-          <button on:click={handleEntriesClick} class="mobile-nav-button w-full {isActive('/entries') ? 'active' : ''}">Entries</button>
+          {#if disabledLinks['/bracket']}
+            <span class="mobile-nav-button disabled" title={disabledReasons['/bracket']} aria-label="Submit Entry - {disabledReasons['/bracket']}">Submit Entry</span>
+          {:else}
+            <a href="/bracket" class="mobile-nav-button {isActive('/bracket') ? 'active' : ''}" on:click={closeMenu}>Submit Entry</a>
+          {/if}
+          {#if disabledLinks['/entries']}
+            <span class="mobile-nav-button disabled" title={disabledReasons['/entries']} aria-label="Entries - {disabledReasons['/entries']}">Entries</span>
+          {:else}
+            <button on:click={handleEntriesClick} class="mobile-nav-button w-full {isActive('/entries') ? 'active' : ''}">Entries</button>
+          {/if}
           <a href="/live-bracket" class="mobile-nav-button" on:click={closeMenu}>Live Bracket</a>
           <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a>
           <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a>
-          <a href="/scenarios" class="mobile-nav-button" on:click={closeMenu}>Scenarios</a>
+          {#if disabledLinks['/scenarios']}
+            <span class="mobile-nav-button disabled" title={disabledReasons['/scenarios']} aria-label="Scenarios - {disabledReasons['/scenarios']}">Scenarios</span>
+          {:else}
+            <a href="/scenarios" class="mobile-nav-button" on:click={closeMenu}>Scenarios</a>
+          {/if}
           {#if isAdmin}
             <a href="/admin" class="mobile-nav-button" on:click={closeMenu}>Admin</a>
           {/if}
@@ -329,5 +378,22 @@
 
   .mobile-nav-button.active:hover {
     @apply bg-amber-400/30;
+  }
+
+  .nav-button.disabled,
+  .nav-button.disabled:hover {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.05);
+    transform: none;
+  }
+
+  .mobile-nav-button.disabled,
+  .mobile-nav-button.disabled:hover {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.05);
   }
 </style> 

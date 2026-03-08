@@ -64,7 +64,7 @@
 </script>
 
 <div class="flex flex-col min-h-screen">
-  <Navbar />
+  <Navbar stage={data.tournamentSettings?.stage || 'archive'} />
   <div class="container mx-auto px-4">
     {#if showScoreTicker}
       <ScoreTicker tournamentSettings={data.tournamentSettings} tickerScores={data.tickerScores ?? []} />

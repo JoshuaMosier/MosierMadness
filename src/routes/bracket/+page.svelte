@@ -379,10 +379,10 @@
   {:else if !entriesOpen}
     <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center"
          in:fade={{ duration: 100, delay: 100 }}>
-      <h2 class="text-xl font-semibold text-zinc-200 mb-3">
+      <h2 class="text-2xl font-semibold text-zinc-100 mb-3">
         {tournamentStage === 'tournament-live' || tournamentStage === 'complete' ? 'Tournament In Progress' : 'Bracket Entries Closed'}
       </h2>
-      <p class="text-zinc-300">
+      <p class="text-zinc-400">
         {tournamentStage === 'archive'
           ? 'Bracket submissions are not open yet. Check back once the new bracket is released.'
           : 'Bracket submission is now closed as the tournament has begun.'}
@@ -396,7 +396,7 @@
         <div class="p-6">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h2 class="text-2xl font-semibold text-zinc-200">
+              <h2 class="text-2xl font-semibold text-zinc-100">
                 {bracket.is_submitted ? 'Submitted Bracket' : 'Draft Bracket'}
               </h2>
               <div class="flex items-center gap-4 mt-1">

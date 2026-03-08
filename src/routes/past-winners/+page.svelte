@@ -5,7 +5,7 @@
   const topWinnersText = summary.topWinners.map(winner => winner.name).join(', ');
 </script>
 
-<div class="container mx-auto px-4 py-8 max-w-5xl">
+<div class="max-w-7xl mx-auto px-4 py-8">
   <div class="text-center mb-12">
     <h1 class="text-4xl font-bold mb-4">
       <span class="bg-gradient-to-r from-amber-700 to-amber-600 text-white px-4 py-2 rounded-lg shadow-md inline-block">
@@ -13,7 +13,7 @@
       </span>
     </h1>
     <p class="text-zinc-400 max-w-2xl mx-auto">
-      Historical champions are now driven by imported season data, with player pages ready to connect legacy results to active site accounts.
+      Every champion in Mosier Madness history.
     </p>
   </div>
 

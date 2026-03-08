@@ -12,7 +12,7 @@
   }
 </script>
 
-<div class="container mx-auto px-4 py-8 max-w-6xl">
+<div class="max-w-7xl mx-auto px-4 py-8">
   <div class="text-center mb-12">
     <h1 class="text-4xl font-bold mb-4">
       <span class="bg-gradient-to-r from-amber-700 to-amber-600 text-white px-4 py-2 rounded-lg shadow-md inline-block">
@@ -20,7 +20,7 @@
       </span>
     </h1>
     <p class="text-zinc-400 max-w-2xl mx-auto">
-      These records are now derived from imported season results, so the site can stay accurate year over year from one historical dataset.
+      All-time records and milestones from every tournament season.
     </p>
   </div>
 
