@@ -50,6 +50,68 @@
     }
   })();
 
+  // First Four structured form
+  let firstFourEnabled = false;
+  let firstFourForm = { dates: '', games: [], replacementCompletedAt: null };
+  let firstFourSyncFromText = true;
+
+  function initFirstFourForm(configText) {
+    try {
+      const config = JSON.parse(configText);
+      firstFourForm = {
+        dates: (config.dates || []).join(', '),
+        games: (config.games || []).map(g => ({ ...g })),
+        replacementCompletedAt: config.replacementCompletedAt || null,
+      };
+      firstFourEnabled = firstFourForm.games.length > 0 || firstFourForm.dates.trim().length > 0;
+    } catch {
+      firstFourForm = { dates: '', games: [], replacementCompletedAt: null };
+      firstFourEnabled = false;
+    }
+  }
+
+  // Initialize on mount from default form value
+  initFirstFourForm(form.firstFourConfigText);
+
+  function syncFirstFourToText() {
+    const config = {
+      dates: firstFourEnabled ? parseDates(firstFourForm.dates) : [],
+      games: firstFourEnabled ? firstFourForm.games.map(g => ({
+        firstFourBracketId: g.firstFourBracketId || '',
+        firstRoundBracketId: g.firstRoundBracketId || '',
+        seed: Number(g.seed) || 16,
+        compositeDisplayName: g.compositeDisplayName || '',
+      })) : [],
+      replacementCompletedAt: firstFourForm.replacementCompletedAt || null,
+    };
+    firstFourSyncFromText = false;
+    form.firstFourConfigText = JSON.stringify(config, null, 2);
+  }
+
+  function toggleFirstFour() {
+    firstFourEnabled = !firstFourEnabled;
+    if (!firstFourEnabled) {
+      firstFourForm.games = [];
+      firstFourForm.dates = '';
+    }
+    syncFirstFourToText();
+  }
+
+  function addFirstFourGame() {
+    firstFourForm.games = [...firstFourForm.games, {
+      firstFourBracketId: '',
+      firstRoundBracketId: '',
+      seed: 16,
+      compositeDisplayName: '',
+    }];
+    syncFirstFourToText();
+  }
+
+  function removeFirstFourGame(index) {
+    firstFourForm.games = firstFourForm.games.filter((_, i) => i !== index);
+    syncFirstFourToText();
+  }
+
   onMount(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -106,6 +168,7 @@
       firstFourConfigText: JSON.stringify(row.first_four_config || {}, null, 2),
       isActive: row.is_active === true,
     };
+    initFirstFourForm(form.firstFourConfigText);
     success = null;
     error = null;
   }
@@ -361,17 +424,107 @@
           />
         </label>
 
-        <label class="block mt-4">
-          <span class="block text-sm text-zinc-400 mb-2">
-            First Four Config
-            <span class="ml-2 {firstFourStatus.tone}">{firstFourStatus.label}</span>
-          </span>
-          <textarea
-            bind:value={form.firstFourConfigText}
-            rows="10"
-            class="input font-mono text-sm"
-          ></textarea>
-        </label>
+        <div class="block mt-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm text-zinc-400">
+              First Four Config
+              <span class="ml-2 {firstFourStatus.tone}">{firstFourStatus.label}</span>
+            </span>
+            <button
+              type="button"
+              class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {firstFourEnabled ? 'bg-amber-600' : 'bg-zinc-700'}"
+              on:click={toggleFirstFour}
+            >
+              <span
+                class="inline-block h-4 w-4 rounded-full bg-white transition-transform {firstFourEnabled ? 'translate-x-6' : 'translate-x-1'}"
+              ></span>
+            </button>
+          </div>
+
+          {#if firstFourEnabled}
+            <label class="block mb-3">
+              <span class="block text-xs text-zinc-400 mb-1">Dates (comma-separated)</span>
+              <input
+                bind:value={firstFourForm.dates}
+                on:input={syncFirstFourToText}
+                type="text"
+                class="input text-sm"
+                placeholder="2026-03-17, 2026-03-18"
+              />
+            </label>
+
+            {#if firstFourForm.games.length > 0}
+              <div class="space-y-2 mb-3">
+                {#each firstFourForm.games as game, i}
+                  <div class="rounded-lg border border-zinc-800 bg-zinc-800/30 p-3">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs text-zinc-400 uppercase tracking-wide">Game {i + 1}</span>
+                      <button
+                        type="button"
+                        class="text-xs px-2 py-0.5 rounded bg-red-600/20 text-red-400 hover:bg-red-600/30"
+                        on:click={() => removeFirstFourGame(i)}
+                      >Remove</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <label class="block">
+                        <span class="block text-xs text-zinc-500 mb-1">First Four Bracket ID</span>
+                        <input
+                          bind:value={game.firstFourBracketId}
+                          on:input={syncFirstFourToText}
+                          type="text"
+                          class="input text-sm"
+                          placeholder="101"
+                        />
+                      </label>
+                      <label class="block">
+                        <span class="block text-xs text-zinc-500 mb-1">First Round Bracket ID</span>
+                        <input
+                          bind:value={game.firstRoundBracketId}
+                          on:input={syncFirstFourToText}
+                          type="text"
+                          class="input text-sm"
+                          placeholder="208"
+                        />
+                      </label>
+                      <label class="block">
+                        <span class="block text-xs text-zinc-500 mb-1">Seed</span>
+                        <input
+                          bind:value={game.seed}
+                          on:input={syncFirstFourToText}
+                          type="number"
+                          class="input text-sm"
+                          placeholder="16"
+                        />
+                      </label>
+                      <label class="block">
+                        <span class="block text-xs text-zinc-500 mb-1">Composite Display Name</span>
+                        <input
+                          bind:value={game.compositeDisplayName}
+                          on:input={syncFirstFourToText}
+                          type="text"
+                          class="input text-sm"
+                          placeholder="TeamA/TeamB"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                {/each}
+              </div>
+            {/if}
+
+            <button
+              type="button"
+              class="text-sm px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-700 transition-colors"
+              on:click={addFirstFourGame}
+            >+ Add Game</button>
+
+            {#if firstFourForm.replacementCompletedAt}
+              <div class="mt-3 text-xs text-emerald-400">
+                Winners resolved at {new Date(firstFourForm.replacementCompletedAt).toLocaleString()}
+              </div>
+            {/if}
+          {/if}
+        </div>
 
         <label class="block mt-4">
           <span class="block text-sm text-zinc-400 mb-2">Ticker Rounds JSON</span>
