@@ -1,4 +1,5 @@
 <script>
+  import { onMount, onDestroy } from 'svelte';
   import { getStatusColor, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
 
@@ -7,6 +8,10 @@
 
   $: matches = tickerScores;
   let duplicatedMatches = [];
+  let marqueeContent = null;
+  let rafId = null;
+  const MARQUEE_DURATION_S = 900; /* 5× slower than original 320s */
+
   $: tournamentStage = tournamentSettings?.stage || 'archive';
   $: viewAllLabel = tournamentStage === 'tournament-live' ? 'Tournament Scores' : 'Today\'s Scores';
   $: emptyStateMessage =
@@ -44,13 +49,48 @@
     return game?.isTournamentGame ? `/game/${game.gameId}` : '/scores';
   }
 
-  // Build duplicatedMatches for marquee: triple for seamless scroll when 5+ games
+  // Build duplicatedMatches for marquee: 2× for seamless scroll when 5+ games (reduced from 3× for less DOM/compositing)
   $: {
     if (matches.length > 4) {
-      duplicatedMatches = [...sortedGames, ...sortedGames, ...sortedGames];
+      duplicatedMatches = [...sortedGames, ...sortedGames];
     } else {
       duplicatedMatches = sortedGames;
     }
+  }
+
+  // JS-driven pixel-snapped marquee animation (avoids sub-pixel rendering stutter)
+  function tick(startTime) {
+    if (!marqueeContent || displayMode !== 'scroll' || !marqueeContent.offsetParent) return;
+    const contentWidth = marqueeContent.scrollWidth;
+    if (contentWidth <= 0) {
+      rafId = requestAnimationFrame(() => tick(startTime));
+      return;
+    }
+    const halfWidth = contentWidth * 0.5;
+    const elapsed = (Date.now() - startTime) / 1000;
+    const progress = (elapsed / MARQUEE_DURATION_S) % 1;
+    const offset = -progress * halfWidth;
+    const dpr = window.devicePixelRatio || 1;
+    const snapped = Math.round(offset * dpr) / dpr;
+    marqueeContent.style.transform = `translateX(${snapped}px)`;
+    rafId = requestAnimationFrame(() => tick(startTime));
+  }
+
+  onMount(() => {
+    if (displayMode === 'scroll' && marqueeContent) {
+      const startTime = Date.now();
+      rafId = requestAnimationFrame(() => tick(startTime));
+    }
+  });
+
+  onDestroy(() => {
+    if (rafId) cancelAnimationFrame(rafId);
+  });
+
+  // Restart animation when switching to scroll mode or when content changes
+  $: if (displayMode === 'scroll' && marqueeContent && !rafId) {
+    const startTime = Date.now();
+    rafId = requestAnimationFrame(() => tick(startTime));
   }
 </script>
 
@@ -265,15 +305,11 @@
           </div>
           
           <!-- Desktop view: auto-scrolling marquee -->
-          <div class="hidden md:block overflow-hidden relative">
-            <!-- Gradient masks for smooth fade effect -->
-            <div class="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black to-transparent z-10"></div>
-            <div class="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black to-transparent z-10"></div>
-            
+          <div class="hidden md:block overflow-hidden relative marquee-mask">
             <div class="marquee-container">
-              <div class="marquee-content animate-marquee">
+              <div class="marquee-content" bind:this={marqueeContent}>
                 {#each duplicatedMatches as game, index}
-                  <a href={getGameHref(game)} class="flex-shrink-0 mx-2 w-72 transition-transform duration-300">
+                  <a href={getGameHref(game)} class="flex-shrink-0 mx-2 w-72 marquee-card">
                     <div class="game-box bg-black bg-opacity-40 rounded-xl p-4 border border-white/10">
                       <div class="game-date flex justify-between items-center mb-3">
                         <span class="text-sm text-gray-400 font-medium">{game.statusLabel !== 'FINAL' ? (game.displayClock || '') : ''}</span>
@@ -281,46 +317,46 @@
                       </div>
                       
                       <div class="game-teams space-y-3">
-                        <!-- Away Team -->
-                        <div class="game-team flex justify-between items-center {isWinner(game.awayTeam) ? 'font-bold' : ''} group">
-                          <div class="flex items-center space-x-3 flex-1 min-w-0">
+                        <!-- Away Team - fixed widths to prevent flex layout thrashing -->
+                        <div class="game-team flex justify-between items-center gap-2 {isWinner(game.awayTeam) ? 'font-bold' : ''} group">
+                          <div class="flex items-center gap-2 min-w-0 marquee-team-row">
                             <div class="relative w-6 h-6 flex-shrink-0">
-                              <img class="w-full h-full object-contain transition-transform" 
+                              <img class="w-full h-full object-contain" 
                                    alt="{game.awayTeam.name} logo" 
                                    src="/images/team-logos/{game.awayTeam.seoName}.svg"
                                    on:error={handleImageError}>
                             </div>
                             {#if game.awayTeam.seed}
-                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold min-w-[2rem] text-center flex-shrink-0">#{game.awayTeam.seed}</span>
+                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold w-8 text-center flex-shrink-0">#{game.awayTeam.seed}</span>
                             {/if}
-                            <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis {isWinner(game.awayTeam) ? 'text-white' : isWinner(game.homeTeam) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm flex-shrink"
+                            <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis w-32 flex-shrink-0 {isWinner(game.awayTeam) ? 'text-white' : isWinner(game.homeTeam) ? 'text-white/75 line-through' : 'text-white'} shadow-sm"
                                   style={getTeamStyle(game.awayTeam)}>
                               {getDisplayName(game.awayTeam)}
                             </span>
                           </div>
-                          <div class="flex-shrink-0 w-[3rem] text-right">
+                          <div class="w-12 flex-shrink-0 text-right">
                             <span class="score-value text-2xl font-bold font-condensed tabular-nums {isWinner(game.awayTeam) ? 'text-white' : 'text-gray-400'}">{game.awayTeam.scoreText}</span>
                           </div>
                         </div>
                         
-                        <!-- Home Team -->
-                        <div class="game-team flex justify-between items-center {isWinner(game.homeTeam) ? 'font-bold' : ''} group">
-                          <div class="flex items-center space-x-3 flex-1 min-w-0">
+                        <!-- Home Team - fixed widths to prevent flex layout thrashing -->
+                        <div class="game-team flex justify-between items-center gap-2 {isWinner(game.homeTeam) ? 'font-bold' : ''} group">
+                          <div class="flex items-center gap-2 min-w-0 marquee-team-row">
                             <div class="relative w-6 h-6 flex-shrink-0">
-                              <img class="w-full h-full object-contain transition-transform" 
+                              <img class="w-full h-full object-contain" 
                                    alt="{game.homeTeam.name} logo" 
                                    src="/images/team-logos/{game.homeTeam.seoName}.svg"
                                    on:error={handleImageError}>
                             </div>
                             {#if game.homeTeam.seed}
-                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold min-w-[2rem] text-center flex-shrink-0">#{game.homeTeam.seed}</span>
+                              <span class="rank text-xs bg-gray-700 text-white px-1 py-0.5 rounded-full font-semibold w-8 text-center flex-shrink-0">#{game.homeTeam.seed}</span>
                             {/if}
-                            <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis {isWinner(game.homeTeam) ? 'text-white' : isWinner(game.awayTeam) ? 'text-white/75 line-through' : 'text-white'} transition-all duration-200 shadow-sm flex-shrink"
+                            <span class="text-sm font-semibold px-3 py-1 rounded-md whitespace-nowrap overflow-hidden text-ellipsis w-32 flex-shrink-0 {isWinner(game.homeTeam) ? 'text-white' : isWinner(game.awayTeam) ? 'text-white/75 line-through' : 'text-white'} shadow-sm"
                                   style={getTeamStyle(game.homeTeam)}>
                               {getDisplayName(game.homeTeam)}
                             </span>
                           </div>
-                          <div class="flex-shrink-0 w-[3rem] text-right">
+                          <div class="w-12 flex-shrink-0 text-right">
                             <span class="score-value text-2xl font-bold font-condensed tabular-nums {isWinner(game.homeTeam) ? 'text-white' : 'text-gray-400'}">{game.homeTeam.scoreText}</span>
                           </div>
                         </div>
@@ -346,23 +382,10 @@
     display: none;  /* Chrome, Safari and Opera */
   }
   
-  :root {
-    --marquee-duration: 320s; /* 4x slower marquee speed */
-  }
-  
-  @keyframes marquee {
-    0% { 
-      transform: translateX(0); 
-    }
-    100% { 
-      transform: translateX(-50%);
-    }
-  }
-  
-  .animate-marquee {
-    white-space: nowrap;
-    will-change: transform;
-    animation: marquee var(--marquee-duration) linear infinite;
+  /* CSS mask replaces gradient overlay divs - reduces DOM and compositing */
+  .marquee-mask {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 96px, black calc(100% - 96px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 96px, black calc(100% - 96px), transparent 100%);
   }
   
   .marquee-container {
@@ -373,5 +396,12 @@
   .marquee-content {
     display: flex;
     width: fit-content;
+    white-space: nowrap;
+    will-change: transform;
+  }
+  
+  /* No per-card layer promotion - cards paint into marquee-content's single layer */
+  .marquee-card {
+    contain: layout;
   }
 </style> 
