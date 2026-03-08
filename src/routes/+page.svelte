@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import Countdown from '$lib/components/Countdown.svelte';
   import Leaderboard from '$lib/components/Leaderboard.svelte';
   import { fade } from 'svelte/transition';
@@ -7,6 +8,42 @@
 
   const stage = data.tournamentSettings?.stage || 'archive';
   const settings = data.tournamentSettings || {};
+
+  // Dynamic imports for archive mode game (avoids SSR issues with Matter.js)
+  let BasketballGame = null;
+  let GameLeaderboard = null;
+  let gameLeaderboard;
+  let userId = null;
+
+  onMount(async () => {
+    if (stage !== 'archive') return;
+
+    const { supabase } = await import('$lib/supabase');
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id || null;
+
+    const [gameModule, leaderboardModule] = await Promise.all([
+      import('$lib/components/BasketballGame.svelte'),
+      import('$lib/components/GameLeaderboard.svelte')
+    ]);
+    BasketballGame = gameModule.default;
+    GameLeaderboard = leaderboardModule.default;
+  });
+
+  async function handleGameOver({ score, madeShots }) {
+    if (!userId) return;
+
+    try {
+      await fetch('/api/game-scores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score, madeShots })
+      });
+      gameLeaderboard?.refresh();
+    } catch (err) {
+      console.error('Failed to submit score:', err);
+    }
+  }
 
   const archiveCards = [
     {
@@ -95,22 +132,29 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {#each archiveCards as card}
-          <a href={card.href} class="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5 hover:border-amber-600/40 hover:bg-zinc-900 transition-colors">
+          <a href={card.href} class="rounded-xl border border-zinc-800 bg-zinc-900 p-5 hover:border-amber-600/40 hover:bg-zinc-800/80 transition-colors">
             <div class="text-lg font-semibold text-zinc-100">{card.title}</div>
             <p class="mt-2 text-sm leading-6 text-zinc-400">{card.description}</p>
           </a>
         {/each}
       </div>
 
-      <div>
-        {#if !data.leaderboard}
-          <div class="bg-red-950/50 border border-red-900 text-red-400 p-8 rounded-xl text-center">
-            Archived leaderboard data is unavailable right now.
+      {#if BasketballGame}
+        <div class="relative">
+          <svelte:component this={BasketballGame} onGameOver={handleGameOver} />
+          {#if userId && GameLeaderboard}
+            <div class="hidden xl:block absolute top-6 -right-72 w-64">
+              <svelte:component this={GameLeaderboard} {userId} bind:this={gameLeaderboard} />
+            </div>
+          {/if}
+        </div>
+      {:else if stage === 'archive'}
+        <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center">
+          <div class="h-64 flex items-center justify-center">
+            <div class="animate-pulse text-zinc-500">Loading game...</div>
           </div>
-        {:else}
-          <Leaderboard leaderboard={data.leaderboard} />
-        {/if}
-      </div>
+        </div>
+      {/if}
     </div>
   {:else if stage === 'bracket-open'}
     <div class="space-y-8" in:fade={{ duration: 300, delay: 100 }}>
@@ -131,7 +175,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {#each bracketOpenCards as card}
-          <a href={card.href} class="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5 hover:border-emerald-600/40 hover:bg-zinc-900 transition-colors">
+          <a href={card.href} class="rounded-xl border border-zinc-800 bg-zinc-900 p-5 hover:border-emerald-600/40 hover:bg-zinc-800/80 transition-colors">
             <div class="text-lg font-semibold text-zinc-100">{card.title}</div>
             <p class="mt-2 text-sm leading-6 text-zinc-400">{card.description}</p>
           </a>

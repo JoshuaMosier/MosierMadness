@@ -15,7 +15,7 @@ export async function load({ depends }) {
     entryDeadlineAt: getEntryDeadlineAt(settings.entrySeasonYear),
   };
 
-  if (settings.stage === 'bracket-open') {
+  if (settings.stage === 'bracket-open' || settings.stage === 'archive') {
     return {
       frontDoor,
       leaderboard: null,
