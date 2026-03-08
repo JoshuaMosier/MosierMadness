@@ -1,43 +1,21 @@
 <script>
-import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
   import BracketView from '$lib/components/BracketView.svelte';
   import { fade } from 'svelte/transition';
-  import teamColors from '$lib/ncaa_team_colors.json';
+  export let data;
 
-  let loading = true;
-  let error = null;
-  let user = null;
-  let bracket = null;
+  let loading = false;
+  let error = data.loadError ?? data.bracketTeamsError ?? null;
+  let user = data.user ?? null;
+  let bracket = data.bracket ?? null;
   let saving = false;
   let showResetModal = false;
-  let teamSelectionSaving = false; // Separate saving state for team selections
-  let bracketActionSaving = false; // Separate saving state for major bracket actions
-  let firstRoundTeams = []; // Will be populated dynamically
-  const tournamentStarted = true; // Set this to true when tournament begins
-
-  // Function to fetch and format teams from NCAA API
-  async function fetchBracketTeams() {
-    try {
-      // Fetch teams from our server endpoint
-      const response = await fetch('/api/bracket-teams');
-      if (!response.ok) {
-        throw new Error(`Error fetching teams: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      firstRoundTeams = data;
-      
-    } catch (err) {
-      console.error('Error fetching bracket teams:', err);
-      error = err.message;
-    }
-  }
+  let teamSelectionSaving = false;
+  let bracketActionSaving = false;
+  let firstRoundTeams = data.firstRoundTeams ?? [];
+  const tournamentStage = data.tournamentSettings?.stage || 'archive';
+  const entrySeasonYear = data.tournamentSettings?.entrySeasonYear || new Date().getFullYear();
+  const entriesOpen = tournamentStage === 'bracket-open';
 
   // Helper function to format team string (e.g., "1 Houston")
   function formatTeamString(team) {
@@ -191,7 +169,8 @@ import { onMount } from 'svelte';
           selections: newSelections,
           updated_at: new Date().toISOString()
         })
-        .eq('id', bracket.id);
+        .eq('id', bracket.id)
+        .eq('year', entrySeasonYear);
 
       if (updateError) throw updateError;
 
@@ -223,7 +202,8 @@ import { onMount } from 'svelte';
           selections: new Array(63).fill(null),
           updated_at: new Date().toISOString()
         })
-        .eq('id', bracket.id);
+        .eq('id', bracket.id)
+        .eq('year', entrySeasonYear);
 
       if (updateError) throw updateError;
 
@@ -256,7 +236,8 @@ import { onMount } from 'svelte';
           is_submitted: true,
           updated_at: new Date().toISOString()
         })
-        .eq('id', bracket.id);
+        .eq('id', bracket.id)
+        .eq('year', entrySeasonYear);
 
       if (updateError) throw updateError;
 
@@ -286,6 +267,7 @@ import { onMount } from 'svelte';
         .from('brackets')
         .insert({
           user_id: user.id,
+          year: entrySeasonYear,
           selections: new Array(63).fill(null), // Space for 63 matches
           is_submitted: false,
           created_at: new Date().toISOString(),
@@ -319,7 +301,8 @@ import { onMount } from 'svelte';
           is_submitted: false,
           updated_at: new Date().toISOString()
         })
-        .eq('id', bracket.id);
+        .eq('id', bracket.id)
+        .eq('year', entrySeasonYear);
 
       if (updateError) throw updateError;
 
@@ -336,37 +319,6 @@ import { onMount } from 'svelte';
     }
   }
 
-  // Modified onMount to fetch teams first
-  onMount(async () => {
-    try {
-      // Get current user
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      user = currentUser;
-
-      if (!user) {
-        goto('/login');
-        return;
-      }
-
-      // Fetch teams first
-      await fetchBracketTeams();
-
-      // Fetch user's bracket
-      const { data, error: bracketError } = await supabase
-        .from('brackets')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (bracketError && bracketError.code !== 'PGRST116') throw bracketError;
-      bracket = data;
-    } catch (err) {
-      console.error('Error in initialization:', err);
-      error = err.message;
-    } finally {
-      loading = false;
-    }
-  });
 </script>
 
 <svelte:head>
@@ -424,11 +376,17 @@ import { onMount } from 'svelte';
         Login
       </a>
     </div>
-  {:else if tournamentStarted}
+  {:else if !entriesOpen}
     <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center"
          in:fade={{ duration: 100, delay: 100 }}>
-      <h2 class="text-xl font-semibold text-zinc-200 mb-3">Tournament In Progress</h2>
-      <p class="text-zinc-300">Bracket submission is now closed as the tournament has begun.</p>
+      <h2 class="text-xl font-semibold text-zinc-200 mb-3">
+        {tournamentStage === 'tournament-live' || tournamentStage === 'complete' ? 'Tournament In Progress' : 'Bracket Entries Closed'}
+      </h2>
+      <p class="text-zinc-300">
+        {tournamentStage === 'archive'
+          ? 'Bracket submissions are not open yet. Check back once the new bracket is released.'
+          : 'Bracket submission is now closed as the tournament has begun.'}
+      </p>
     </div>
   {:else if bracket}
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"

@@ -1,3 +1,24 @@
+import {
+  formatTeamSelection,
+  getPointsForSelectionIndex,
+} from '$lib/utils/bracketUtils';
+
+function getEntrySelections(entry) {
+  return entry.selections || entry.brackets?.[0]?.selections || [];
+}
+
+function isEntrySubmitted(entry) {
+  return entry.is_submitted !== undefined ? entry.is_submitted : entry.brackets?.[0]?.is_submitted;
+}
+
+function getEntryIdentity(entry) {
+  return {
+    entryId: entry.entryId || entry.id,
+    firstName: entry.firstName || entry.first_name,
+    lastName: entry.lastName || entry.last_name,
+  };
+}
+
 /**
  * Calculate scores for each user based on the master bracket
  * @param {string[]} masterBracket - The 63-element master bracket
@@ -6,16 +27,13 @@
  */
 export function calculateScores(masterBracket, entries) {
   return entries.map(entry => {
-    // Check if entry has selections and is_submitted properties directly
-    // or if it has a brackets array with those properties
-    const selections = entry.selections || entry.brackets?.[0]?.selections || [];
-    const isSubmitted = entry.is_submitted !== undefined ? entry.is_submitted : entry.brackets?.[0]?.is_submitted;
+    const selections = getEntrySelections(entry);
+    const isSubmitted = isEntrySubmitted(entry);
+    const identity = getEntryIdentity(entry);
     
     if (!isSubmitted) {
       return {
-        entryId: entry.entryId || entry.id,
-        firstName: entry.firstName || entry.first_name,
-        lastName: entry.lastName || entry.last_name,
+        ...identity,
         round1: 0,
         round2: 0,
         round3: 0,
@@ -32,20 +50,13 @@ export function calculateScores(masterBracket, entries) {
     // Compare user selections with master bracket
     for (let i = 0; i < selections.length; i++) {
       if (selections[i] === masterBracket[i] && masterBracket[i] !== '') {
-        // Award points based on the round
-        if (i < 32) {
-          score1 += 1;  // Round 1: 1 point
-        } else if (i < 48) {
-          score2 += 2;  // Round 2: 2 points
-        } else if (i < 56) {
-          score3 += 4;  // Sweet 16: 4 points
-        } else if (i < 60) {
-          score4 += 8;  // Elite 8: 8 points
-        } else if (i < 62) {
-          score5 += 16; // Final Four: 16 points
-        } else if (i === 62) {
-          score6 += 32; // Championship: 32 points
-        }
+        const points = getPointsForSelectionIndex(i);
+        if (i < 32) score1 += points;
+        else if (i < 48) score2 += points;
+        else if (i < 56) score3 += points;
+        else if (i < 60) score4 += points;
+        else if (i < 62) score5 += points;
+        else if (i === 62) score6 += points;
         games += 1;
       }
     }
@@ -53,9 +64,7 @@ export function calculateScores(masterBracket, entries) {
     const total = score1 + score2 + score3 + score4 + score5 + score6;
     
     return {
-      entryId: entry.entryId || entry.id,
-      firstName: entry.firstName || entry.first_name,
-      lastName: entry.lastName || entry.last_name,
+      ...identity,
       round1: score1,
       round2: score2,
       round3: score3,
@@ -76,17 +85,16 @@ export function calculateScores(masterBracket, entries) {
  * @returns {Object[]} Array of potential point objects for each user
  */
 export function calculatePotential(masterBracket, eliminatedTeams, entries) {
+  const eliminatedTeamSet = new Set(eliminatedTeams);
+
   return entries.map(entry => {
-    // Check if entry has selections and is_submitted properties directly
-    // or if it has a brackets array with those properties
-    const selections = entry.selections || entry.brackets?.[0]?.selections || [];
-    const isSubmitted = entry.is_submitted !== undefined ? entry.is_submitted : entry.brackets?.[0]?.is_submitted;
+    const selections = getEntrySelections(entry);
+    const isSubmitted = isEntrySubmitted(entry);
+    const identity = getEntryIdentity(entry);
     
     if (!isSubmitted) {
       return {
-        entryId: entry.entryId || entry.id,
-        firstName: entry.firstName || entry.first_name,
-        lastName: entry.lastName || entry.last_name,
+        ...identity,
         potential: 0
       };
     }
@@ -94,35 +102,23 @@ export function calculatePotential(masterBracket, eliminatedTeams, entries) {
     let potential = 192; // Maximum possible points
     
     // Subtract points for eliminated teams
-    for (const teamStr of eliminatedTeams) {
+    for (const teamStr of eliminatedTeamSet) {
       for (let i = 0; i < selections.length; i++) {
         if (selections[i] === teamStr) {
-          if (i < 32) potential -= 1;
-          else if (i < 48) potential -= 2;
-          else if (i < 56) potential -= 4;
-          else if (i < 60) potential -= 8;
-          else if (i < 62) potential -= 16;
-          else if (i === 62) potential -= 32;
+          potential -= getPointsForSelectionIndex(i);
         }
       }
     }
     
     // Subtract points for already correct picks
     for (let i = 0; i < selections.length; i++) {
-      if (selections[i] === masterBracket[i] && masterBracket[i] !== '' && !eliminatedTeams.includes(selections[i])) {
-        if (i < 32) potential -= 1;
-        else if (i < 48) potential -= 2;
-        else if (i < 56) potential -= 4;
-        else if (i < 60) potential -= 8;
-        else if (i < 62) potential -= 16;
-        else if (i === 62) potential -= 32;
+      if (selections[i] === masterBracket[i] && masterBracket[i] !== '' && !eliminatedTeamSet.has(selections[i])) {
+        potential -= getPointsForSelectionIndex(i);
       }
     }
     
     return {
-      entryId: entry.entryId || entry.id,
-      firstName: entry.firstName || entry.first_name,
-      lastName: entry.lastName || entry.last_name,
+      ...identity,
       potential: potential
     };
   });
@@ -135,7 +131,6 @@ export function calculatePotential(masterBracket, eliminatedTeams, entries) {
  */
 export function getEliminatedTeams(liveBracketData) {
   const eliminatedTeams = new Set();
-  const advancedTeams = new Set();
   
   // First add teams that have lost games to the eliminated set
   for (let i = 1; i <= 63; i++) {
@@ -144,10 +139,78 @@ export function getEliminatedTeams(liveBracketData) {
     if (match?.winner) {
       const losingTeam = match.winner === 'A' ? match.teamB : match.teamA;
       if (losingTeam) {
-        eliminatedTeams.add(`${losingTeam.seed} ${losingTeam.name}`);
+        eliminatedTeams.add(formatTeamSelection(losingTeam));
       }
     }
   }
   
   return Array.from(eliminatedTeams);
 } 
+
+export function sortLeaderboardScores(scores) {
+  return [...scores].sort((a, b) => {
+    if (b.total !== a.total) {
+      return b.total - a.total;
+    }
+
+    if ((b.potential ?? 0) !== (a.potential ?? 0)) {
+      return (b.potential ?? 0) - (a.potential ?? 0);
+    }
+
+    const lastNameCompare = (a.lastName || '').localeCompare(b.lastName || '');
+    if (lastNameCompare !== 0) {
+      return lastNameCompare;
+    }
+
+    return (a.firstName || '').localeCompare(b.firstName || '');
+  });
+}
+
+export function buildLeaderboardRanks(sortedScores) {
+  const positions = assignPositions(sortedScores, { presorted: true });
+  return sortedScores.map(score => positions.get(score.entryId));
+}
+
+export function assignPositions(scores, { presorted = false } = {}) {
+  const sortedScores = presorted
+    ? scores
+    : [...scores].sort((a, b) => {
+        if (b.total !== a.total) {
+          return b.total - a.total;
+        }
+
+        return (b.potential ?? 0) - (a.potential ?? 0);
+      });
+
+  let currentPosition = 1;
+  let currentScore = null;
+  let currentPotential = null;
+  let tieGroup = [];
+  const positions = new Map();
+
+  for (const score of sortedScores) {
+    if (currentScore === null || score.total !== currentScore || (score.potential ?? 0) !== currentPotential) {
+      if (tieGroup.length > 0) {
+        for (const tiedScore of tieGroup) {
+          positions.set(tiedScore.entryId, currentPosition);
+        }
+        currentPosition += tieGroup.length;
+      }
+
+      currentScore = score.total;
+      currentPotential = score.potential ?? 0;
+      tieGroup = [score];
+      continue;
+    }
+
+    tieGroup.push(score);
+  }
+
+  if (tieGroup.length > 0) {
+    for (const tiedScore of tieGroup) {
+      positions.set(tiedScore.entryId, currentPosition);
+    }
+  }
+
+  return positions;
+}

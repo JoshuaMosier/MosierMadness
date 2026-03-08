@@ -1,14 +1,12 @@
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public'
 
-export const supabase = createClient(
+/**
+ * Browser Supabase client. Used for client-side mutations (e.g. bracket updates)
+ * and auth UI. Auth state is kept in sync with the server via @supabase/ssr
+ * cookie storage; the server client in hooks.server.js uses the same cookies.
+ */
+export const supabase = createBrowserClient(
   PUBLIC_SUPABASE_URL,
-  PUBLIC_SUPABASE_ANON_KEY,
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true
-    }
-  }
+  PUBLIC_SUPABASE_ANON_KEY
 )

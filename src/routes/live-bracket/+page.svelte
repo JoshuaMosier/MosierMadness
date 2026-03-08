@@ -1,67 +1,42 @@
 <!-- LiveBracket.svelte -->
 <script>
     import BracketView from '$lib/components/BracketView.svelte';
-    import { onMount } from 'svelte';
-    
-    let bracketData = {
-        matches: {},
-        champion: null
-    };
-    let isLoading = true;
+    import { invalidateAll } from '$app/navigation';
+
+    export let data;
+
+    $: bracketData = data.bracketData;
+    $: tournamentStage = data.tournamentSettings?.stage || 'archive';
+    $: isLiveBracketAvailable = tournamentStage === 'tournament-live' || tournamentStage === 'complete';
+
     let error = null;
-    
-    async function fetchBracketData() {
+
+    async function retry() {
+        error = null;
         try {
-            isLoading = true;
-            error = null;
-            
-            // Fetch live results
-            const liveRes = await fetch('/api/live-bracket');
-            const { matches } = await liveRes.json();
-            
-            // Find champion if match 63 is completed
-            const championMatch = matches[63];
-            const champion = championMatch?.teamA || null;
-            
-            bracketData = {
-                matches,
-                champion
-            };
-            
-            console.log('Bracket data loaded:', {
-                totalMatches: Object.keys(matches).length,
-                firstRoundSample: matches[1],
-                champion
-            });
-            
+            await invalidateAll();
         } catch (err) {
-            console.error('Error fetching bracket data:', err);
             error = err.message;
-        } finally {
-            isLoading = false;
         }
     }
-    
-    onMount(() => {
-        fetchBracketData();
-    });
 </script>
 
 <div class="max-w-7xl mx-auto px-4 py-8">
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        
-        <!-- Bracket Content -->
         <div class="p-6">
-            {#if isLoading}
-                <div class="text-center">
-                    <p class="text-lg">Loading bracket data...</p>
+            {#if !isLiveBracketAvailable}
+                <div class="text-center py-10">
+                    <h2 class="text-2xl font-semibold text-zinc-100">Live bracket unavailable</h2>
+                    <p class="mt-3 text-zinc-400">
+                        The live bracket becomes available once the tournament is underway.
+                    </p>
                 </div>
             {:else if error}
                 <div class="text-center text-red-500">
                     <p class="text-lg">Error: {error}</p>
-                    <button 
+                    <button
                         class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        on:click={fetchBracketData}
+                        on:click={retry}
                     >
                         Retry
                     </button>
