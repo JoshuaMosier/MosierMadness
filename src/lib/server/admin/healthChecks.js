@@ -16,11 +16,15 @@ function uniqueSorted(values) {
 }
 
 export function getLogoSlugs() {
-  return fs.readdirSync(LOGO_DIRECTORY)
-    .filter((fileName) => fileName.endsWith('.svg'))
-    .map((fileName) => fileName.replace(/\.svg$/i, ''))
-    .filter((slug) => !IGNORED_LOGO_SLUGS.has(slug))
-    .sort((a, b) => a.localeCompare(b));
+  try {
+    return fs.readdirSync(LOGO_DIRECTORY)
+      .filter((fileName) => fileName.endsWith('.svg'))
+      .map((fileName) => fileName.replace(/\.svg$/i, ''))
+      .filter((slug) => !IGNORED_LOGO_SLUGS.has(slug))
+      .sort((a, b) => a.localeCompare(b));
+  } catch {
+    return [];
+  }
 }
 
 export function getTeamColorCoverageSummary() {

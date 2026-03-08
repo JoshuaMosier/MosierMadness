@@ -11,9 +11,16 @@ export async function load() {
     teamColorMap[seoName] = colors;
   }
 
+  let healthChecks = null;
+  try {
+    healthChecks = await getAdminHealthChecks(tournamentSettings);
+  } catch (err) {
+    healthChecks = { checkedAt: new Date().toISOString(), error: err.message };
+  }
+
   return {
     tournamentSettings,
-    healthChecks: await getAdminHealthChecks(tournamentSettings),
+    healthChecks,
     teamColors: teamColorMap,
   };
 }
