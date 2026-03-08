@@ -119,8 +119,6 @@
             {/if}
           </div>
           
-          <div class="text-xl font-bold text-white">VS</div>
-          
           <!-- Home Team -->
           <div class="team-block text-center flex-1">
             <img 
@@ -144,11 +142,6 @@
           </div>
         </div>
         
-        <div class="game-details mt-6 pt-4 border-t border-white/10">
-          <div class="text-center text-gray-300">
-            <p>{gameData.matchup}</p>
-          </div>
-        </div>
       </div>
 
       <!-- Entries Comparison Section -->

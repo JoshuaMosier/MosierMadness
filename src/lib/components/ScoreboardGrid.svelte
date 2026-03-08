@@ -112,10 +112,6 @@
                 <span class="score-value text-lg sm:text-2xl font-bold tabular-nums flex-shrink-0 {isWinner(game.homeTeam) ? 'text-white' : 'text-gray-400'}">{game.homeTeam.scoreText}</span>
               </div>
             </div>
-            
-            <div class="mt-2 sm:mt-4 text-xs sm:text-sm text-gray-400 text-center font-semibold border-t border-white/5 pt-2 sm:pt-3">
-              {game.matchup}
-            </div>
           </svelte:element>
         {/each}
       </div>
