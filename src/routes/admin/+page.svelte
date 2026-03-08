@@ -243,6 +243,43 @@
     }
   }
 
+  let archiving = false;
+  let archiveError = null;
+  let archiveSuccess = null;
+  let archiveConfirm = false;
+
+  async function handleArchiveSeason() {
+    if (!archiveConfirm) {
+      archiveConfirm = true;
+      return;
+    }
+
+    archiving = true;
+    archiveError = null;
+    archiveSuccess = null;
+
+    try {
+      const response = await fetch('/api/admin/archive-season', { method: 'POST' });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Archive failed');
+      }
+
+      archiveSuccess = `Archived ${result.year}: ${result.winner} won with ${result.winningScore} pts (${result.entriesArchived} entries).`;
+      archiveConfirm = false;
+    } catch (err) {
+      archiveError = err.message;
+      archiveConfirm = false;
+    } finally {
+      archiving = false;
+    }
+  }
+
+  function cancelArchive() {
+    archiveConfirm = false;
+  }
+
   async function deleteTeamColor(seoName) {
     colorSaving = true;
     colorError = null;
@@ -527,6 +564,56 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+      <h2 class="text-xl font-semibold text-zinc-100 mb-2">Archive Season</h2>
+      <p class="text-zinc-400 text-sm mb-4">
+        Save the {data.tournamentSettings?.displaySeasonYear || '???'} tournament results to the historical record.
+        This creates people records, season results, and archived brackets from the submitted entries.
+      </p>
+
+      {#if archiveError}
+        <div class="mb-4 bg-red-950/50 border border-red-900 text-red-400 rounded-lg p-3">{archiveError}</div>
+      {/if}
+
+      {#if archiveSuccess}
+        <div class="mb-4 bg-emerald-950/40 border border-emerald-900 text-emerald-400 rounded-lg p-3">{archiveSuccess}</div>
+      {/if}
+
+      {#if archiveConfirm}
+        <div class="bg-amber-950/30 border border-amber-900/50 rounded-lg p-4 mb-4">
+          <div class="text-amber-300 font-medium mb-2">Confirm Archive</div>
+          <div class="text-zinc-400 text-sm mb-3">
+            This will archive the {data.tournamentSettings?.displaySeasonYear} season using entry year {data.tournamentSettings?.entrySeasonYear} brackets.
+            This action cannot be easily undone.
+          </div>
+          <div class="flex gap-3">
+            <button
+              class="px-4 py-2 rounded-lg bg-amber-600 text-white font-medium disabled:opacity-50"
+              on:click={handleArchiveSeason}
+              disabled={archiving}
+            >
+              {archiving ? 'Archiving...' : 'Yes, Archive Now'}
+            </button>
+            <button
+              class="px-4 py-2 rounded-lg bg-zinc-700 text-zinc-300 font-medium"
+              on:click={cancelArchive}
+              disabled={archiving}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      {:else if !archiveSuccess}
+        <button
+          class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 text-white font-medium disabled:opacity-50"
+          on:click={handleArchiveSeason}
+          disabled={archiving}
+        >
+          Archive {data.tournamentSettings?.displaySeasonYear || '???'} Season
+        </button>
+      {/if}
     </div>
 
     <div class="mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-6">

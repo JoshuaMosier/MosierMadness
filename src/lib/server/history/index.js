@@ -152,6 +152,11 @@ async function fetchHistoricalRows() {
   };
 }
 
+export function clearHistoryCache() {
+  historyCache.value = null;
+  historyCache.expiresAt = 0;
+}
+
 export async function getHistoricalData() {
   const now = Date.now();
   if (historyCache.value && historyCache.expiresAt > now) {
