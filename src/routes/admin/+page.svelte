@@ -432,6 +432,7 @@
             </span>
             <button
               type="button"
+              aria-label="Toggle First Four configuration"
               class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {firstFourEnabled ? 'bg-amber-600' : 'bg-zinc-700'}"
               on:click={toggleFirstFour}
             >
