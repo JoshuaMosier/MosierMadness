@@ -11,9 +11,8 @@
       loading = true
       error = null
       
-      console.log('Attempting to send reset password email to:', email)
       const { data, error: err } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password/update`
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password/update`
       })
 
       if (err) {

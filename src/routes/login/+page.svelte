@@ -1,11 +1,13 @@
 <script lang="ts">
   import { supabase } from '$lib/supabase'
-  import { goto } from '$app/navigation'
+  import { page } from '$app/stores'
 
   let email = ''
   let password = ''
   let loading = false
   let error: string | null = null
+
+  $: resetSuccess = $page.url.searchParams.get('reset') === 'success'
 
   async function handleLogin() {
     try {
@@ -40,6 +42,11 @@
           </span>
         </h1>
       </div>
+      {#if resetSuccess}
+        <div class="text-green-500 text-sm bg-green-950/50 p-3 rounded-lg border border-green-900 mb-6">
+          Password updated successfully. Sign in with your new password.
+        </div>
+      {/if}
       <form class="space-y-6" on:submit|preventDefault={handleLogin}>
         <div>
           <label for="email" class="block text-sm font-medium text-zinc-300 mb-2">
