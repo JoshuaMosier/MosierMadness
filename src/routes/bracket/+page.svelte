@@ -2,6 +2,7 @@
   import { supabase } from '$lib/supabase';
   import BracketView from '$lib/components/BracketView.svelte';
   import { fade } from 'svelte/transition';
+  import { FADE_QUICK, FADE_DELAYED, FADE_CONTENT } from '$lib/constants/transitions';
   export let data;
 
   let loading = false;
@@ -103,10 +104,8 @@
   }
 
   // Handle team selection
-  async function handleTeamSelect(event) {
+  async function handleTeamSelect({ matchId, teamIndex, team }) {
     if (teamSelectionSaving || bracket.is_submitted) return;
-
-    const { matchId, teamIndex, team } = event.detail;
     if (!team) return;
     
     try {
@@ -354,7 +353,7 @@
 
 <div class="max-w-7xl mx-auto px-4 py-8">
   {#if loading}
-    <div class="flex justify-center items-center min-h-[600px]" in:fade={{ duration: 100 }}>
+    <div class="flex justify-center items-center min-h-[600px]" in:fade={FADE_QUICK}>
       <div class="flex flex-col items-center gap-3">
         <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
         <div class="text-amber-600 font-medium">Loading your bracket...</div>
@@ -362,12 +361,12 @@
     </div>
   {:else if error}
     <div class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center" 
-         in:fade={{ duration: 100, delay: 100 }}>
+         in:fade={FADE_DELAYED}>
       {error}
     </div>
   {:else if !user}
     <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center"
-         in:fade={{ duration: 100, delay: 100 }}>
+         in:fade={FADE_DELAYED}>
       <p class="text-zinc-300 mb-4">Please log in to view or submit your bracket.</p>
       <a 
         href="/login" 
@@ -378,7 +377,7 @@
     </div>
   {:else if !entriesOpen}
     <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center"
-         in:fade={{ duration: 100, delay: 100 }}>
+         in:fade={FADE_DELAYED}>
       <h2 class="text-2xl font-semibold text-zinc-100 mb-3">
         {tournamentStage === 'tournament-live' || tournamentStage === 'complete' ? 'Tournament In Progress' : 'Bracket Entries Closed'}
       </h2>
@@ -390,7 +389,7 @@
     </div>
   {:else if bracket}
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"
-         in:fade={{ duration: 300, delay: 100 }}>
+         in:fade={FADE_CONTENT}>
       <!-- Header Section -->
       <div class="border-b border-zinc-800 bg-zinc-900/50">
         <div class="p-6">
@@ -464,13 +463,13 @@
           bracketData={transformBracketData(bracket)}
           isLocked={bracket.is_submitted}
           showScores={false}
-          on:teamSelect={handleTeamSelect}
+          onTeamSelect={handleTeamSelect}
         />
       </div>
     </div>
   {:else}
     <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center"
-         in:fade={{ duration: 100, delay: 100 }}>
+         in:fade={FADE_DELAYED}>
       <p class="text-zinc-300 mb-4">You haven't created a bracket yet.</p>
       <button 
         class="px-6 py-2 bg-gradient-to-r from-amber-700 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-500 transition-all duration-200 disabled:opacity-50"
@@ -482,10 +481,3 @@
     </div>
   {/if}
 </div>
-
-<style>
-  :global(body) {
-    background-color: #18181b;
-    color: #f4f4f5;
-  }
-</style> 

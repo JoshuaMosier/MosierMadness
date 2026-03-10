@@ -1,6 +1,6 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
   import { getOrdinalSuffix } from '$lib/utils/scenarioEngine';
+  import { handleImageError } from '$lib/utils/imageUtils';
 
   export let entries = [];
   export let currentUser = null;
@@ -13,15 +13,10 @@
   export let totalScenarios = 0;
   export let targetPosition = 1;
   export let scenariosCalculated = false;
-
-  const dispatch = createEventDispatcher();
-
-  function handleImageError(event) {
-    event.target.src = '/images/placeholder-team.svg';
-  }
+  export let onUserChange = () => {};
 
   function handleUserChange() {
-    dispatch('userChange', { userId: selectedUser });
+    onUserChange(selectedUser);
   }
 </script>
 

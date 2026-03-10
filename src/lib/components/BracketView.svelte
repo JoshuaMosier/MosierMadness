@@ -1,13 +1,11 @@
 <!-- BracketView.svelte -->
 <script>
-  import { createEventDispatcher } from 'svelte';
-  const dispatch = createEventDispatcher();
-
   // Props for different modes and data
   export let mode = 'view'; // 'view' | 'select' | 'live'
   export let bracketData = null; // The bracket data to display/edit
   export let isLocked = false; // Whether the bracket is locked for editing
   export let showScores = true; // Whether to show scores
+  export let onTeamSelect = () => {};
   
   // Define regions
   const regions = [
@@ -113,11 +111,7 @@
   function handleTeamClick(matchId, teamIndex, team) {
     if (mode !== 'select' || isLocked) return;
     
-    dispatch('teamSelect', {
-      matchId,
-      teamIndex,
-      team
-    });
+    onTeamSelect({ matchId, teamIndex, team });
   }
 
   // Get team display class based on mode and state
@@ -461,11 +455,6 @@
 </div>
 
 <style>
-  :global(body) {
-    background-color: #18181b;
-    color: #f4f4f5;
-  }
-
   /* Slightly condensed but legible font for team names */
   :global(.truncate) {
     font-family: Inter, "Segoe UI", Roboto, -apple-system, sans-serif;

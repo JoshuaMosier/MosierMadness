@@ -1,13 +1,9 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { handleImageError } from '$lib/utils/imageUtils';
 
   export let matchSimulationDetails = [];
-
-  const dispatch = createEventDispatcher();
-
-  function handleImageError(event) {
-    event.target.src = '/images/placeholder-team.svg';
-  }
+  export let onSelectWinner = () => {};
+  export let onReset = () => {};
 </script>
 
 <div class="mb-6 hidden md:block">
@@ -15,7 +11,7 @@
     <h3 class="text-sm font-medium text-amber-500">Select Match Winners to Filter Scenarios</h3>
     <button
       class="px-3 py-1 text-xs rounded bg-zinc-700 text-zinc-300 hover:bg-zinc-600 transition-colors"
-      on:click={() => dispatch('reset')}
+      on:click={onReset}
     >
       Reset Selections
     </button>
@@ -35,7 +31,7 @@
                      {game.selected === game.teamA && game.teamA
                       ? 'bg-amber-600/80 text-white'
                       : 'bg-zinc-700/50 text-zinc-300 hover:bg-zinc-700'}"
-              on:click={() => dispatch('selectWinner', { gameId: game.gameId, team: game.teamA })}
+              on:click={() => onSelectWinner({ gameId: game.gameId, team: game.teamA })}
               disabled={!game.teamA}
               style={!game.teamA ? 'opacity: 0.7;' : ''}
             >
@@ -64,7 +60,7 @@
                      {game.selected === game.teamB && game.teamB
                       ? 'bg-amber-600/80 text-white'
                       : 'bg-zinc-700/50 text-zinc-300 hover:bg-zinc-700'}"
-              on:click={() => dispatch('selectWinner', { gameId: game.gameId, team: game.teamB })}
+              on:click={() => onSelectWinner({ gameId: game.gameId, team: game.teamB })}
               disabled={!game.teamB}
               style={!game.teamB ? 'opacity: 0.7;' : ''}
             >

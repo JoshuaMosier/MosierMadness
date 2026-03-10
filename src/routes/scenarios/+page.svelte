@@ -1,5 +1,6 @@
 <script>
   import { fade } from 'svelte/transition';
+  import { FADE_QUICK, FADE_DELAYED } from '$lib/constants/transitions';
   import { onMount } from 'svelte';
   import { supabase } from '$lib/supabase';
   import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
@@ -282,19 +283,19 @@
     }
   }
 
-  function handleSelectWinner(e) {
-    selectWinner(e.detail.gameId, e.detail.team);
+  function handleSelectWinner({ gameId, team }) {
+    selectWinner(gameId, team);
   }
 
-  function handleUserChange(e) {
-    selectedUser = e.detail.userId;
-    calculateTeamContributions(selectedUser);
+  function handleUserChange(userId) {
+    selectedUser = userId;
+    calculateTeamContributions(userId);
   }
 </script>
 
 <div class="max-w-7xl mx-auto px-4 py-8">
   {#if loading}
-    <div class="flex justify-center items-center min-h-[400px]" in:fade={{ duration: 100 }}>
+    <div class="flex justify-center items-center min-h-[400px]" in:fade={FADE_QUICK}>
       <div class="flex flex-col items-center gap-3">
         <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
         <div class="text-amber-600 font-medium">Loading bracket data...</div>
@@ -310,7 +311,7 @@
   {:else if error}
     <div
       class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center mb-4"
-      in:fade={{ duration: 100, delay: 100 }}
+      in:fade={FADE_DELAYED}
     >
       {error}
     </div>
@@ -345,8 +346,8 @@
         {#if scenariosCalculated}
           <MatchSelector
             {matchSimulationDetails}
-            on:selectWinner={handleSelectWinner}
-            on:reset={resetSelections}
+            onSelectWinner={handleSelectWinner}
+            onReset={resetSelections}
           />
 
           <!-- Tab Buttons -->
@@ -398,7 +399,7 @@
               {totalScenarios}
               {targetPosition}
               {scenariosCalculated}
-              on:userChange={handleUserChange}
+              onUserChange={handleUserChange}
             />
           {/if}
         {:else}
