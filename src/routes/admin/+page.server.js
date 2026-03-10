@@ -1,8 +1,20 @@
+import { redirect } from '@sveltejs/kit';
 import { getTournamentSettings } from '$lib/server/tournament/settings';
 import { getAdminHealthChecks } from '$lib/server/admin/healthChecks';
 import { loadTeamColors, getAllTeamColors } from '$lib/server/tournament/teamColors';
 
-export async function load() {
+export async function load({ locals: { supabase } }) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw redirect(303, '/login');
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!profile?.is_admin) throw redirect(303, '/');
+
   const tournamentSettings = await getTournamentSettings();
   await loadTeamColors();
 
