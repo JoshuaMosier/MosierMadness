@@ -31,45 +31,32 @@
     '/entries': 'Available when brackets open',
     '/scenarios': stage === 'bracket-open' ? 'Available during tournament' : 'Available during tournament',
   };
+  async function loadProfile(authUser) {
+    if (!authUser) {
+      userEntry = null;
+      isAdmin = false;
+      return;
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, is_admin')
+      .eq('email', authUser.email)
+      .single();
+
+    if (profile) {
+      userEntry = profile;
+      isAdmin = profile.is_admin === true;
+    }
+  }
+
   onMount(async () => {
-    // Get initial auth state
     const { data: { user: initialUser } } = await supabase.auth.getUser();
     user = initialUser;
+    await loadProfile(user);
 
-    if (user) {
-      // Fetch the user's entry
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, is_admin')
-        .eq('email', user.email)
-        .single();
-
-      if (profiles) {
-        userEntry = profiles;
-        isAdmin = profiles.is_admin === true;
-      }
-    }
-    
-    // Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       user = session?.user || null;
-      
-      if (user) {
-        // Fetch the user's entry on auth state change
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('first_name, last_name, is_admin')
-          .eq('email', user.email)
-          .single();
-
-        if (profiles) {
-          userEntry = profiles;
-          isAdmin = profiles.is_admin === true;
-        }
-      } else {
-        userEntry = null;
-        isAdmin = false;
-      }
+      await loadProfile(user);
     });
 
     // Cleanup subscription on component destroy
