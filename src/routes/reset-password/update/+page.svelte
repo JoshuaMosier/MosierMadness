@@ -1,11 +1,26 @@
 <script lang="ts">
   import { supabase } from '$lib/supabase'
-  import { goto } from '$app/navigation'
+  import { page } from '$app/stores'
+  import { onMount } from 'svelte'
 
   let password = ''
   let confirmPassword = ''
   let loading = false
   let error: string | null = null
+  let sessionReady = false
+
+  // Exchange the PKCE code for a session on mount
+  onMount(async () => {
+    const code = $page.url.searchParams.get('code')
+    if (code) {
+      const { error: err } = await supabase.auth.exchangeCodeForSession(code)
+      if (err) {
+        error = 'Reset link is invalid or has expired. Please request a new one.'
+        return
+      }
+    }
+    sessionReady = true
+  })
 
   async function handlePasswordUpdate() {
     try {
@@ -22,8 +37,8 @@
 
       if (err) throw err
 
-      // Redirect to login page after successful password update
-      goto('/login?reset=success')
+      // Full reload to login with success message
+      window.location.href = '/login?reset=success'
     } catch (err) {
       error = err.message
     } finally {
@@ -43,6 +58,9 @@
         </h1>
       </div>
 
+      {#if !sessionReady && !error}
+        <div class="text-center text-zinc-400 py-4">Verifying reset link...</div>
+      {/if}
       <form class="space-y-6" on:submit|preventDefault={handlePasswordUpdate}>
         <div>
           <label for="password" class="block text-sm font-medium text-zinc-300 mb-2">
@@ -79,7 +97,7 @@
         <div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !sessionReady}
             class="flex w-full justify-center rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-amber-600 hover:to-amber-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             {loading ? 'Updating password...' : 'Update password'}
