@@ -8,8 +8,6 @@ export async function GET() {
         return json(getLiveBracketProjection(snapshot));
     } catch (error) {
         console.error('Error creating bracket data:', error);
-        return new Response(JSON.stringify({ error: error.message }), {
-            status: 500
-        });
+        return json({ error: error.message }, { status: 500 });
     }
 }

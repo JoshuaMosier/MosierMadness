@@ -16,11 +16,6 @@ export async function GET() {
     
     return json(teams);
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    return json({ error: error.message }, { status: 500 });
   }
 } 

@@ -8,8 +8,6 @@ export async function GET() {
     return json(getMasterBracketProjection(snapshot));
   } catch (error) {
     console.error('Error creating master bracket:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500
-    });
+    return json({ error: error.message }, { status: 500 });
   }
 } 
