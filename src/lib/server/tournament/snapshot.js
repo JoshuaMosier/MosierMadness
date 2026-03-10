@@ -493,7 +493,7 @@ export async function getTournamentSnapshot(explicitSettings = null) {
         .then(() => {})
         .catch(err => console.warn('Realtime notify failed:', err.message));
 
-      checkAndResolveFirstFour(settings).catch(() => {});
+      checkAndResolveFirstFour(settings).catch(err => console.warn('First Four check failed:', err.message));
 
       return snapshot;
     })
