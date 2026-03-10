@@ -10,7 +10,7 @@
   }
   
   body {
-    @apply text-mm-gray min-h-screen;
+    @apply text-mm-gray min-h-screen bg-zinc-900;
   }
 
   body::before {
@@ -32,48 +32,16 @@
   .btn-primary {
     @apply bg-mm-blue text-white font-semibold py-2 px-4 rounded hover:bg-opacity-90 transition-colors;
   }
-  
-  .btn-secondary {
-    @apply bg-mm-gold text-white font-semibold py-2 px-4 rounded hover:bg-opacity-90 transition-colors;
+
+  .btn-outline {
+    @apply bg-transparent border-2 border-mm-blue text-mm-blue font-semibold py-2 px-4 rounded hover:bg-mm-blue hover:text-white transition-colors;
   }
   
   .card {
     @apply bg-white rounded-lg shadow-md p-4;
   }
   
-  .game-card {
-    @apply flex flex-col bg-white rounded-lg shadow-md p-3 mx-2 min-w-[200px];
-  }
-  
-  .team {
-    @apply flex items-center mb-2;
-  }
-  
-  .seed {
-    @apply text-sm font-bold mr-2 w-6 text-center;
-  }
-  
-  .name {
-    @apply flex-grow font-medium;
-  }
-  
-  .score {
-    @apply font-bold text-lg;
-  }
-  
   .game-status {
     @apply text-center text-sm mt-2;
-  }
-  
-  .live {
-    @apply text-red-600 font-bold;
-  }
-  
-  .final {
-    @apply text-mm-gray font-bold;
-  }
-  
-  .upcoming {
-    @apply text-mm-blue;
   }
 } 

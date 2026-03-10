@@ -345,7 +345,6 @@
         {#if scenariosCalculated}
           <MatchSelector
             {matchSimulationDetails}
-            {selectedWinners}
             on:selectWinner={handleSelectWinner}
             on:reset={resetSelections}
           />

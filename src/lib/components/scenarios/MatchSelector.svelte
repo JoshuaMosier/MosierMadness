@@ -2,7 +2,6 @@
   import { createEventDispatcher } from 'svelte';
 
   export let matchSimulationDetails = [];
-  export let selectedWinners = {};
 
   const dispatch = createEventDispatcher();
 
