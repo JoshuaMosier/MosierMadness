@@ -123,11 +123,6 @@
 </div>
 
 <style>
-  :global(body) {
-    background-color: #18181b;
-    color: #f4f4f5;
-  }
-
   .stat-category {
     opacity: 1;
     transform: translateY(0);

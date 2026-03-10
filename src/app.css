@@ -10,7 +10,7 @@
   }
   
   body {
-    @apply text-mm-gray min-h-screen bg-zinc-900;
+    @apply min-h-screen bg-zinc-900 text-zinc-100;
   }
 
   body::before {
