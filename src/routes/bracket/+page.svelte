@@ -145,9 +145,10 @@
       };
       
       // Find matches that need to be cleared (those that had the previous winning team)
+      const currentBracketView = transformBracketData(bracket);
       for (let i = matchId; i < 63; i++) {
         const laterMatchId = i + 1;
-        const matchData = transformBracketData(bracket).matches[laterMatchId];
+        const matchData = currentBracketView.matches[laterMatchId];
         
         // If this match has a winner
         if (matchData.winner) {
