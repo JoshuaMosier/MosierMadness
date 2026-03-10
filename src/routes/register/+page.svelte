@@ -46,8 +46,9 @@
           throw signInError
         }
 
-        // Redirect to the desired page after successful registration and sign in
-        goto('/')  // or whatever path you want to redirect to
+        // Full reload ensures cookies are synced and all components
+        // mount with fresh auth state (fixes mobile login issues)
+        window.location.href = '/'
       } else {
         error = 'No user data returned from registration'
       }

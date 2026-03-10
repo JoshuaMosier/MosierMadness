@@ -18,7 +18,9 @@
       if (err) throw err
 
       if (data.user) {
-        goto('/')
+        // Full reload ensures cookies are synced and all components
+        // mount with fresh auth state (fixes mobile login issues)
+        window.location.href = '/'
       }
     } catch (err) {
       error = err.message

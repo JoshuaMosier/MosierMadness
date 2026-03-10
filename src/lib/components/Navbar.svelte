@@ -89,15 +89,13 @@
   async function handleLogout(event) {
     event.preventDefault();
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error signing out:', error);
-      } else {
-        goto('/');
-      }
+      await supabase.auth.signOut();
     } catch (err) {
-      console.error('Unexpected error during logout:', err);
+      console.error('Error signing out:', err);
     }
+    // Always redirect with full reload, even if signOut fails —
+    // local session cookies are cleared regardless
+    window.location.href = '/';
   }
 
   // Function to handle entries navigation
