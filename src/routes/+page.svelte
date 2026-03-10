@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { page } from '$app/stores';
   import Countdown from '$lib/components/Countdown.svelte';
   import Leaderboard from '$lib/components/Leaderboard.svelte';
   import { fade } from 'svelte/transition';
@@ -8,6 +9,16 @@
 
   const stage = data.tournamentSettings?.stage || 'archive';
   const settings = data.tournamentSettings || {};
+
+  // Handle auth error redirects from Supabase (e.g. expired reset links)
+  let authError = null;
+  $: {
+    const errorDesc = $page.url.searchParams.get('error_description')
+      || $page.url.hash?.match(/error_description=([^&]*)/)?.[1];
+    if (errorDesc) {
+      authError = decodeURIComponent(errorDesc.replace(/\+/g, ' '));
+    }
+  }
 
   // Dynamic imports for archive mode game (avoids SSR issues with Matter.js)
   let BasketballGame = null;
@@ -110,6 +121,12 @@
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+  {#if authError}
+    <div class="bg-red-950/50 border border-red-900 text-red-400 p-4 rounded-xl flex items-center justify-between">
+      <span>{authError}. <a href="/reset-password" class="text-amber-500 hover:text-amber-400 underline">Request a new link</a></span>
+      <button on:click={() => authError = null} class="text-red-400 hover:text-red-300 ml-4">&times;</button>
+    </div>
+  {/if}
   {#if stage === 'archive'}
     <div class="space-y-8" in:fade={{ duration: 300, delay: 100 }}>
       <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8">
