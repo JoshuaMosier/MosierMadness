@@ -1,6 +1,7 @@
 <script>
   import { supabase } from '$lib/supabase';
   import { onMount } from 'svelte';
+  import { handleImageError } from '$lib/utils/imageUtils';
   
   export let data;
   
@@ -43,11 +44,6 @@
       case 'PRE': return 'text-gray-400';
       default: return 'text-white';
     }
-  }
-  
-  // Handle image loading errors
-  function handleImageError(event) {
-    event.target.src = '/images/placeholder-team.svg';
   }
 </script>
 

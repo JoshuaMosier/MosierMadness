@@ -1,5 +1,6 @@
 <script>
   import { fade } from 'svelte/transition';
+  import { FADE_CONTENT } from '$lib/constants/transitions';
   import BracketView from './BracketView.svelte';
   import { onMount } from 'svelte';
   import { supabase } from '$lib/supabase';
@@ -55,7 +56,7 @@
 <div class="max-w-7xl mx-auto px-4 py-8">
 
   <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"
-       in:fade={{ duration: 300, delay: 100 }}>
+       in:fade={FADE_CONTENT}>
     <!-- Header Section with Entrant Selector -->
     <div class="border-b border-zinc-800 bg-zinc-900/50 p-6">
       <div class="max-w-sm mx-auto">

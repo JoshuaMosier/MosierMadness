@@ -1,6 +1,7 @@
 <script>
   import { getStatusColor, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
+  import { handleImageError } from '$lib/utils/imageUtils';
 
   export let tournamentSettings = {};
   export let scores = [];
@@ -27,12 +28,7 @@
   
   // Update the sortedMatches computed property
   $: sortedMatches = sortScoreboardGames(matches);
-  
-  // Handle image loading errors
-  function handleImageError(event) {
-    event.target.src = '/images/placeholder-team.svg';
-  }
-  
+
   // Helper function to get team background style
   function getTeamStyle(team) {
     return getGradientStyleFromColor(team?.color);

@@ -1,7 +1,9 @@
 <script>
   import { fade } from 'svelte/transition';
   import { goto } from '$app/navigation';
+  import { FADE_DELAYED, FADE_CONTENT, fadeStagger } from '$lib/constants/transitions';
   import { hexToRgb } from '$lib/utils/teamColorUtils';
+  import { handleImageError } from '$lib/utils/imageUtils';
 
   export let leaderboard = null;
 
@@ -15,10 +17,6 @@
   $: teamSeoMap = leaderboard?.teamSeoMap || {};
   $: teamColorMap = leaderboard?.teamColorMap || {};
   $: teamSelectionsByEntryId = leaderboard?.teamSelectionsByEntryId || {};
-
-  function handleImageError(event) {
-    event.target.src = '/images/placeholder-team.svg';
-  }
 
   let svgFilter = `
   <svg width="0" height="0" style="position: absolute;">
@@ -165,14 +163,14 @@
   {#if !leaderboard}
     <div 
       class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center mb-4" 
-      in:fade={{ duration: 100, delay: 100 }}
+      in:fade={FADE_DELAYED}
     >
       Leaderboard data is unavailable.
     </div>
   {:else}
     <div 
       class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-xl"
-      in:fade={{ duration: 300, delay: 100 }}
+      in:fade={FADE_CONTENT}
     >
       
       <!-- Mobile View -->
@@ -198,7 +196,7 @@
           <div 
             class="border-b border-zinc-800 p-4 transition-colors duration-150
                    {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'}"
-            in:fade={{ duration: 100, delay: index * 50 }}
+            in:fade={fadeStagger(index)}
           >
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-3 flex-1">
@@ -266,7 +264,7 @@
               <tr 
                 class="transition-colors duration-150
                        {index % 2 === 0 ? 'bg-zinc-800/30 hover:bg-zinc-800/40' : 'hover:bg-zinc-800/20'}"
-                in:fade={{ duration: 100, delay: index * 50 }}
+                in:fade={fadeStagger(index)}
               >
                 <td class="px-6 py-2 whitespace-nowrap">
                   <span class="text-amber-500 font-bold bg-amber-500/10 rounded-full py-1 px-3">{getRankLabel(ranks[index])}</span>

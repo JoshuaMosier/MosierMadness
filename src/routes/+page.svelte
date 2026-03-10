@@ -4,6 +4,7 @@
   import Countdown from '$lib/components/Countdown.svelte';
   import Leaderboard from '$lib/components/Leaderboard.svelte';
   import { fade } from 'svelte/transition';
+  import { FADE_CONTENT } from '$lib/constants/transitions';
 
   export let data;
 
@@ -128,7 +129,7 @@
     </div>
   {/if}
   {#if stage === 'archive'}
-    <div class="space-y-8" in:fade={{ duration: 300, delay: 100 }}>
+    <div class="space-y-8" in:fade={FADE_CONTENT}>
       <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8">
         <div class="max-w-3xl mb-6">
           <div class="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-300">
@@ -174,7 +175,7 @@
       {/if}
     </div>
   {:else if stage === 'bracket-open'}
-    <div class="space-y-8" in:fade={{ duration: 300, delay: 100 }}>
+    <div class="space-y-8" in:fade={FADE_CONTENT}>
       <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8">
         <div class="max-w-3xl mb-6">
           <div class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">
@@ -207,7 +208,7 @@
       </div>
     </div>
   {:else}
-    <div in:fade={{ duration: 300, delay: 100 }}>
+    <div in:fade={FADE_CONTENT}>
       {#if !data.leaderboard}
         <div class="bg-red-950/50 border border-red-900 text-red-400 p-8 rounded-xl text-center">
           Leaderboard data is unavailable right now.
