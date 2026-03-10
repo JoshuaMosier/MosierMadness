@@ -1,35 +1,11 @@
 <script lang="ts">
-  import { supabase } from '$lib/supabase'
-  import { page } from '$app/stores'
+  import { enhance } from '$app/forms';
+  import { page } from '$app/stores';
 
-  let email = ''
-  let password = ''
-  let loading = false
-  let error: string | null = null
+  export let form;
 
-  $: resetSuccess = $page.url.searchParams.get('reset') === 'success'
-
-  async function handleLogin() {
-    try {
-      loading = true
-      const { data, error: err } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-
-      if (err) throw err
-
-      if (data.user) {
-        // Full reload ensures cookies are synced and all components
-        // mount with fresh auth state (fixes mobile login issues)
-        window.location.href = '/'
-      }
-    } catch (err) {
-      error = err.message
-    } finally {
-      loading = false
-    }
-  }
+  let loading = false;
+  $: resetSuccess = $page.url.searchParams.get('reset') === 'success';
 </script>
 
 <div class="container mx-auto px-4 py-8 flex justify-center items-center min-h-[50vh]">
@@ -47,13 +23,22 @@
           Password updated successfully. Sign in with your new password.
         </div>
       {/if}
-      <form class="space-y-6" on:submit|preventDefault={handleLogin}>
+      <form
+        method="POST"
+        class="space-y-6"
+        use:enhance={() => {
+          loading = true;
+          return async ({ update }) => {
+            loading = false;
+            await update();
+          };
+        }}
+      >
         <div>
           <label for="email" class="block text-sm font-medium text-zinc-300 mb-2">
             Email address
           </label>
           <input
-            bind:value={email}
             id="email"
             name="email"
             type="email"
@@ -67,7 +52,6 @@
             Password
           </label>
           <input
-            bind:value={password}
             id="password"
             name="password"
             type="password"
@@ -76,8 +60,8 @@
           />
         </div>
 
-        {#if error}
-          <div class="text-red-500 text-sm bg-red-950/50 p-3 rounded-lg border border-red-900">{error}</div>
+        {#if form?.error}
+          <div class="text-red-500 text-sm bg-red-950/50 p-3 rounded-lg border border-red-900">{form.error}</div>
         {/if}
 
         <div>
@@ -106,10 +90,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  :global(body) {
-    background-color: #18181b;
-    color: #f4f4f5;
-  }
-</style>

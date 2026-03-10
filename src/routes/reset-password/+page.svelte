@@ -1,40 +1,10 @@
 <script lang="ts">
-  import { supabase } from '$lib/supabase'
+  import { enhance } from '$app/forms';
 
-  let email = ''
-  let loading = false
-  let error: string | null = null
-  let success = false
+  export let form;
 
-  async function handleResetRequest() {
-    try {
-      loading = true
-      error = null
-      
-      const { data, error: err } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password/update`
-      })
-
-      if (err) {
-        console.error('Detailed reset password error:', {
-          message: err.message,
-          status: err.status,
-          name: err.name,
-          details: err,
-          data: data
-        })
-        throw err
-      }
-      
-      success = true
-    } catch (err) {
-      console.error('Full error object:', err)
-      error = err.message || 'An unexpected error occurred'
-      success = false
-    } finally {
-      loading = false
-    }
-  }
+  let loading = false;
+  $: success = form?.success === true;
 </script>
 
 <div class="container mx-auto px-4 py-8 flex justify-center items-center min-h-[50vh]">
@@ -49,13 +19,22 @@
       </div>
 
       {#if !success}
-        <form class="space-y-6" on:submit|preventDefault={handleResetRequest}>
+        <form
+          method="POST"
+          class="space-y-6"
+          use:enhance={() => {
+            loading = true;
+            return async ({ update }) => {
+              loading = false;
+              await update();
+            };
+          }}
+        >
           <div>
             <label for="email" class="block text-sm font-medium text-zinc-300 mb-2">
               Email address
             </label>
             <input
-              bind:value={email}
               id="email"
               name="email"
               type="email"
@@ -64,8 +43,8 @@
             />
           </div>
 
-          {#if error}
-            <div class="text-red-500 text-sm bg-red-950/50 p-3 rounded-lg border border-red-900">{error}</div>
+          {#if form?.error}
+            <div class="text-red-500 text-sm bg-red-950/50 p-3 rounded-lg border border-red-900">{form.error}</div>
           {/if}
 
           <div>
@@ -101,10 +80,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  :global(body) {
-    background-color: #18181b;
-    color: #f4f4f5;
-  }
-</style> 

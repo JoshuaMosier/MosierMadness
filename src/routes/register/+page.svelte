@@ -1,64 +1,9 @@
-<!-- src/routes/register/+page.svelte -->
 <script lang="ts">
-  import { supabase } from '$lib/supabase'
-  import { goto } from '$app/navigation'
+  import { enhance } from '$app/forms';
 
-  let firstName = ''
-  let lastName = ''
-  let email = ''
-  let password = ''
-  let loading = false
-  let error: string | null = null
+  export let form;
 
-  async function handleRegister() {
-    try {
-      loading = true
-      
-      // Validate inputs
-      if (!firstName?.trim() || !lastName?.trim() || !email?.trim() || !password?.trim()) {
-        throw new Error('All fields are required')
-      }
-
-      const { data, error: err } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password.trim(),
-        options: {
-          data: {
-            first_name: firstName.trim(),
-            last_name: lastName.trim()
-          }
-        }
-      })
-
-      if (err) {
-        console.error('Registration error:', err)
-        throw err
-      }
-
-      if (data.user) {
-        // Sign in the user immediately after registration
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password.trim()
-        })
-
-        if (signInError) {
-          throw signInError
-        }
-
-        // Full reload ensures cookies are synced and all components
-        // mount with fresh auth state (fixes mobile login issues)
-        window.location.href = '/'
-      } else {
-        error = 'No user data returned from registration'
-      }
-    } catch (err) {
-      console.error('Caught error:', err)
-      error = err.message || 'An error occurred during registration'
-    } finally {
-      loading = false
-    }
-  }
+  let loading = false;
 </script>
 
 <div class="container mx-auto px-4 py-8 flex justify-center items-center min-h-[50vh]">
@@ -72,13 +17,22 @@
         </h1>
       </div>
 
-      <form class="space-y-6" on:submit|preventDefault={handleRegister}>
+      <form
+        method="POST"
+        class="space-y-6"
+        use:enhance={() => {
+          loading = true;
+          return async ({ update }) => {
+            loading = false;
+            await update();
+          };
+        }}
+      >
         <div>
           <label for="firstName" class="block text-sm font-medium text-zinc-300 mb-2">
             First Name
           </label>
           <input
-            bind:value={firstName}
             id="firstName"
             name="firstName"
             type="text"
@@ -92,7 +46,6 @@
             Last Name
           </label>
           <input
-            bind:value={lastName}
             id="lastName"
             name="lastName"
             type="text"
@@ -106,7 +59,6 @@
             Email address
           </label>
           <input
-            bind:value={email}
             id="email"
             name="email"
             type="email"
@@ -120,7 +72,6 @@
             Password
           </label>
           <input
-            bind:value={password}
             id="password"
             name="password"
             type="password"
@@ -129,8 +80,8 @@
           />
         </div>
 
-        {#if error}
-          <div class="text-red-500 text-sm bg-red-950/50 p-3 rounded-lg border border-red-900">{error}</div>
+        {#if form?.error}
+          <div class="text-red-500 text-sm bg-red-950/50 p-3 rounded-lg border border-red-900">{form.error}</div>
         {/if}
 
         <div>
@@ -153,10 +104,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  :global(body) {
-    background-color: #18181b;
-    color: #f4f4f5;
-  }
-</style>
