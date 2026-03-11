@@ -8,7 +8,8 @@ export async function GET({ url, locals: { supabase } }) {
 	if (code) {
 		const { error } = await supabase.auth.exchangeCodeForSession(code);
 		if (!error) {
-			throw redirect(303, `/${next.slice(1)}`);
+			const path = next.startsWith('/') ? next : `/${next}`;
+			throw redirect(303, path);
 		}
 	}
 

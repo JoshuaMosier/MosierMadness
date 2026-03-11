@@ -3,6 +3,8 @@
   import BracketView from '$lib/components/BracketView.svelte';
   import { fade } from 'svelte/transition';
   import { FADE_QUICK, FADE_DELAYED, FADE_CONTENT } from '$lib/constants/transitions';
+  import { formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils';
+  import Alert from '$lib/components/Alert.svelte';
   export let data;
 
   let loading = false;
@@ -18,30 +20,16 @@
   const entrySeasonYear = data.tournamentSettings?.entrySeasonYear || new Date().getFullYear();
   const entriesOpen = tournamentStage === 'bracket-open';
 
-  // Helper function to format team string (e.g., "1 Houston")
   function formatTeamString(team) {
     if (!team) return null;
-    return `${team.seed} ${team.name}`;
+    return formatTeamSelection(team);
   }
 
-  // Helper function to parse team string back to an object
   function parseTeamString(teamString) {
-    if (!teamString) return null;
-    
-    const spaceIndex = teamString.indexOf(' ');
-    if (spaceIndex === -1) return null;
-    
-    const seed = parseInt(teamString.substring(0, spaceIndex));
-    const name = teamString.substring(spaceIndex + 1);
-    
-    // Find the team in firstRoundTeams to get the seoName
-    const teamData = firstRoundTeams.find(t => t.seed === seed && t.name === name);
-    
-    return {
-      seed,
-      name,
-      seoName: teamData?.seoName || ''
-    };
+    const parsed = parseTeamSelection(teamString);
+    if (!parsed) return null;
+    const teamData = firstRoundTeams.find(t => t.seed === parsed.seed && t.name === parsed.name);
+    return { ...parsed, seoName: teamData?.seoName || '' };
   }
 
   // Function to transform bracket data into the format expected by BracketView
@@ -361,9 +349,8 @@
       </div>
     </div>
   {:else if error}
-    <div class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center" 
-         in:fade={FADE_DELAYED}>
-      {error}
+    <div in:fade={FADE_DELAYED}>
+      <Alert message={error} center />
     </div>
   {:else if !user}
     <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center"
