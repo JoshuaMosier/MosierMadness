@@ -424,6 +424,8 @@ export async function getPastWinnersPageData() {
       notes: season.notes,
       name: winner?.displayName || null,
       slug: winner?.slug || null,
+      winningScore: season.winningScore,
+      fieldSize: season.fieldSize,
       isChampionYear: season.status === 'completed',
       highlight: season.year === latestCompletedYear && season.status === 'completed',
       special: season.status !== 'completed',
@@ -457,9 +459,64 @@ export async function getPastWinnersPageData() {
   const maxWins = leaderboard[0]?.count || 0;
   const topWinners = leaderboard.filter(entry => entry.count === maxWins);
 
+  // Build season standings keyed by year
+  const seasonStandings = {};
+  for (const season of data.seasons) {
+    const yearResults = data.resultsByYear.get(season.year);
+    if (!yearResults || yearResults.length === 0) {
+      continue;
+    }
+
+    seasonStandings[season.year] = [...yearResults]
+      .sort((a, b) => a.finalRank - b.finalRank)
+      .map(result => {
+        const person = data.peopleById.get(result.personId);
+        return {
+          rank: result.finalRank,
+          name: person?.displayName || result.sourceDisplayName || 'Unknown',
+          slug: person?.slug || null,
+          totalPoints: result.totalPoints,
+          correctGames: result.correctGames,
+        };
+      });
+  }
+
+  // Build player directory with aggregates
+  const aggregates = buildPersonAggregates(data);
+  const playerDirectory = aggregates
+    .filter(agg => agg.appearances > 0)
+    .map(agg => {
+      const percentiles = agg.results
+        .map(result => {
+          const yearEntries = data.resultsByYear.get(result.year);
+          const fieldSize = yearEntries ? yearEntries.length : 0;
+          if (result.finalRank && fieldSize > 1) {
+            return ((fieldSize - result.finalRank) / (fieldSize - 1)) * 100;
+          }
+          return null;
+        })
+        .filter(pct => pct !== null);
+
+      const averagePercentile = percentiles.length
+        ? Math.round(percentiles.reduce((sum, pct) => sum + pct, 0) / percentiles.length)
+        : null;
+
+      return {
+        name: agg.person.displayName,
+        slug: agg.person.slug,
+        appearances: agg.appearances,
+        titles: agg.titles,
+        averagePercentile,
+        bestFinish: agg.bestFinish,
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   return {
     winners,
     leaderboard,
+    seasonStandings,
+    playerDirectory,
     summary: {
       totalSeasons: data.seasons.length,
       completedTournaments: completedSeasons.length,
