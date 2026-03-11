@@ -21,10 +21,8 @@
     }
   }
 
-  // Dynamic imports for archive mode game (avoids SSR issues with Matter.js)
-  let BasketballGame = null;
-  let GameLeaderboard = null;
-  let gameLeaderboard;
+  // Dynamic import for archive mode game (avoids SSR issues with Matter.js)
+  let BasketballGameModule = null;
   let userId = null;
 
   onMount(async () => {
@@ -34,51 +32,9 @@
     const { data: { user } } = await supabase.auth.getUser();
     userId = user?.id || null;
 
-    const [gameModule, leaderboardModule] = await Promise.all([
-      import('$lib/components/BasketballGame.svelte'),
-      import('$lib/components/GameLeaderboard.svelte')
-    ]);
-    BasketballGame = gameModule.default;
-    GameLeaderboard = leaderboardModule.default;
+    const module = await import('$lib/components/BasketballGameModule.svelte');
+    BasketballGameModule = module.default;
   });
-
-  async function handleGameOver({ score, madeShots }) {
-    if (!userId) return;
-
-    try {
-      await fetch('/api/game-scores', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score, madeShots })
-      });
-      gameLeaderboard?.refresh();
-    } catch (err) {
-      console.error('Failed to submit score:', err);
-    }
-  }
-
-  const archiveCards = [
-    {
-      href: '/past-winners',
-      title: 'Hall of Champions',
-      description: 'Past winners and pool history.',
-    },
-    {
-      href: '/stats',
-      title: 'Tournament Records',
-      description: 'All-time stats and records.',
-    },
-    {
-      href: '/scores',
-      title: 'Today\'s NCAA Scores',
-      description: 'Live scores from today\'s games.',
-    },
-    {
-      href: '/login',
-      title: 'Get Account Ready',
-      description: 'Sign in before entries open.',
-    },
-  ];
 
   const bracketOpenCards = [
     {
@@ -130,42 +86,30 @@
   {/if}
   {#if stage === 'archive'}
     <div class="space-y-8" in:fade={FADE_CONTENT}>
-      <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8">
-        <div class="max-w-3xl mb-6">
-          <div class="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-300">
-            Pre-Tournament
-          </div>
-          <h2 class="mt-4 text-3xl md:text-4xl font-semibold text-zinc-100">Mosier Madness returns soon</h2>
-          <p class="mt-3 text-sm text-zinc-500">
-            Upcoming entry season: {settings.entrySeasonYear} | Archive on display: {settings.displaySeasonYear}
-          </p>
-        </div>
-
-        <Countdown
-          title="Countdown to Bracket Reveal"
-          targetAt={data.frontDoor?.bracketRevealAt}
-          eventLabel="Selection Sunday"
-        />
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {#each archiveCards as card}
-          <a href={card.href} class="rounded-xl border border-zinc-800 bg-zinc-900 p-5 hover:border-amber-600/40 hover:bg-zinc-800/80 transition-colors">
-            <div class="text-lg font-semibold text-zinc-100">{card.title}</div>
-            <p class="mt-2 text-sm leading-6 text-zinc-400">{card.description}</p>
-          </a>
-        {/each}
-      </div>
-
-      {#if BasketballGame}
-        <div class="relative">
-          <svelte:component this={BasketballGame} onGameOver={handleGameOver} />
-          {#if userId && GameLeaderboard}
-            <div class="hidden xl:block absolute top-6 -right-72 w-64">
-              <svelte:component this={GameLeaderboard} {userId} bind:this={gameLeaderboard} />
+      <div class="relative rounded-2xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-amber-600/5 via-transparent to-amber-900/5 pointer-events-none"></div>
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent"></div>
+        <div class="relative p-6 md:p-10 text-center space-y-8">
+          <div>
+            <div class="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-300">
+              Pre-Tournament
             </div>
-          {/if}
+            <h2 class="mt-4 text-3xl md:text-4xl font-semibold text-zinc-100">Mosier Madness returns soon</h2>
+            <p class="mt-3 text-sm text-zinc-500">
+              {settings.entrySeasonYear} Entry Season &middot; {settings.displaySeasonYear} Archive
+            </p>
+          </div>
+
+          <Countdown
+            title="Countdown to Bracket Reveal"
+            targetAt={data.frontDoor?.bracketRevealAt}
+            eventLabel="Selection Sunday"
+          />
         </div>
+      </div>
+
+      {#if BasketballGameModule}
+        <svelte:component this={BasketballGameModule} {userId} />
       {:else if stage === 'archive'}
         <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center">
           <div class="h-64 flex items-center justify-center">

@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { onMount, createEventDispatcher } from 'svelte';
+    import { onMount } from 'svelte';
     import Matter from 'matter-js';
 
     export let onGameOver: ((data: { score: number; madeShots: number }) => void) | null = null;
+    export let onScore: ((data: { score: number; madeShots: number }) => void) | null = null;
 
     let gameContainer: HTMLDivElement;
     let scoreElement: HTMLDivElement;
@@ -541,11 +542,15 @@
                     if (typeof localStorage !== 'undefined') localStorage.setItem('easter-egg-high-score', String(highScore));
                 }
                 if (scoreElement) {
-                    scoreElement.style.transform = 'scale(1.5)';
-                    setTimeout(() => { scoreElement.style.transform = 'scale(1)'; }, 300);
+                    const valueEl = scoreElement.querySelector('.score-value') as HTMLElement;
+                    if (valueEl) {
+                        valueEl.style.transform = 'scale(1.5)';
+                        setTimeout(() => { valueEl.style.transform = 'scale(1)'; }, 300);
+                    }
                 }
 
                 createScoreEffect(ballPos.x, ballPos.y, isSwish, points);
+                if (onScore) onScore({ score, madeShots });
             }
         }
 
@@ -1003,8 +1008,6 @@
                     <span class="shot-emoji">🏀</span>
                 {/each}
             </span>
-            <span class="score-divider">·</span>
-            <span class="high-score-display">Best: {highScore}</span>
         </div>
 
         {#if streak >= 2}
@@ -1069,17 +1072,17 @@
         position: absolute;
         top: 20px;
         left: 20px;
+        right: 140px;
         font-size: 24px;
         font-weight: 700;
         color: #fef3c7;
         text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-        transition: transform 0.3s ease;
         z-index: 1000;
         display: flex;
         align-items: center;
         gap: 8px;
     }
-    .score-value { color: #fbbf24; font-size: 28px; }
+    .score-value { color: #fbbf24; font-size: 28px; transition: transform 0.3s ease; display: inline-block; }
     .score-divider { opacity: 0.5; }
     .shots-remaining {
         display: inline-flex;
@@ -1298,15 +1301,16 @@
 
     @media (max-width: 640px) {
         .instructions {
-            font-size: 13px;
-            padding: 8px 14px;
+            font-size: 11px;
+            padding: 6px 12px;
             white-space: normal;
             text-align: center;
-            max-width: 90%;
+            max-width: 85%;
         }
         .score {
             font-size: 18px;
             gap: 5px;
+            right: 110px;
         }
         .score-value { font-size: 22px; }
         .shot-emoji { font-size: 13px; }

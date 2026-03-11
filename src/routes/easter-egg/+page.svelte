@@ -1,23 +1,16 @@
 <script>
-	import BasketballGame from '$lib/components/BasketballGame.svelte';
+	import BasketballGameModule from '$lib/components/BasketballGameModule.svelte';
 	import { supabase } from '$lib/supabase';
+	import { onMount } from 'svelte';
 
-	async function handleGameOver({ score, madeShots }) {
+	let userId = null;
+
+	onMount(async () => {
 		const { data: { user } } = await supabase.auth.getUser();
-		if (!user) return;
-
-		try {
-			await fetch('/api/game-scores', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ score, madeShots })
-			});
-		} catch (err) {
-			console.error('Failed to submit score:', err);
-		}
-	}
+		userId = user?.id || null;
+	});
 </script>
 
 <div class="max-w-7xl mx-auto px-4 py-8">
-	<BasketballGame onGameOver={handleGameOver} />
+	<BasketballGameModule {userId} />
 </div>
