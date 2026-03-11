@@ -604,6 +604,17 @@ export async function getPlayerProfileData(slug) {
     }
   }
 
+  // Enrich yearly rows with field size and percentile
+  for (const row of yearlyRows.values()) {
+    const yearEntries = data.resultsByYear.get(row.year);
+    row.fieldSize = yearEntries ? yearEntries.length : null;
+    if (row.finalRank && row.fieldSize && row.fieldSize > 1) {
+      row.percentile = ((row.fieldSize - row.finalRank) / (row.fieldSize - 1)) * 100;
+    } else {
+      row.percentile = null;
+    }
+  }
+
   const yearlyResults = [...yearlyRows.values()].sort((a, b) => b.year - a.year);
   const appearances = results.length;
   const averageFinish = appearances
@@ -612,6 +623,21 @@ export async function getPlayerProfileData(slug) {
   const bestFinish = appearances ? Math.min(...results.map(result => result.finalRank)) : null;
   const bestScore = appearances ? Math.max(...results.map(result => result.totalPoints || 0)) : null;
   const bestGames = appearances ? Math.max(...results.map(result => result.correctGames || 0)) : null;
+
+  const validScores = results
+    .map(result => result.totalPoints)
+    .filter(points => points !== null && points !== undefined && Number.isFinite(points));
+  const averageScore = validScores.length
+    ? validScores.reduce((sum, score) => sum + score, 0) / validScores.length
+    : null;
+
+  const percentiles = yearlyResults
+    .map(row => row.percentile)
+    .filter(pct => pct !== null);
+  const averagePercentile = percentiles.length
+    ? percentiles.reduce((sum, pct) => sum + pct, 0) / percentiles.length
+    : null;
+
   const profileContext = await getProfileContextForPerson(person);
 
   return {
@@ -626,6 +652,8 @@ export async function getPlayerProfileData(slug) {
       bestFinish,
       bestScore,
       bestGames,
+      averageScore: averageScore === null ? null : formatStatNumber(averageScore, 1),
+      averagePercentile: averagePercentile === null ? null : formatStatNumber(averagePercentile, 0),
     },
     currentAccount: profileContext,
   };

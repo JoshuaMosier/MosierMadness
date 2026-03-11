@@ -21,26 +21,34 @@
     </p>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-12">
+  <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 mb-12">
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-      <div class="text-sm text-zinc-500 uppercase">Titles</div>
-      <div class="text-4xl font-bold text-amber-500 mt-2">{summary.titles}</div>
+      <div class="text-xs text-zinc-500 uppercase">Titles</div>
+      <div class="text-3xl font-bold text-amber-500 mt-2">{summary.titles}</div>
     </div>
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-      <div class="text-sm text-zinc-500 uppercase">Appearances</div>
-      <div class="text-4xl font-bold text-amber-500 mt-2">{summary.appearances}</div>
+      <div class="text-xs text-zinc-500 uppercase">Appearances</div>
+      <div class="text-3xl font-bold text-amber-500 mt-2">{summary.appearances}</div>
     </div>
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-      <div class="text-sm text-zinc-500 uppercase">Average Finish</div>
-      <div class="text-4xl font-bold text-amber-500 mt-2">{summary.averageFinish || 'N/A'}</div>
+      <div class="text-xs text-zinc-500 uppercase whitespace-nowrap">Avg Pctile</div>
+      <div class="text-3xl font-bold text-amber-500 mt-2">{summary.averagePercentile ? `${summary.averagePercentile}%` : 'N/A'}</div>
     </div>
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-      <div class="text-sm text-zinc-500 uppercase">Best Finish</div>
-      <div class="text-4xl font-bold text-amber-500 mt-2">{summary.bestFinish || 'N/A'}</div>
+      <div class="text-xs text-zinc-500 uppercase">Avg Finish</div>
+      <div class="text-3xl font-bold text-amber-500 mt-2">{summary.averageFinish || 'N/A'}</div>
     </div>
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-      <div class="text-sm text-zinc-500 uppercase">Best Score</div>
-      <div class="text-4xl font-bold text-amber-500 mt-2">{summary.bestScore || 'N/A'}</div>
+      <div class="text-xs text-zinc-500 uppercase">Best Finish</div>
+      <div class="text-3xl font-bold text-amber-500 mt-2">{summary.bestFinish || 'N/A'}</div>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+      <div class="text-xs text-zinc-500 uppercase">Avg Score</div>
+      <div class="text-3xl font-bold text-amber-500 mt-2">{summary.averageScore || 'N/A'}</div>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+      <div class="text-xs text-zinc-500 uppercase">Best Score</div>
+      <div class="text-3xl font-bold text-amber-500 mt-2">{summary.bestScore || 'N/A'}</div>
     </div>
   </div>
 
@@ -81,15 +89,16 @@
       <h2 class="text-2xl font-semibold text-zinc-100">Year-by-Year Results</h2>
     </div>
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[720px] table-fixed">
+      <table class="w-full min-w-[820px] table-fixed">
         <thead class="bg-zinc-800 text-zinc-300 text-xs uppercase">
           <tr>
             <th class="px-4 py-3 text-left w-20">Year</th>
             <th class="px-4 py-3 text-left w-28">Result</th>
-            <th class="px-4 py-3 text-left w-20">Rank</th>
-            <th class="px-4 py-3 text-left w-24">Score</th>
-            <th class="px-4 py-3 text-left w-24">Games</th>
-            <th class="px-4 py-3 text-left w-64">Notes</th>
+            <th class="px-4 py-3 text-left w-24">Rank</th>
+            <th class="px-4 py-3 text-left w-20">Pctile</th>
+            <th class="px-4 py-3 text-left w-20">Score</th>
+            <th class="px-4 py-3 text-left w-20">Games</th>
+            <th class="px-4 py-3 text-left">Notes</th>
           </tr>
         </thead>
         <tbody>
@@ -103,7 +112,8 @@
                   Entrant
                 {/if}
               </td>
-              <td class="px-4 py-4 text-zinc-300">{result.finalRank || '-'}</td>
+              <td class="px-4 py-4 text-zinc-300">{result.finalRank ? `${result.finalRank} / ${result.fieldSize || '?'}` : '-'}</td>
+              <td class="px-4 py-4 text-zinc-300">{result.percentile !== null && result.percentile !== undefined ? `${Math.round(result.percentile)}%` : '-'}</td>
               <td class="px-4 py-4 text-zinc-300">{result.totalPoints ?? '-'}</td>
               <td class="px-4 py-4 text-zinc-300">{result.correctGames ?? '-'}</td>
               <td class="px-4 py-4 text-zinc-400 whitespace-normal break-words">{result.notes || '-'}</td>
