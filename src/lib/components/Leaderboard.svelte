@@ -4,6 +4,7 @@
   import { FADE_DELAYED, FADE_CONTENT, fadeStagger } from '$lib/constants/transitions';
   import { hexToRgb } from '$lib/utils/teamColorUtils';
   import { handleImageError } from '$lib/utils/imageUtils';
+  import Alert from '$lib/components/Alert.svelte';
 
   export let leaderboard = null;
 
@@ -161,11 +162,8 @@
   {@html svgFilter}
   
   {#if !leaderboard}
-    <div 
-      class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center mb-4" 
-      in:fade={FADE_DELAYED}
-    >
-      Leaderboard data is unavailable.
+    <div in:fade={FADE_DELAYED}>
+      <Alert center class="mb-4">Leaderboard data is unavailable.</Alert>
     </div>
   {:else}
     <div 

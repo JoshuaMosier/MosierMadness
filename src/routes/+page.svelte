@@ -3,6 +3,8 @@
   import { page } from '$app/stores';
   import Countdown from '$lib/components/Countdown.svelte';
   import Leaderboard from '$lib/components/Leaderboard.svelte';
+  import Alert from '$lib/components/Alert.svelte';
+  import { isArchive, isBracketOpen } from '$lib/utils/stageUtils';
   import { fade } from 'svelte/transition';
   import { FADE_CONTENT } from '$lib/constants/transitions';
 
@@ -79,12 +81,12 @@
 
 <div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
   {#if authError}
-    <div class="bg-red-950/50 border border-red-900 text-red-400 p-4 rounded-xl flex items-center justify-between">
+    <Alert class="flex items-center justify-between rounded-xl">
       <span>{authError}. <a href="/reset-password" class="text-amber-500 hover:text-amber-400 underline">Request a new link</a></span>
       <button on:click={() => authError = null} class="text-red-400 hover:text-red-300 ml-4">&times;</button>
-    </div>
+    </Alert>
   {/if}
-  {#if stage === 'archive'}
+  {#if isArchive(stage)}
     <div class="space-y-8" in:fade={FADE_CONTENT}>
       <div class="relative rounded-2xl border border-zinc-800 bg-zinc-900 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-amber-600/5 via-transparent to-amber-900/5 pointer-events-none"></div>
@@ -110,7 +112,7 @@
 
       {#if BasketballGameModule}
         <svelte:component this={BasketballGameModule} {userId} />
-      {:else if stage === 'archive'}
+      {:else if isArchive(stage)}
         <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center">
           <div class="h-64 flex items-center justify-center">
             <div class="animate-pulse text-zinc-500">Loading game...</div>
@@ -118,7 +120,7 @@
         </div>
       {/if}
     </div>
-  {:else if stage === 'bracket-open'}
+  {:else if isBracketOpen(stage)}
     <div class="space-y-8" in:fade={FADE_CONTENT}>
       <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8">
         <div class="max-w-3xl mb-6">
@@ -154,9 +156,7 @@
   {:else}
     <div in:fade={FADE_CONTENT}>
       {#if !data.leaderboard}
-        <div class="bg-red-950/50 border border-red-900 text-red-400 p-8 rounded-xl text-center">
-          Leaderboard data is unavailable right now.
-        </div>
+        <Alert center class="p-8 rounded-xl">Leaderboard data is unavailable right now.</Alert>
       {:else}
         <Leaderboard leaderboard={data.leaderboard} />
       {/if}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import Alert from '$lib/components/Alert.svelte';
 
   export let form;
 
@@ -80,9 +81,7 @@
           />
         </div>
 
-        {#if form?.error}
-          <div class="text-red-500 text-sm bg-red-950/50 p-3 rounded-lg border border-red-900">{form.error}</div>
-        {/if}
+        <Alert message={form?.error} compact />
 
         <div>
           <button

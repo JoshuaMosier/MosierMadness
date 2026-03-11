@@ -1,6 +1,7 @@
 <script>
   import { fade } from 'svelte/transition';
   import { FADE_QUICK, FADE_DELAYED, FADE_CONTENT } from '$lib/constants/transitions';
+  import Alert from '$lib/components/Alert.svelte';
 
   export let entries = [];
   export let loading = false;
@@ -16,9 +17,8 @@
       </div>
     </div>
   {:else if error}
-    <div class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center mb-4"
-         in:fade={FADE_DELAYED}>
-      {error}
+    <div in:fade={FADE_DELAYED}>
+      <Alert message={error} center class="mb-4" />
     </div>
   {:else}
     <div in:fade={FADE_CONTENT}>

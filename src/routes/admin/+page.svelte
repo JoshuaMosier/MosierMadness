@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
+  import Alert from '$lib/components/Alert.svelte';
 
   export let data;
 
@@ -402,9 +403,9 @@
       Loading admin controls...
     </div>
   {:else if !isAdmin}
-    <div class="bg-red-950/50 border border-red-900 text-red-400 rounded-xl p-8 text-center">
+    <Alert center class="rounded-xl p-8">
       You do not have access to this page.
-    </div>
+    </Alert>
   {:else}
     <div class="grid grid-cols-1 lg:grid-cols-[1.3fr_0.9fr] gap-6">
       <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
@@ -566,9 +567,7 @@
           Set this season as active
         </label>
 
-        {#if error}
-          <div class="mt-4 bg-red-950/50 border border-red-900 text-red-400 rounded-lg p-3">{error}</div>
-        {/if}
+        <Alert message={error} compact class="mt-4" />
 
         {#if success}
           <div class="mt-4 bg-emerald-950/40 border border-emerald-900 text-emerald-400 rounded-lg p-3">{success}</div>
@@ -752,9 +751,7 @@
         This creates people records, season results, and archived brackets from the submitted entries.
       </p>
 
-      {#if archiveError}
-        <div class="mb-4 bg-red-950/50 border border-red-900 text-red-400 rounded-lg p-3">{archiveError}</div>
-      {/if}
+      <Alert message={archiveError} compact class="mb-4" />
 
       {#if archiveSuccess}
         <div class="mb-4 bg-emerald-950/40 border border-emerald-900 text-emerald-400 rounded-lg p-3">{archiveSuccess}</div>
@@ -801,9 +798,7 @@
         Detect and merge duplicate person records created when profile names don't match historical canonical names (e.g. "Josh" vs "Joshua").
       </p>
 
-      {#if mergeError}
-        <div class="mb-4 bg-red-950/50 border border-red-900 text-red-400 rounded-lg p-3">{mergeError}</div>
-      {/if}
+      <Alert message={mergeError} compact class="mb-4" />
 
       {#if mergeResult}
         {#if mergeResult.merged.length === 0}
@@ -853,9 +848,7 @@
         class="input mb-4"
       />
 
-      {#if colorError}
-        <div class="mb-4 bg-red-950/50 border border-red-900 text-red-400 rounded-lg p-3">{colorError}</div>
-      {/if}
+      <Alert message={colorError} compact class="mb-4" />
 
       {#if colorSuccess}
         <div class="mb-4 bg-emerald-950/40 border border-emerald-900 text-emerald-400 rounded-lg p-3">{colorSuccess}</div>

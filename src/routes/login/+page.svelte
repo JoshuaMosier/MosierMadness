@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { page } from '$app/stores';
+  import Alert from '$lib/components/Alert.svelte';
 
   export let form;
 
@@ -19,9 +20,7 @@
         </h1>
       </div>
       {#if resetSuccess}
-        <div class="text-green-500 text-sm bg-green-950/50 p-3 rounded-lg border border-green-900 mb-6">
-          Password updated successfully. Sign in with your new password.
-        </div>
+        <Alert type="success" compact class="mb-6">Password updated successfully. Sign in with your new password.</Alert>
       {/if}
       <form
         method="POST"
@@ -60,9 +59,7 @@
           />
         </div>
 
-        {#if form?.error}
-          <div class="text-red-500 text-sm bg-red-950/50 p-3 rounded-lg border border-red-900">{form.error}</div>
-        {/if}
+        <Alert message={form?.error} compact />
 
         <div>
           <button

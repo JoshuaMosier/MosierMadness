@@ -1,6 +1,8 @@
 <script>
   import { fade } from 'svelte/transition';
   import { FADE_QUICK, FADE_DELAYED } from '$lib/constants/transitions';
+  import Alert from '$lib/components/Alert.svelte';
+  import { canViewScenarios } from '$lib/utils/stageUtils';
   import { onMount } from 'svelte';
   import { supabase } from '$lib/supabase';
   import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
@@ -17,7 +19,7 @@
   let loading = true;
   let error = null;
   const tournamentStage = data.tournamentSettings?.stage || 'archive';
-  const scenariosAvailable = tournamentStage === 'tournament-live';
+  const scenariosAvailable = canViewScenarios(tournamentStage);
   let liveBracketData = data.scenario.liveBracketData;
   let masterBracket = data.scenario.masterBracket || [];
   let teamSeoMap = data.scenario.teamSeoMap || {};
@@ -309,11 +311,8 @@
       </p>
     </div>
   {:else if error}
-    <div
-      class="bg-red-950/50 border border-red-900 text-red-500 p-4 rounded-lg text-center mb-4"
-      in:fade={FADE_DELAYED}
-    >
-      {error}
+    <div in:fade={FADE_DELAYED}>
+      <Alert message={error} center class="mb-4" />
     </div>
   {:else}
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">

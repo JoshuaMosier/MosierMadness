@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import Alert from '$lib/components/Alert.svelte';
 
   export let form;
 
@@ -43,9 +44,7 @@
             />
           </div>
 
-          {#if form?.error}
-            <div class="text-red-500 text-sm bg-red-950/50 p-3 rounded-lg border border-red-900">{form.error}</div>
-          {/if}
+          <Alert message={form?.error} compact />
 
           <div>
             <button
@@ -59,9 +58,7 @@
         </form>
       {:else}
         <div class="text-center space-y-4">
-          <div class="text-green-500 text-sm bg-green-950/50 p-3 rounded-lg border border-green-900">
-            Password reset link has been sent to your email address. Please check your inbox.
-          </div>
+          <Alert type="success" compact>Password reset link has been sent to your email address. Please check your inbox.</Alert>
           <a
             href="/login"
             class="inline-block text-amber-600 hover:text-amber-500 transition-colors duration-200"

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms'
+  import Alert from '$lib/components/Alert.svelte'
 
   export let form
 
@@ -19,7 +20,7 @@
 
       {#if form?.error}
         <div class="space-y-4 mb-6">
-          <div class="text-red-500 text-sm bg-red-950/50 p-3 rounded-lg border border-red-900">{form.error}</div>
+          <Alert message={form.error} compact />
           <a href="/reset-password" class="block text-center text-amber-600 hover:text-amber-500 transition-colors duration-200">
             Request a new reset link
           </a>
