@@ -1,4 +1,5 @@
 import { redirect, fail } from '@sveltejs/kit';
+import { safeRedirectPath } from '$lib/utils/redirectUtils';
 
 /** @type {import('./$types').Actions} */
 export const actions = {
@@ -18,7 +19,7 @@ export const actions = {
 		}
 
 		if (data.user) {
-			throw redirect(303, url.searchParams.get('redirect') || '/');
+			throw redirect(303, safeRedirectPath(url.searchParams.get('redirect')));
 		}
 
 		return fail(500, { error: 'An unexpected error occurred' });

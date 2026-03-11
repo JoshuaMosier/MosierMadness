@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { getTournamentSettings } from '$lib/server/tournament/settings';
 import { getTournamentSnapshot } from '$lib/server/tournament/snapshot';
 
-export async function load({ locals }) {
+export async function load({ locals, url }) {
   const tournamentSettings = await getTournamentSettings();
   const entrySeasonYear = tournamentSettings.entrySeasonYear;
 
@@ -11,7 +11,7 @@ export async function load({ locals }) {
     data: { user }
   } = await supabase.auth.getUser();
   if (!user) {
-    throw redirect(303, '/login');
+    throw redirect(303, `/login?redirect=${encodeURIComponent(url.pathname)}`);
   }
 
   const snapshot = await getTournamentSnapshot(tournamentSettings);

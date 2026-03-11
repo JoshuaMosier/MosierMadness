@@ -1,15 +1,15 @@
 import { redirect } from '@sveltejs/kit';
+import { safeRedirectPath } from '$lib/utils/redirectUtils';
 
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ url, locals: { supabase } }) {
 	const code = url.searchParams.get('code');
-	const next = url.searchParams.get('next') ?? '/';
+	const next = url.searchParams.get('redirect') ?? url.searchParams.get('next') ?? '/';
 
 	if (code) {
 		const { error } = await supabase.auth.exchangeCodeForSession(code);
 		if (!error) {
-			const path = next.startsWith('/') ? next : `/${next}`;
-			throw redirect(303, path);
+			throw redirect(303, safeRedirectPath(next));
 		}
 	}
 
