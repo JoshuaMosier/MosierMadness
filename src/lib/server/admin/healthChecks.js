@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { loadTeamColors, getAllTeamColors } from '../tournament/teamColors.js';
 import { getDailyNcaaScoreboard } from '../tournament/dailyScores.js';
 import { getTournamentSnapshot } from '../tournament/snapshot.js';
+import { isArchive, isTournamentLive } from '$lib/utils/stageUtils';
 
 const LOGO_DIRECTORY = fileURLToPath(new URL('../../../../static/images/team-logos/', import.meta.url));
 const IGNORED_LOGO_SLUGS = new Set([
@@ -90,11 +91,11 @@ function validateSettings(settings) {
     issues.push('Display season year is missing.');
   }
 
-  if (settings?.stage === 'archive' && !settings?.archiveScoreboardDate) {
+  if (isArchive(settings?.stage) && !settings?.archiveScoreboardDate) {
     issues.push('Archive stage is active without an archive scoreboard date.');
   }
 
-  if (settings?.stage === 'tournament-live' && (!settings?.tickerRounds || settings.tickerRounds.length === 0)) {
+  if (isTournamentLive(settings?.stage) && (!settings?.tickerRounds || settings.tickerRounds.length === 0)) {
     issues.push('Tournament-live stage is active without ticker rounds.');
   }
 

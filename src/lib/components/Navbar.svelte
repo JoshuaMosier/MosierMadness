@@ -3,6 +3,8 @@
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
   import { page } from '$app/stores';
+  import { canSubmitBracket, canViewEntries, canViewScenarios, isBracketOpen } from '$lib/utils/stageUtils';
+  import NavLink from '$lib/components/NavLink.svelte';
 
   export let stage = 'archive';
 
@@ -15,21 +17,16 @@
   // Get current path for active state
   $: currentPath = $page.url.pathname;
 
-  // Determine which nav links are disabled based on tournament stage
-  // archive: Submit Entry, Entries, Scenarios disabled
-  // bracket-open: Scenarios disabled
-  // tournament-live: Submit Entry disabled
-  // complete: Submit Entry, Scenarios disabled
   $: disabledLinks = {
-    '/bracket': stage === 'archive' || stage === 'tournament-live' || stage === 'complete',
-    '/entries': stage === 'archive',
-    '/scenarios': stage !== 'tournament-live',
+    '/bracket': !canSubmitBracket(stage),
+    '/entries': !canViewEntries(stage),
+    '/scenarios': !canViewScenarios(stage),
   };
 
   $: disabledReasons = {
     '/bracket': stage === 'archive' ? 'Available when brackets open' : 'Brackets are locked',
     '/entries': 'Available when brackets open',
-    '/scenarios': stage === 'bracket-open' ? 'Available during tournament' : 'Available during tournament',
+    '/scenarios': 'Available during tournament',
   };
   async function loadProfile(authUser) {
     if (!authUser) {
@@ -153,30 +150,13 @@
         <!-- Left Navigation Group -->
         <div class="flex-shrink-0 w-1/3 flex justify-end">
           <div class="flex items-center space-x-3">
-            <a href="/" class="nav-link">
-              <div class="nav-button {isActive('/') ? 'active' : ''}">Leaderboard</div>
-            </a>
-            {#if disabledLinks['/bracket']}
-              <span class="nav-link" title={disabledReasons['/bracket']} aria-label="Submit Entry - {disabledReasons['/bracket']}">
-                <div class="nav-button disabled">Submit Entry</div>
-              </span>
-            {:else}
-              <a href="/bracket" class="nav-link">
-                <div class="nav-button {isActive('/bracket') ? 'active' : ''}">Submit Entry</div>
-              </a>
-            {/if}
-            {#if disabledLinks['/entries']}
-              <span class="nav-link" title={disabledReasons['/entries']} aria-label="Entries - {disabledReasons['/entries']}">
-                <div class="nav-button disabled">Entries</div>
-              </span>
-            {:else}
-              <button on:click={handleEntriesClick} class="nav-link">
-                <div class="nav-button {isActive('/entries') ? 'active' : ''}">Entries</div>
-              </button>
-            {/if}
-            <a href="/live-bracket" class="nav-link">
-              <div class="nav-button {isActive('/live-bracket') ? 'active' : ''}">Live Bracket</div>
-            </a>
+            <NavLink href="/" label="Leaderboard" active={isActive('/')} />
+            <NavLink href="/bracket" label="Submit Entry" active={isActive('/bracket')}
+              disabled={disabledLinks['/bracket']} disabledReason={disabledReasons['/bracket']} />
+            <NavLink href="/entries" label="Entries" active={isActive('/entries')}
+              disabled={disabledLinks['/entries']} disabledReason={disabledReasons['/entries']}
+              onClick={handleEntriesClick} />
+            <NavLink href="/live-bracket" label="Live Bracket" active={isActive('/live-bracket')} />
           </div>
         </div>
 
@@ -199,34 +179,17 @@
         <!-- Right Navigation Group -->
         <div class="flex-shrink-0 w-1/3 flex justify-start">
           <div class="flex items-center space-x-3">
-            <a href="/past-winners" class="nav-link">
-              <div class="nav-button {isActive('/past-winners') ? 'active' : ''}">Past Winners</div>
-            </a>
-            <a href="/stats" class="nav-link">
-              <div class="nav-button {isActive('/stats') ? 'active' : ''}">Statistics</div>
-            </a>
-            {#if disabledLinks['/scenarios']}
-              <span class="nav-link" title={disabledReasons['/scenarios']} aria-label="Scenarios - {disabledReasons['/scenarios']}">
-                <div class="nav-button disabled">Scenarios</div>
-              </span>
-            {:else}
-              <a href="/scenarios" class="nav-link">
-                <div class="nav-button {isActive('/scenarios') ? 'active' : ''}">Scenarios</div>
-              </a>
-            {/if}
+            <NavLink href="/past-winners" label="Past Winners" active={isActive('/past-winners')} />
+            <NavLink href="/stats" label="Statistics" active={isActive('/stats')} />
+            <NavLink href="/scenarios" label="Scenarios" active={isActive('/scenarios')}
+              disabled={disabledLinks['/scenarios']} disabledReason={disabledReasons['/scenarios']} />
             {#if isAdmin}
-              <a href="/admin" class="nav-link">
-                <div class="nav-button {isActive('/admin') ? 'active' : ''}">Admin</div>
-              </a>
+              <NavLink href="/admin" label="Admin" active={isActive('/admin')} />
             {/if}
             {#if user}
-              <button on:click={handleLogout} class="nav-link">
-                <div class="nav-button">Logout</div>
-              </button>
+              <NavLink href="/" label="Logout" onClick={handleLogout} />
             {:else}
-              <a href="/login" class="nav-link">
-                <div class="nav-button {isActive('/login') ? 'active' : ''}">Login</div>
-              </a>
+              <NavLink href="/login" label="Login" active={isActive('/login')} />
             {/if}
           </div>
         </div>
@@ -244,32 +207,24 @@
     {#if isMenuOpen}
       <div class="md:hidden fixed inset-0 bg-black z-[20] pt-16">
         <div class="px-4 pt-2 pb-3 space-y-3">
-          <a href="/" class="mobile-nav-button {isActive('/') ? 'active' : ''}" on:click={closeMenu}>Leaderboard</a>
-          {#if disabledLinks['/bracket']}
-            <span class="mobile-nav-button disabled" title={disabledReasons['/bracket']} aria-label="Submit Entry - {disabledReasons['/bracket']}">Submit Entry</span>
-          {:else}
-            <a href="/bracket" class="mobile-nav-button {isActive('/bracket') ? 'active' : ''}" on:click={closeMenu}>Submit Entry</a>
-          {/if}
-          {#if disabledLinks['/entries']}
-            <span class="mobile-nav-button disabled" title={disabledReasons['/entries']} aria-label="Entries - {disabledReasons['/entries']}">Entries</span>
-          {:else}
-            <button on:click={handleEntriesClick} class="mobile-nav-button w-full {isActive('/entries') ? 'active' : ''}">Entries</button>
-          {/if}
-          <a href="/live-bracket" class="mobile-nav-button" on:click={closeMenu}>Live Bracket</a>
-          <a href="/past-winners" class="mobile-nav-button" on:click={closeMenu}>Past Winners</a>
-          <a href="/stats" class="mobile-nav-button" on:click={closeMenu}>Statistics</a>
-          {#if disabledLinks['/scenarios']}
-            <span class="mobile-nav-button disabled" title={disabledReasons['/scenarios']} aria-label="Scenarios - {disabledReasons['/scenarios']}">Scenarios</span>
-          {:else}
-            <a href="/scenarios" class="mobile-nav-button" on:click={closeMenu}>Scenarios</a>
-          {/if}
+          <NavLink mobile href="/" label="Leaderboard" active={isActive('/')} on:click={closeMenu} />
+          <NavLink mobile href="/bracket" label="Submit Entry" active={isActive('/bracket')}
+            disabled={disabledLinks['/bracket']} disabledReason={disabledReasons['/bracket']} on:click={closeMenu} />
+          <NavLink mobile href="/entries" label="Entries" active={isActive('/entries')}
+            disabled={disabledLinks['/entries']} disabledReason={disabledReasons['/entries']}
+            onClick={handleEntriesClick} />
+          <NavLink mobile href="/live-bracket" label="Live Bracket" active={isActive('/live-bracket')} on:click={closeMenu} />
+          <NavLink mobile href="/past-winners" label="Past Winners" active={isActive('/past-winners')} on:click={closeMenu} />
+          <NavLink mobile href="/stats" label="Statistics" active={isActive('/stats')} on:click={closeMenu} />
+          <NavLink mobile href="/scenarios" label="Scenarios" active={isActive('/scenarios')}
+            disabled={disabledLinks['/scenarios']} disabledReason={disabledReasons['/scenarios']} on:click={closeMenu} />
           {#if isAdmin}
-            <a href="/admin" class="mobile-nav-button" on:click={closeMenu}>Admin</a>
+            <NavLink mobile href="/admin" label="Admin" active={isActive('/admin')} on:click={closeMenu} />
           {/if}
           {#if user}
-            <button on:click={handleLogout} class="mobile-nav-button w-full">Logout</button>
+            <NavLink mobile href="/" label="Logout" onClick={handleLogout} />
           {:else}
-            <a href="/login" class="mobile-nav-button" on:click={closeMenu}>Login</a>
+            <NavLink mobile href="/login" label="Login" active={isActive('/login')} on:click={closeMenu} />
           {/if}
         </div>
       </div>

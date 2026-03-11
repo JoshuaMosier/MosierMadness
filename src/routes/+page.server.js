@@ -6,6 +6,7 @@ import {
   getEntryDeadlineAt,
   getTournamentSettings,
 } from '$lib/server/tournament/settings';
+import { hasLeaderboard } from '$lib/utils/stageUtils';
 
 export async function load({ depends }) {
   depends('app:tournament');
@@ -15,7 +16,7 @@ export async function load({ depends }) {
     entryDeadlineAt: getEntryDeadlineAt(settings.entrySeasonYear),
   };
 
-  if (settings.stage === 'bracket-open' || settings.stage === 'archive') {
+  if (!hasLeaderboard(settings.stage)) {
     return {
       frontDoor,
       leaderboard: null,

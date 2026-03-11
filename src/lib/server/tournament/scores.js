@@ -2,6 +2,7 @@ import { getDailyNcaaScoreboard } from '$lib/server/tournament/dailyScores';
 import { getScoreboardGamesForDate } from '$lib/server/tournament/snapshot';
 import { getCurrentOrNextTickerRound, getTournamentSettings } from '$lib/server/tournament/settings';
 import { sortScoreboardGames } from '$lib/utils/scoreboardUtils';
+import { isTournamentLive, isArchive, isComplete } from '$lib/utils/stageUtils';
 
 function dedupeGames(games) {
   return Array.from(new Map(games.map(game => [game.gameId, game])).values());
@@ -29,7 +30,7 @@ async function getCurrentRoundGames(settings) {
 export async function getTickerScores(explicitSettings = null) {
   const settings = explicitSettings || await getTournamentSettings();
 
-  if (settings.stage === 'tournament-live') {
+  if (isTournamentLive(settings.stage)) {
     return getCurrentRoundGames(settings);
   }
 
@@ -47,7 +48,7 @@ export async function getTournamentScores(dateValue = null, explicitSettings = n
     );
   }
 
-  if (settings.stage === 'archive' || settings.stage === 'complete') {
+  if (isArchive(settings.stage) || isComplete(settings.stage)) {
     return sortScoreboardGames(
       await getScoreboardGamesForDate(settings.archiveScoreboardDate, {
         settings,
@@ -56,7 +57,7 @@ export async function getTournamentScores(dateValue = null, explicitSettings = n
     );
   }
 
-  if (settings.stage === 'tournament-live') {
+  if (isTournamentLive(settings.stage)) {
     return getCurrentRoundGames(settings);
   }
 
