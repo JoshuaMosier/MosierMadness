@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { fade } from 'svelte/transition';
   import { FADE_QUICK, FADE_DELAYED } from '$lib/constants/transitions';
   import Alert from '$lib/components/Alert.svelte';
@@ -12,44 +12,45 @@
   import WinChancesTab from '$lib/components/scenarios/WinChancesTab.svelte';
   import FullStandingsTab from '$lib/components/scenarios/FullStandingsTab.svelte';
   import RootingGuideTab from '$lib/components/scenarios/RootingGuideTab.svelte';
+  import type { LiveBracketData, Entry, SimulationResult } from '$lib/types';
 
-  export let data;
+  export let data: any;
 
-  let entries = data.scenario.entries || [];
+  let entries: Entry[] = data.scenario.entries || [];
   let loading = true;
-  let error = null;
-  const tournamentStage = data.tournamentSettings?.stage || 'archive';
-  const scenariosAvailable = canViewScenarios(tournamentStage);
-  let liveBracketData = data.scenario.liveBracketData;
-  let masterBracket = data.scenario.masterBracket || [];
-  let teamSeoMap = data.scenario.teamSeoMap || {};
-  let remainingGames = [];
+  let error: string | null = null;
+  const tournamentStage: string = data.tournamentSettings?.stage || 'archive';
+  const scenariosAvailable: boolean = canViewScenarios(tournamentStage);
+  let liveBracketData: LiveBracketData = data.scenario.liveBracketData;
+  let masterBracket: string[] = data.scenario.masterBracket || [];
+  let teamSeoMap: Record<string, string> = data.scenario.teamSeoMap || {};
+  let remainingGames: number[] = [];
   let simulationInProgress = false;
   let scenariosCalculated = false;
   let totalScenarios = 0;
   let selectedTab = 'win';
   let displayMode = 'percent';
-  let currentUser = null;
+  let currentUser: any = null;
 
   // Match selections
-  let selectedWinners = {};
-  let matchSimulationDetails = [];
+  let selectedWinners: Record<number, string> = {};
+  let matchSimulationDetails: any[] = [];
   let hasSelections = false;
 
   // Results tracking
-  let userWinCounts = [];
-  let positionProbabilities = [];
+  let userWinCounts: any[] = [];
+  let positionProbabilities: any[] = [];
 
   // Root For tab
-  let selectedUser = null;
-  let teamWinContributions = {};
+  let selectedUser: string | null = null;
+  let teamWinContributions: Record<number, any> = {};
   let targetPosition = 1;
   let bestPossibleFinish = 1;
 
   // Engine state for Root For aggregation
-  let storedScenarioPositions = null;
-  let storedFilteredGames = [];
-  let entryIdToIndex = new Map();
+  let storedScenarioPositions: Uint8Array | null = null;
+  let storedFilteredGames: number[] = [];
+  let entryIdToIndex: Map<string, number> = new Map();
 
   onMount(async () => {
     try {
@@ -158,7 +159,7 @@
     }
   }
 
-  function selectWinner(gameId, team) {
+  function selectWinner(gameId: number, team: string): void {
     if (selectedWinners[gameId] === team) {
       delete selectedWinners[gameId];
     } else {
@@ -232,7 +233,7 @@
     scenariosCalculated = true;
   }
 
-  function calculateTeamContributions(userId) {
+  function calculateTeamContributions(userId: string): void {
     if (!scenariosCalculated || !userId || !storedScenarioPositions) return;
 
     teamWinContributions = {};
@@ -285,11 +286,11 @@
     }
   }
 
-  function handleSelectWinner({ gameId, team }) {
+  function handleSelectWinner({ gameId, team }: { gameId: number; team: string }): void {
     selectWinner(gameId, team);
   }
 
-  function handleUserChange(userId) {
+  function handleUserChange(userId: string): void {
     selectedUser = userId;
     calculateTeamContributions(userId);
   }

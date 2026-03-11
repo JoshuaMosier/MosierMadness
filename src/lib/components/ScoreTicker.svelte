@@ -1,16 +1,17 @@
-<script>
+<script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { getStatusColor, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
   import { handleImageError } from '$lib/utils/imageUtils';
+  import type { TournamentSettings, ScoreboardGame } from '$lib/types';
 
-  export let tournamentSettings = {};
-  export let tickerScores = [];
+  export let tournamentSettings: TournamentSettings | any = {};
+  export let tickerScores: ScoreboardGame[] = [];
 
   $: matches = tickerScores;
-  let duplicatedMatches = [];
-  let marqueeContent = null;
-  let rafId = null;
+  let duplicatedMatches: ScoreboardGame[] = [];
+  let marqueeContent: HTMLDivElement | null = null;
+  let rafId: number | null = null;
   const MARQUEE_DURATION_S = 900; /* 5× slower than original 320s */
 
   $: tournamentStage = tournamentSettings?.stage || 'archive';
@@ -21,7 +22,7 @@
       : 'No games scheduled at this time.';
   
   // Helper function to determine if a team is a winner
-  function isWinner(team) {
+  function isWinner(team: any): boolean {
     return team?.winner === true;
   }
   
@@ -32,16 +33,16 @@
   $: sortedGames = sortScoreboardGames(matches);
 
   // Helper function to get team background style
-  function getTeamStyle(team) {
+  function getTeamStyle(team: any): string {
     return getGradientStyleFromColor(team?.color);
   }
 
   // Helper function to get appropriate team name based on length
-  function getDisplayName(team) {
+  function getDisplayName(team: any): string {
     return team?.displayName || team?.name || '';
   }
 
-  function getGameHref(game) {
+  function getGameHref(game: any): string {
     return game?.isTournamentGame ? `/game/${game.gameId}` : '/scores';
   }
 
@@ -55,7 +56,7 @@
   }
 
   // JS-driven pixel-snapped marquee animation (avoids sub-pixel rendering stutter)
-  function tick(startTime) {
+  function tick(startTime: number): void {
     if (!marqueeContent || displayMode !== 'scroll' || !marqueeContent.offsetParent) return;
     const contentWidth = marqueeContent.scrollWidth;
     if (contentWidth <= 0) {

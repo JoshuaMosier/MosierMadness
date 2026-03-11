@@ -1,16 +1,17 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
   import { page } from '$app/stores';
   import { canSubmitBracket, canViewEntries, canViewScenarios, isBracketOpen } from '$lib/utils/stageUtils';
   import NavLink from '$lib/components/NavLink.svelte';
+  import type { TournamentStage } from '$lib/types';
 
-  export let stage = 'archive';
+  export let stage: TournamentStage = 'archive';
 
   let isMenuOpen = false;
-  let user = null;
-  let userEntry = null;
+  let user: any = null;
+  let userEntry: any = null;
   let isAdmin = false;
   let isSpinning = false;
 
@@ -28,7 +29,7 @@
     '/entries': 'Available when brackets open',
     '/scenarios': 'Available during tournament',
   };
-  async function loadProfile(authUser) {
+  async function loadProfile(authUser: any): Promise<void> {
     if (!authUser) {
       userEntry = null;
       isAdmin = false;
@@ -70,7 +71,7 @@
     isMenuOpen = false;
   }
 
-  async function handleLogout(event) {
+  async function handleLogout(event: Event): Promise<void> {
     event.preventDefault();
     try {
       await supabase.auth.signOut();
@@ -93,7 +94,7 @@
     closeMenu();
   }
 
-  function handleEasterEggClick(event) {
+  function handleEasterEggClick(event: Event): void {
     event.preventDefault();
     if (isSpinning) return; // Prevent multiple simultaneous spins
     
@@ -109,7 +110,7 @@
   }
 
   // Helper function to check if a path is active
-  function isActive(path) {
+  function isActive(path: string): boolean {
     if (path === '/') {
       return currentPath === '/';
     }

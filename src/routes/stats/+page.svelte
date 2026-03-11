@@ -1,14 +1,14 @@
-<script>
-  export let data;
+<script lang="ts">
+  export let data: any;
 
   const { categories, summary } = data;
 
-  function hasSeasonColumns(category) {
-    return category.records.some(record => record.year !== undefined);
+  function hasSeasonColumns(category: any): boolean {
+    return category.records.some((record: any) => record.year !== undefined);
   }
 
-  function hasAggregateColumns(category) {
-    return category.records.some(record => record.yearsPlayed !== undefined);
+  function hasAggregateColumns(category: any): boolean {
+    return category.records.some((record: any) => record.yearsPlayed !== undefined);
   }
 </script>
 

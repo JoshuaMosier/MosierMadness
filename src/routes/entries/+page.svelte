@@ -1,10 +1,11 @@
-<script>
+<script lang="ts">
   import EntriesList from '$lib/components/EntriesList.svelte';
   import EntrantBracketView from '$lib/components/EntrantBracketView.svelte';
   import { isArchive, isBracketOpen, hasLeaderboard } from '$lib/utils/stageUtils';
+  import type { TournamentStage } from '$lib/types';
 
-  export let data;
-  const stage = data.tournamentSettings?.stage || 'archive';
+  export let data: any;
+  const stage: TournamentStage = data.tournamentSettings?.stage || 'archive';
   const showEntriesList = isBracketOpen(stage);
   const showBracketView = hasLeaderboard(stage);
   const pageTitle = showEntriesList ? 'Entrants' : 'Tournament Entries';

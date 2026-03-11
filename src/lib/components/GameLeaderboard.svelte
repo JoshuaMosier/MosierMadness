@@ -1,11 +1,11 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 
-	export let userId = null;
-	export let showTotalPoints = false;
-	export let liveScore = 0;
+	export let userId: string | null = null;
+	export let showTotalPoints: boolean = false;
+	export let liveScore: number = 0;
 
-	let scores = [];
+	let scores: any[] = [];
 	let loading = true;
 
 	async function fetchScores() {
@@ -21,7 +21,7 @@
 		}
 	}
 
-	export function refresh() {
+	export function refresh(): void {
 		fetchScores();
 	}
 

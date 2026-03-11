@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { fade } from 'svelte/transition';
   import { FADE_CONTENT } from '$lib/constants/transitions';
   import BracketView from './BracketView.svelte';
@@ -6,13 +6,13 @@
   import { supabase } from '$lib/supabase';
   import { goto } from '$app/navigation';
 
-  export let entries = [];
-  export let selectedEntrantId = '';
-  export let selectedBracketData = null;
-  let user = null;
+  export let entries: any[] = [];
+  export let selectedEntrantId: string = '';
+  export let selectedBracketData: any = null;
+  let user: any = null;
   
   // Helper function to find entry by name
-  function findEntryByName(firstName, lastName) {
+  function findEntryByName(firstName: string, lastName: string): any {
     return entries.find(e => 
       e.first_name.toLowerCase() === firstName.toLowerCase() && 
       e.last_name.toLowerCase() === lastName.toLowerCase()
@@ -42,8 +42,8 @@
     }
   });
 
-  function handleEntrantChange(event) {
-    const nextEntryId = event.currentTarget.value;
+  function handleEntrantChange(event: Event): void {
+    const nextEntryId = (event.currentTarget as HTMLSelectElement).value;
     const entry = entries.find(candidate => candidate.id === nextEntryId);
     if (!entry) {
       return;

@@ -1,21 +1,21 @@
 <!-- LiveBracket.svelte -->
-<script>
+<script lang="ts">
     import BracketView from '$lib/components/BracketView.svelte';
     import { invalidateAll } from '$app/navigation';
 
-    export let data;
+    export let data: any;
 
     $: bracketData = data.bracketData;
     $: tournamentStage = data.tournamentSettings?.stage || 'archive';
     $: isLiveBracketAvailable = tournamentStage === 'tournament-live' || tournamentStage === 'complete';
 
-    let error = null;
+    let error: string | null = null;
 
-    async function retry() {
+    async function retry(): Promise<void> {
         error = null;
         try {
             await invalidateAll();
-        } catch (err) {
+        } catch (err: any) {
             error = err.message;
         }
     }

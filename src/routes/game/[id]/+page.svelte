@@ -1,23 +1,24 @@
-<script>
+<script lang="ts">
   import { supabase } from '$lib/supabase';
   import { onMount } from 'svelte';
   import { handleImageError } from '$lib/utils/imageUtils';
-  
-  export let data;
-  
-  let gameData = data.gameDetail?.game || null;
-  let pageError = !gameData ? 'No games available at this time' : null;
+  import type { ScoreboardTeam } from '$lib/types';
+
+  export let data: any;
+
+  let gameData: any = data.gameDetail?.game || null;
+  let pageError: string | null = !gameData ? 'No games available at this time' : null;
   let entriesLoading = false;
-  let teamSelections = data.gameDetail?.teamSelections || { home: [], away: [], other: [] };
-  let currentUserId = null; // Store the current user's ID
-  const tournamentStage = data.tournamentSettings?.stage || 'archive';
-  const gamePageContext =
+  let teamSelections: { home: any[]; away: any[]; other: any[] } = data.gameDetail?.teamSelections || { home: [], away: [], other: [] };
+  let currentUserId: string | null = null;
+  const tournamentStage: string = data.tournamentSettings?.stage || 'archive';
+  const gamePageContext: string =
     tournamentStage === 'tournament-live'
       ? 'Live tournament game details'
       : tournamentStage === 'bracket-open'
         ? 'Tournament game details unlock after tipoff'
         : 'Tournament game details';
-  
+
   // Get the current user's ID on mount
   onMount(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -25,19 +26,19 @@
       currentUserId = user.id;
     }
   });
-  
+
   // Helper function to check if an entry belongs to the current user
-  function isCurrentUser(entry) {
+  function isCurrentUser(entry: any): boolean {
     return entry.user_id === currentUserId;
   }
-  
+
   // Helper function to determine if a team is a winner
-  function isWinner(team) {
+  function isWinner(team: any): boolean {
     return team?.winner === true;
   }
-  
+
   // Helper function to get game status color
-  function getStatusColor(status) {
+  function getStatusColor(status: string): string {
     switch(status.toUpperCase()) {
       case 'LIVE': return 'text-yellow-300';
       case 'FINAL': return 'text-white';

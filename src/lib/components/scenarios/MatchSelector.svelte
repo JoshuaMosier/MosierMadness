@@ -1,9 +1,9 @@
-<script>
+<script lang="ts">
   import { handleImageError } from '$lib/utils/imageUtils';
 
-  export let matchSimulationDetails = [];
-  export let onSelectWinner = () => {};
-  export let onReset = () => {};
+  export let matchSimulationDetails: any[] = [];
+  export let onSelectWinner: (detail: { gameId: number; team: string }) => void = () => {};
+  export let onReset: () => void = () => {};
 </script>
 
 <div class="mb-6 hidden md:block">

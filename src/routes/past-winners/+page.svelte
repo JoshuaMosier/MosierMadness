@@ -1,22 +1,22 @@
-<script>
-  export let data;
+<script lang="ts">
+  export let data: any;
 
   const { winners, leaderboard, summary, seasonStandings, playerDirectory } = data;
-  const topWinnersText = summary.topWinners.map(winner => winner.name).join(', ');
-  const completedWinners = winners.filter(w => w.isChampionYear);
+  const topWinnersText = summary.topWinners.map((winner: any) => winner.name).join(', ');
+  const completedWinners = winners.filter((w: any) => w.isChampionYear);
 
   // Season leaderboard
-  const availableYears = Object.keys(seasonStandings)
+  const availableYears: number[] = Object.keys(seasonStandings)
     .map(Number)
     .sort((a, b) => b - a);
-  let selectedYear = availableYears[0] || null;
+  let selectedYear: number | null = availableYears[0] || null;
 
   $: currentStandings = selectedYear ? seasonStandings[selectedYear] || [] : [];
 
   // Player directory
   let playerSearch = '';
   $: filteredPlayers = playerSearch.trim()
-    ? playerDirectory.filter(p => p.name.toLowerCase().includes(playerSearch.trim().toLowerCase()))
+    ? playerDirectory.filter((p: any) => p.name.toLowerCase().includes(playerSearch.trim().toLowerCase()))
     : playerDirectory;
 </script>
 

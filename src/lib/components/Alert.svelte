@@ -1,14 +1,9 @@
-<script>
-  /** @type {'error' | 'success'} */
-  export let type = 'error';
-  /** @type {string | null} */
-  export let message = null;
-  /** @type {boolean} */
-  export let compact = false;
-  /** @type {boolean} */
-  export let center = false;
-  /** @type {string} */
-  let className = '';
+<script lang="ts">
+  export let type: 'error' | 'success' = 'error';
+  export let message: string | null = null;
+  export let compact: boolean = false;
+  export let center: boolean = false;
+  let className: string = '';
   export { className as class };
 </script>
 

@@ -1,18 +1,11 @@
-<script>
-  /** @type {string} */
-  export let href;
-  /** @type {string} */
-  export let label;
-  /** @type {boolean} */
-  export let disabled = false;
-  /** @type {string} */
-  export let disabledReason = '';
-  /** @type {boolean} */
-  export let active = false;
-  /** @type {boolean} */
-  export let mobile = false;
-  /** @type {(() => void) | null} */
-  export let onClick = null;
+<script lang="ts">
+  export let href: string;
+  export let label: string;
+  export let disabled: boolean = false;
+  export let disabledReason: string = '';
+  export let active: boolean = false;
+  export let mobile: boolean = false;
+  export let onClick: (() => void) | null = null;
 </script>
 
 {#if mobile}

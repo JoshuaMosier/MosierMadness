@@ -1,5 +1,5 @@
-<script>
-  export let userWinCounts = [];
+<script lang="ts">
+  export let userWinCounts: any[] = [];
 </script>
 
 <div class="overflow-x-auto rounded-lg border border-zinc-700 max-w-2xl mx-auto">

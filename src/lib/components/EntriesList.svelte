@@ -1,11 +1,11 @@
-<script>
+<script lang="ts">
   import { fade } from 'svelte/transition';
   import { FADE_QUICK, FADE_DELAYED, FADE_CONTENT } from '$lib/constants/transitions';
   import Alert from '$lib/components/Alert.svelte';
 
-  export let entries = [];
-  export let loading = false;
-  export let error = null;
+  export let entries: any[] = [];
+  export let loading: boolean = false;
+  export let error: string | null = null;
 </script>
 
 <div class="max-w-7xl mx-auto px-4 py-8">

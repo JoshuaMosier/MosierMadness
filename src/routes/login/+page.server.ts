@@ -1,0 +1,27 @@
+import type { Actions } from './$types';
+import { redirect, fail } from '@sveltejs/kit';
+import { safeRedirectPath } from '$lib/utils/redirectUtils';
+
+export const actions: Actions = {
+	default: async ({ request, locals: { supabase }, url }) => {
+		const formData = await request.formData();
+		const email = formData.get('email')?.toString()?.trim();
+		const password = formData.get('password')?.toString();
+
+		if (!email || !password) {
+			return fail(400, { error: 'Email and password are required' });
+		}
+
+		const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+		if (error) {
+			return fail(400, { error: error.message });
+		}
+
+		if (data.user) {
+			throw redirect(303, safeRedirectPath(url.searchParams.get('redirect')));
+		}
+
+		return fail(500, { error: 'An unexpected error occurred' });
+	}
+};

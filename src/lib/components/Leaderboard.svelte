@@ -1,12 +1,13 @@
-<script>
+<script lang="ts">
   import { fade } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import { FADE_DELAYED, FADE_CONTENT, fadeStagger } from '$lib/constants/transitions';
   import { hexToRgb } from '$lib/utils/teamColorUtils';
   import { handleImageError } from '$lib/utils/imageUtils';
   import Alert from '$lib/components/Alert.svelte';
+  import type { LeaderboardProjection, EntryScore } from '$lib/types';
 
-  export let leaderboard = null;
+  export let leaderboard: LeaderboardProjection | null = null;
 
   const teamLogoClass = 'w-full h-full object-contain p-0.5 opacity-90';
   const teamLogoContainerClass = 'w-10 h-10 rounded-lg p-1 overflow-hidden shadow-inner relative';
@@ -36,7 +37,7 @@
   </svg>
   `;
 
-  function getRankLabel(rank) {
+  function getRankLabel(rank: number): string {
     const lastDigit = rank % 10;
     const lastTwoDigits = rank % 100;
 
@@ -56,36 +57,36 @@
     }
   }
 
-  function getTeamNameFromSelection(selection) {
+  function getTeamNameFromSelection(selection: string | null): string | null {
     if (!selection) return null;
     const parts = selection.split(' ');
     if (parts.length < 2) return null;
     return parts.slice(1).join(' ');
   }
 
-  function getTeamSeoName(team) {
+  function getTeamSeoName(team: string): string {
     return teamSeoMap[team] || '';
   }
 
   // Function to handle name click and navigation
-  function handleNameClick(score) {
+  function handleNameClick(score: EntryScore): void {
     const nameIdentifier = `${score.firstName}|${score.lastName}`;
     goto(`/entries?selected=${nameIdentifier}`);
   }
 
   // Update getNameButtonClass to remove the user-specific styling
-  function getNameButtonClass(score) {
+  function getNameButtonClass(score: EntryScore): string {
     return `
       inline-flex items-center gap-2 px-2 py-1 rounded-md transition-colors duration-150
       hover:bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-amber-500/50
     `.trim();
   }
 
-  function getTeamPrimaryColor(teamName) {
+  function getTeamPrimaryColor(teamName: string): string {
     return teamColorMap[teamName]?.primaryColor || '#666666';
   }
 
-  function getTeamContainerStyle(teamName, isEliminatedOrCorrect = false) {
+  function getTeamContainerStyle(teamName: string, isEliminatedOrCorrect: boolean = false): string {
     const baseColor = getTeamPrimaryColor(teamName);
     let rgba;
     
@@ -109,7 +110,7 @@
   }
 
   // Update getTeamOverlayStyle to return more information
-  function getTeamOverlayStyle(teamName, score, gameIndex) {
+  function getTeamOverlayStyle(teamName: string, score: EntryScore, gameIndex: number): { style: string; isEliminatedOrCorrect: boolean } {
     const masterTeamName = getTeamNameFromSelection(masterBracket[gameIndex]);
     const isCorrect = masterTeamName === teamName;
     
@@ -133,7 +134,7 @@
   }
 
   // Update the getPotentialColor function to include opacity
-  function getPotentialColor(potential, scores) {
+  function getPotentialColor(potential: number | undefined, scores: EntryScore[]): string {
     if (scores.length === 0) return 'text-emerald-400';
     
     // Find max and min potentials in the dataset

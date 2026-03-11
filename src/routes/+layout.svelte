@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import '../app.css';
   import Navbar from '$lib/components/Navbar.svelte';
   import ScoreTicker from '$lib/components/ScoreTicker.svelte';
@@ -8,9 +8,9 @@
   import { page } from '$app/stores'
   import { dataRefreshSignal, initRealtimeRefresh } from '$lib/stores/realtimeUpdates'
 
-  export let data;
+  export let data: any;
   // Define routes where ScoreTicker should be hidden
-  const hideScoreTickerRoutes = [
+  const hideScoreTickerRoutes: string[] = [
     '/scores',
   ];
 
@@ -20,7 +20,7 @@
   // Debounce invalidate to avoid race with navigation (SvelteKit can "eat" clicks when
   // invalidate runs during a nav - see sveltejs/kit#9354, #10876)
   const INVALIDATE_DEBOUNCE_MS = 2000;
-  let invalidateTimeout;
+  let invalidateTimeout: ReturnType<typeof setTimeout>;
   let isNavigating = false;
   let pendingInvalidate = false;
 

@@ -1,5 +1,5 @@
-<script>
-  export let data;
+<script lang="ts">
+  export let data: any;
 
   const { person, aliases, titleYears, yearlyResults, summary } = data;
 </script>

@@ -1,11 +1,13 @@
 <!-- BracketView.svelte -->
-<script>
+<script lang="ts">
+  import type { TeamInfo, LiveBracketData } from '$lib/types';
+
   // Props for different modes and data
-  export let mode = 'view'; // 'view' | 'select' | 'live'
-  export let bracketData = null; // The bracket data to display/edit
-  export let isLocked = false; // Whether the bracket is locked for editing
-  export let showScores = true; // Whether to show scores
-  export let onTeamSelect = () => {};
+  export let mode: 'view' | 'select' | 'live' = 'view';
+  export let bracketData: any = null;
+  export let isLocked: boolean = false;
+  export let showScores: boolean = true;
+  export let onTeamSelect: (detail: { matchId: number; teamIndex: string; team: any }) => void = () => {};
   
   // Define regions
   const regions = [
@@ -26,7 +28,7 @@
   ];
 
   // Helper function to generate match IDs
-  function getMatchId(round, region, matchNum) {
+  function getMatchId(round: number, region: number, matchNum: number): number {
     if (round === 1) {
       const baseIndex = (region - 1) * 8;
       return baseIndex + matchNum + 1;
@@ -46,7 +48,7 @@
   }
   
   // Generate matches per round and region
-  function getMatchesPerRound(round) {
+  function getMatchesPerRound(round: number): number {
     if (round === 1) return 8;
     if (round === 2) return 4;
     if (round === 3) return 2;
@@ -56,7 +58,7 @@
   }
   
   // Get top position for match based on round and match index
-  function getMatchTopPosition(round, region, matchIndex) {
+  function getMatchTopPosition(round: number, region: number, matchIndex: number): number {
     // Round 1 positions
     if (round === 1) {
       const baseTop = matchIndex * 50;
@@ -102,26 +104,26 @@
   }
 
   // Helper to determine if a team won
-  function isWinner(teamA, teamB) {
+  function isWinner(teamA: any, teamB: any): boolean {
     if (!showScores) return false;
     return teamA?.score > teamB?.score;
   }
 
   // Handle team selection in selection mode
-  function handleTeamClick(matchId, teamIndex, team) {
+  function handleTeamClick(matchId: number, teamIndex: string, team: any): void {
     if (mode !== 'select' || isLocked) return;
 
     onTeamSelect({ matchId, teamIndex, team });
   }
 
-  function teamAriaLabel(team) {
+  function teamAriaLabel(team: any): string {
     if (!team?.name) return 'Empty slot';
     const label = `${team.seed} ${team.name}`;
     return mode === 'select' && !isLocked ? `Select ${label}` : label;
   }
 
   // Get team display class based on mode and state
-  function getTeamClass(team, isWinningTeam) {
+  function getTeamClass(team: any, isWinningTeam: boolean): string {
     const classes = [];
     
     if (!team?.name || team?.name === '') {
@@ -140,7 +142,7 @@
   }
 
   // Helper function to get team background style
-  function getTeamStyle(team) {
+  function getTeamStyle(team: any): string {
     if (team?.color) {
       const opacity = 0.8;
       // Convert hex to RGB for primary color

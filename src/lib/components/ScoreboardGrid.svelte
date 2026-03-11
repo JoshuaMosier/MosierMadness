@@ -1,10 +1,11 @@
-<script>
+<script lang="ts">
   import { getStatusColor, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
   import { handleImageError } from '$lib/utils/imageUtils';
+  import type { TournamentSettings, ScoreboardGame } from '$lib/types';
 
-  export let tournamentSettings = {};
-  export let scores = [];
+  export let tournamentSettings: TournamentSettings | any = {};
+  export let scores: ScoreboardGame[] = [];
 
   $: matches = scores;
   $: tournamentStage = tournamentSettings?.stage || 'archive';
@@ -22,24 +23,24 @@
       : 'No NCAA games are scheduled today.';
   
   // Helper function to determine if a team is a winner
-  function isWinner(team) {
+  function isWinner(team: any): boolean {
     return team?.winner === true;
   }
-  
+
   // Update the sortedMatches computed property
   $: sortedMatches = sortScoreboardGames(matches);
 
   // Helper function to get team background style
-  function getTeamStyle(team) {
+  function getTeamStyle(team: any): string {
     return getGradientStyleFromColor(team?.color);
   }
 
   // Helper function to get appropriate team name based on length
-  function getDisplayName(team) {
+  function getDisplayName(team: any): string {
     return team?.displayName || team?.name || '';
   }
 
-  function getGameHref(game) {
+  function getGameHref(game: any): string | null {
     return game?.isTournamentGame ? `/game/${game.gameId}` : null;
   }
 </script>

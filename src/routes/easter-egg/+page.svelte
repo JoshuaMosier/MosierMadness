@@ -1,9 +1,9 @@
-<script>
+<script lang="ts">
 	import BasketballGameModule from '$lib/components/BasketballGameModule.svelte';
 	import { supabase } from '$lib/supabase';
 	import { onMount } from 'svelte';
 
-	let userId = null;
+	let userId: string | null = null;
 
 	onMount(async () => {
 		const { data: { user } } = await supabase.auth.getUser();

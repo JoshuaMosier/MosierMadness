@@ -1,17 +1,17 @@
-<script>
+<script lang="ts">
 	import BasketballGame from '$lib/components/BasketballGame.svelte';
 	import GameLeaderboard from '$lib/components/GameLeaderboard.svelte';
 
-	export let userId = null;
+	export let userId: string | null = null;
 
-	let gameLeaderboard;
+	let gameLeaderboard: GameLeaderboard;
 	let liveScore = 0;
 
-	function handleScore({ score }) {
+	function handleScore({ score }: { score: number }): void {
 		liveScore = score;
 	}
 
-	async function handleGameOver({ score, madeShots }) {
+	async function handleGameOver({ score, madeShots }: { score: number; madeShots: number }): Promise<void> {
 		if (!userId) return;
 
 		try {

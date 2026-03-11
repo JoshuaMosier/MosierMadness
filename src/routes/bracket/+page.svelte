@@ -1,31 +1,32 @@
-<script>
+<script lang="ts">
   import { supabase } from '$lib/supabase';
   import BracketView from '$lib/components/BracketView.svelte';
   import { fade } from 'svelte/transition';
   import { FADE_QUICK, FADE_DELAYED, FADE_CONTENT } from '$lib/constants/transitions';
   import { formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils';
   import Alert from '$lib/components/Alert.svelte';
-  export let data;
+  import type { TeamInfo, TeamSelection } from '$lib/types';
+  export let data: any;
 
   let loading = false;
-  let error = data.loadError ?? data.bracketTeamsError ?? null;
-  let user = data.user ?? null;
-  let bracket = data.bracket ?? null;
+  let error: string | null = data.loadError ?? data.bracketTeamsError ?? null;
+  let user: any = data.user ?? null;
+  let bracket: any = data.bracket ?? null;
   let saving = false;
   let showResetModal = false;
   let teamSelectionSaving = false;
   let bracketActionSaving = false;
-  let firstRoundTeams = data.firstRoundTeams ?? [];
-  const tournamentStage = data.tournamentSettings?.stage || 'archive';
-  const entrySeasonYear = data.tournamentSettings?.entrySeasonYear || new Date().getFullYear();
+  let firstRoundTeams: TeamInfo[] = data.firstRoundTeams ?? [];
+  const tournamentStage: string = data.tournamentSettings?.stage || 'archive';
+  const entrySeasonYear: number = data.tournamentSettings?.entrySeasonYear || new Date().getFullYear();
   const entriesOpen = tournamentStage === 'bracket-open';
 
-  function formatTeamString(team) {
+  function formatTeamString(team: TeamInfo | null): string | null {
     if (!team) return null;
     return formatTeamSelection(team);
   }
 
-  function parseTeamString(teamString) {
+  function parseTeamString(teamString: string): (TeamSelection & { seoName: string }) | null {
     const parsed = parseTeamSelection(teamString);
     if (!parsed) return null;
     const teamData = firstRoundTeams.find(t => t.seed === parsed.seed && t.name === parsed.name);
@@ -33,7 +34,7 @@
   }
 
   // Function to transform bracket data into the format expected by BracketView
-  function transformBracketData(bracketData) {
+  function transformBracketData(bracketData: any): any {
     if (!bracketData) return null;
 
     const matches = {};
@@ -92,7 +93,7 @@
   }
 
   // Handle team selection
-  async function handleTeamSelect({ matchId, teamIndex, team }) {
+  async function handleTeamSelect({ matchId, teamIndex, team }: { matchId: number; teamIndex: string; team: TeamInfo }): Promise<void> {
     if (teamSelectionSaving || bracket.is_submitted) return;
     if (!team) return;
     

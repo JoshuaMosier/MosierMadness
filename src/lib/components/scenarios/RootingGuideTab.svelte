@@ -1,19 +1,20 @@
-<script>
+<script lang="ts">
   import { getOrdinalSuffix } from '$lib/utils/scenarioEngine';
   import { handleImageError } from '$lib/utils/imageUtils';
+  import type { Entry } from '$lib/types';
 
-  export let entries = [];
-  export let currentUser = null;
-  export let selectedUser = null;
-  export let selectedWinners = {};
-  export let matchSimulationDetails = [];
-  export let teamWinContributions = {};
-  export let positionProbabilities = [];
-  export let userWinCounts = [];
-  export let totalScenarios = 0;
-  export let targetPosition = 1;
-  export let scenariosCalculated = false;
-  export let onUserChange = () => {};
+  export let entries: Entry[] = [];
+  export let currentUser: any = null;
+  export let selectedUser: string | null = null;
+  export let selectedWinners: Record<number, string> = {};
+  export let matchSimulationDetails: any[] = [];
+  export let teamWinContributions: Record<number, any> = {};
+  export let positionProbabilities: any[] = [];
+  export let userWinCounts: any[] = [];
+  export let totalScenarios: number = 0;
+  export let targetPosition: number = 1;
+  export let scenariosCalculated: boolean = false;
+  export let onUserChange: (userId: string) => void = () => {};
 
   function handleUserChange() {
     onUserChange(selectedUser);

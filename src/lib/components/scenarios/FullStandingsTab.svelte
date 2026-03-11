@@ -1,14 +1,14 @@
-<script>
+<script lang="ts">
   import { getRowHeatmapColor, getOrdinalSuffix, getSortedPositionData } from '$lib/utils/scenarioEngine';
 
-  export let positionProbabilities = [];
-  export let totalScenarios = 0;
-  export let numEntries = 0;
-  export let displayMode = 'percent';
+  export let positionProbabilities: any[] = [];
+  export let totalScenarios: number = 0;
+  export let numEntries: number = 0;
+  export let displayMode: string = 'percent';
 
-  let hoveredRow = null;
-  let hoveredCol = null;
-  let hoveredCell = null;
+  let hoveredRow: number | null = null;
+  let hoveredCol: number | null = null;
+  let hoveredCell: string | null = null;
 </script>
 
 <div class="mb-2 text-xs text-zinc-400 flex justify-between items-center">

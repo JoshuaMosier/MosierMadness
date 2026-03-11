@@ -1,26 +1,26 @@
-<script>
+<script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { tweened } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
 
-  export let title = 'Countdown';
-  export let targetAt = null;
-  export let eventLabel = 'Upcoming event';
+  export let title: string = 'Countdown';
+  export let targetAt: string | null = null;
+  export let eventLabel: string = 'Upcoming event';
 
-  let timeRemaining = {
+  let timeRemaining: { days: number; hours: number; minutes: number; seconds: number } = {
     days: 0,
     hours: 0,
     minutes: 0,
     seconds: 0,
   };
-  let interval;
+  let interval: ReturnType<typeof setInterval>;
   let progress = tweened(100, {
     duration: 1000,
     easing: cubicOut,
   });
   let startingSeconds = 1;
 
-  function getTargetDate() {
+  function getTargetDate(): Date | null {
     if (!targetAt) {
       return null;
     }
@@ -58,11 +58,11 @@
     progress.set(0);
   }
 
-  function formatNumber(value) {
+  function formatNumber(value: number): string {
     return value.toString().padStart(2, '0');
   }
 
-  function formatEventTime(value) {
+  function formatEventTime(value: string | null): string {
     const targetDate = value ? new Date(value) : null;
     if (!targetDate || Number.isNaN(targetDate.getTime())) {
       return eventLabel;

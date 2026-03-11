@@ -1,28 +1,29 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
   import Alert from '$lib/components/Alert.svelte';
+  import type { TournamentStage } from '$lib/types';
 
-  export let data;
+  export let data: any;
 
-  const stageOptions = ['archive', 'bracket-open', 'tournament-live', 'complete'];
+  const stageOptions: TournamentStage[] = ['archive', 'bracket-open', 'tournament-live', 'complete'];
 
   let loading = true;
   let saving = false;
-  let error = null;
-  let success = null;
+  let error: string | null = null;
+  let success: string | null = null;
   let isAdmin = false;
-  let seasons = [];
-  const healthChecks = data.healthChecks;
+  let seasons: any[] = [];
+  const healthChecks: any = data.healthChecks;
 
-  let teamColors = Object.entries(data.teamColors || {})
-    .map(([seoName, colors]) => ({ seoName, ...colors }))
-    .sort((a, b) => a.seoName.localeCompare(b.seoName));
+  let teamColors: any[] = Object.entries(data.teamColors || {})
+    .map(([seoName, colors]: [string, any]) => ({ seoName, ...colors }))
+    .sort((a: any, b: any) => a.seoName.localeCompare(b.seoName));
   let colorFilter = '';
   let colorSaving = false;
-  let colorError = null;
-  let colorSuccess = null;
+  let colorError: string | null = null;
+  let colorSuccess: string | null = null;
   let newColor = { seoName: '', primaryColor: '#000000', secondaryColor: '#FFFFFF', tertiaryColor: '' };
 
   $: filteredColors = colorFilter
@@ -53,10 +54,10 @@
 
   // First Four structured form
   let firstFourEnabled = false;
-  let firstFourForm = { dates: '', games: [], replacementCompletedAt: null };
+  let firstFourForm: { dates: string; games: any[]; replacementCompletedAt: string | null } = { dates: '', games: [], replacementCompletedAt: null };
   let firstFourSyncFromText = true;
 
-  function initFirstFourForm(configText) {
+  function initFirstFourForm(configText: string): void {
     try {
       const config = JSON.parse(configText);
       firstFourForm = {
@@ -108,7 +109,7 @@
     syncFirstFourToText();
   }
 
-  function removeFirstFourGame(index) {
+  function removeFirstFourGame(index: number): void {
     firstFourForm.games = firstFourForm.games.filter((_, i) => i !== index);
     syncFirstFourToText();
   }
@@ -158,7 +159,7 @@
     seasons = rows || [];
   }
 
-  function selectSeason(row) {
+  function selectSeason(row: any): void {
     form = {
       entrySeasonYear: row.entry_season_year,
       displaySeasonYear: row.display_season_year,
@@ -174,7 +175,7 @@
     error = null;
   }
 
-  function parseDates(text) {
+  function parseDates(text: string): string[] {
     return text
       .split(',')
       .map(value => value.trim())
@@ -231,11 +232,11 @@
     }
   }
 
-  function getHealthTone(count = 0) {
+  function getHealthTone(count: number = 0): string {
     return count === 0 ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-300 bg-amber-500/10';
   }
 
-  function formatTime(value) {
+  function formatTime(value: string | null | undefined): string {
     if (!value) {
       return 'n/a';
     }
@@ -243,11 +244,11 @@
     return new Date(value).toLocaleString();
   }
 
-  function truncateList(values = [], limit = 6) {
+  function truncateList(values: any[] = [], limit: number = 6): any[] {
     return values.slice(0, limit);
   }
 
-  async function saveTeamColor(entry) {
+  async function saveTeamColor(entry: any): Promise<void> {
     colorSaving = true;
     colorError = null;
     colorSuccess = null;
@@ -308,8 +309,8 @@
   }
 
   let archiving = false;
-  let archiveError = null;
-  let archiveSuccess = null;
+  let archiveError: string | null = null;
+  let archiveSuccess: string | null = null;
   let archiveConfirm = false;
 
   async function handleArchiveSeason() {
@@ -345,10 +346,10 @@
   }
 
   let merging = false;
-  let mergeError = null;
-  let mergeResult = null;
+  let mergeError: string | null = null;
+  let mergeResult: any = null;
 
-  async function handleMergePeople(dryRun = false) {
+  async function handleMergePeople(dryRun: boolean = false): Promise<void> {
     merging = true;
     mergeError = null;
     if (!dryRun) mergeResult = null;
@@ -369,7 +370,7 @@
     }
   }
 
-  async function deleteTeamColor(seoName) {
+  async function deleteTeamColor(seoName: string): Promise<void> {
     colorSaving = true;
     colorError = null;
     colorSuccess = null;

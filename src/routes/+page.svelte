@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import Countdown from '$lib/components/Countdown.svelte';
@@ -7,14 +7,15 @@
   import { isArchive, isBracketOpen } from '$lib/utils/stageUtils';
   import { fade } from 'svelte/transition';
   import { FADE_CONTENT } from '$lib/constants/transitions';
+  import type { TournamentStage } from '$lib/types';
 
-  export let data;
+  export let data: any;
 
-  const stage = data.tournamentSettings?.stage || 'archive';
+  const stage: TournamentStage = data.tournamentSettings?.stage || 'archive';
   const settings = data.tournamentSettings || {};
 
   // Handle auth error redirects from Supabase (e.g. expired reset links)
-  let authError = null;
+  let authError: string | null = null;
   $: {
     const errorDesc = $page.url.searchParams.get('error_description')
       || $page.url.hash?.match(/error_description=([^&]*)/)?.[1];
@@ -24,8 +25,8 @@
   }
 
   // Dynamic import for archive mode game (avoids SSR issues with Matter.js)
-  let BasketballGameModule = null;
-  let userId = null;
+  let BasketballGameModule: any = null;
+  let userId: string | null = null;
 
   onMount(async () => {
     if (stage !== 'archive') return;
@@ -38,7 +39,7 @@
     BasketballGameModule = module.default;
   });
 
-  const bracketOpenCards = [
+  const bracketOpenCards: { href: string; title: string; description: string }[] = [
     {
       href: '/bracket',
       title: 'Build Your Bracket',
@@ -61,7 +62,7 @@
     },
   ];
 
-  function getPageTitle(currentStage) {
+  function getPageTitle(currentStage: string): string {
     if (currentStage === 'archive') {
       return 'Mosier Madness - Countdown';
     }
