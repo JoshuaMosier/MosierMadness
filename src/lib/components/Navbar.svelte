@@ -8,12 +8,16 @@
   import type { TournamentStage } from '$lib/types';
 
   export let stage: TournamentStage = 'archive';
+  export let serverUser: any = null;
 
   let isMenuOpen = false;
-  let user: any = null;
   let userEntry: any = null;
   let isAdmin = false;
   let isSpinning = false;
+
+  // serverUser comes from the layout server load (cookie-based, updates on every navigation).
+  // Logout does a full page reload so serverUser also handles sign-out.
+  $: user = serverUser;
 
   // Get current path for active state
   $: currentPath = $page.url.pathname;
@@ -47,17 +51,18 @@
     }
   }
 
-  onMount(async () => {
-    const { data: { user: initialUser } } = await supabase.auth.getUser();
-    user = initialUser;
-    await loadProfile(user);
+  // Load profile whenever user changes (from server prop or client auth)
+  $: loadProfile(user);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      user = session?.user || null;
-      await loadProfile(user);
+  onMount(() => {
+    // Listen for auth changes to keep profile data (admin status, name) in sync.
+    // The Login/Logout button itself is driven by serverUser from the layout load.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        await loadProfile(session.user);
+      }
     });
 
-    // Cleanup subscription on component destroy
     return () => {
       subscription?.unsubscribe();
     };
