@@ -110,8 +110,14 @@
   // Handle team selection in selection mode
   function handleTeamClick(matchId, teamIndex, team) {
     if (mode !== 'select' || isLocked) return;
-    
+
     onTeamSelect({ matchId, teamIndex, team });
+  }
+
+  function teamAriaLabel(team) {
+    if (!team?.name) return 'Empty slot';
+    const label = `${team.seed} ${team.name}`;
+    return mode === 'select' && !isLocked ? `Select ${label}` : label;
   }
 
   // Get team display class based on mode and state
@@ -269,6 +275,7 @@
                              on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
                              on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                              role="button"
+                             aria-label={teamAriaLabel(match.teamA)}
                              tabindex="0">
                           <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                             {match.teamA?.seed || '-'}
@@ -284,6 +291,7 @@
                              on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
                              on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                              role="button"
+                             aria-label={teamAriaLabel(match.teamB)}
                              tabindex="0">
                           <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                             {match.teamB?.seed || '-'}
@@ -319,6 +327,7 @@
                                on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
                                on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                                role="button"
+                               aria-label={teamAriaLabel(match.teamA)}
                                tabindex="0">
                         <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                           {match.teamA?.seed || '-'}
@@ -336,6 +345,7 @@
                                on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
                                on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                                role="button"
+                               aria-label={teamAriaLabel(match.teamB)}
                                tabindex="0">
                         <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                           {match.teamB?.seed || '-'}
@@ -368,6 +378,7 @@
                          on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
                          on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                          role="button"
+                         aria-label={teamAriaLabel(match.teamA)}
                          tabindex="0">
                       <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                         {match.teamA?.seed || '-'}
@@ -383,6 +394,7 @@
                          on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
                          on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                          role="button"
+                         aria-label={teamAriaLabel(match.teamB)}
                          tabindex="0">
                       <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                         {match.teamB?.seed || '-'}
@@ -418,6 +430,7 @@
                                    on:click={() => handleTeamClick(matchId, 'A', match.teamA)}
                                    on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'A', match.teamA)}
                                    role="button"
+                                   aria-label={teamAriaLabel(match.teamA)}
                                    tabindex="0">
                     <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                       {match.teamA?.seed || '-'}
@@ -435,6 +448,7 @@
                                    on:click={() => handleTeamClick(matchId, 'B', match.teamB)}
                                    on:keydown={(e) => e.key === 'Enter' && handleTeamClick(matchId, 'B', match.teamB)}
                                    role="button"
+                                   aria-label={teamAriaLabel(match.teamB)}
                                    tabindex="0">
                     <span class="inline-block w-[16px] text-center bg-zinc-800/90 mr-1 text-[10px] font-bold">
                       {match.teamB?.seed || '-'}
