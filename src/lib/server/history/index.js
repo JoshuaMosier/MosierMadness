@@ -94,16 +94,115 @@ function buildHistoryState(rawData) {
   const resultsByPersonId = groupBy(results, result => result.personId);
   const resultsByYear = groupBy(results, result => result.year);
 
+  // Merge duplicate people that share the same linked_profile_id.
+  // This happens when archiving creates a new person record because the
+  // profile name (e.g. "Josh") doesn't match the spreadsheet-imported
+  // canonical name (e.g. "Joshua").
+  const profileIdToPeople = new Map();
+  for (const person of people) {
+    if (!person.linkedProfileId) continue;
+    if (!profileIdToPeople.has(person.linkedProfileId)) {
+      profileIdToPeople.set(person.linkedProfileId, []);
+    }
+    profileIdToPeople.get(person.linkedProfileId).push(person);
+  }
+
+  // Also detect duplicates where the original person has no linkedProfileId
+  // but a newer archive-created person does. Match by canonical last name +
+  // first name similarity (one is a prefix/substring of the other).
+  const byLastName = groupBy(people, p => (p.canonicalLastName || '').toLowerCase());
+  for (const [lastName, group] of byLastName) {
+    if (!lastName || group.length < 2) continue;
+    const linked = group.filter(p => p.linkedProfileId);
+    const unlinked = group.filter(p => !p.linkedProfileId);
+    for (const lp of linked) {
+      for (const up of unlinked) {
+        const lFirst = (lp.canonicalFirstName || '').toLowerCase();
+        const uFirst = (up.canonicalFirstName || '').toLowerCase();
+        if (!lFirst || !uFirst) continue;
+        // Check if one first name contains the other (e.g. "Josh" / "Joshua")
+        if (lFirst.startsWith(uFirst) || uFirst.startsWith(lFirst)) {
+          // Treat them as the same person — add unlinked to the linked person's group
+          if (!profileIdToPeople.has(lp.linkedProfileId)) {
+            profileIdToPeople.set(lp.linkedProfileId, [lp]);
+          }
+          const arr = profileIdToPeople.get(lp.linkedProfileId);
+          if (!arr.includes(up)) {
+            arr.push(up);
+          }
+        }
+      }
+    }
+  }
+
+  const mergedAwayIds = new Set();
+  for (const [profileId, dupes] of profileIdToPeople) {
+    if (dupes.length <= 1) continue;
+
+    // Primary = the one with the most results (the original spreadsheet record)
+    dupes.sort((a, b) => {
+      const aCount = (resultsByPersonId.get(a.id) || []).length;
+      const bCount = (resultsByPersonId.get(b.id) || []).length;
+      return bCount - aCount;
+    });
+
+    const primary = dupes[0];
+    for (let i = 1; i < dupes.length; i++) {
+      const duplicate = dupes[i];
+      // Move duplicate's results to primary
+      const dupResults = resultsByPersonId.get(duplicate.id) || [];
+      for (const result of dupResults) {
+        result.personId = primary.id;
+      }
+      const primaryResults = resultsByPersonId.get(primary.id) || [];
+      resultsByPersonId.set(primary.id, [...primaryResults, ...dupResults]);
+      resultsByPersonId.delete(duplicate.id);
+
+      // Move duplicate's aliases to primary
+      const dupAliases = aliasesByPersonId.get(duplicate.id) || [];
+      if (dupAliases.length) {
+        const primaryAliases = aliasesByPersonId.get(primary.id) || [];
+        aliasesByPersonId.set(primary.id, [...primaryAliases, ...dupAliases]);
+        aliasesByPersonId.delete(duplicate.id);
+      }
+
+      // Update season winner references
+      for (const season of seasons) {
+        if (season.winnerPersonId === duplicate.id) {
+          season.winnerPersonId = primary.id;
+        }
+      }
+
+      mergedAwayIds.add(duplicate.id);
+    }
+  }
+
+  // Remove merged-away people from lookups
+  const filteredPeople = mergedAwayIds.size > 0
+    ? people.filter(p => !mergedAwayIds.has(p.id))
+    : people;
+  const filteredPeopleById = mergedAwayIds.size > 0
+    ? mapById(filteredPeople)
+    : peopleById;
+  const filteredPeopleBySlug = mergedAwayIds.size > 0
+    ? new Map(filteredPeople.map(p => [p.slug, p]))
+    : peopleBySlug;
+
+  // Rebuild resultsByYear since personIds may have changed
+  const finalResultsByYear = mergedAwayIds.size > 0
+    ? groupBy(results, result => result.year)
+    : resultsByYear;
+
   return {
-    people,
+    people: filteredPeople,
     aliases,
     seasons: sortSeasonsDescending(seasons),
     results,
-    peopleById,
-    peopleBySlug,
+    peopleById: filteredPeopleById,
+    peopleBySlug: filteredPeopleBySlug,
     aliasesByPersonId,
     resultsByPersonId,
-    resultsByYear,
+    resultsByYear: finalResultsByYear,
   };
 }
 
@@ -165,9 +264,14 @@ export async function getHistoricalData() {
 
   try {
     const rows = await fetchHistoricalRows();
-    historyCache.value = rows ? buildHistoryState(rows) : getFallbackHistoryState();
+    if (rows) {
+      historyCache.value = buildHistoryState(rows);
+    } else {
+      historyCache.value = getFallbackHistoryState();
+      console.warn('[history] Database returned empty data, using generated fallback');
+    }
   } catch (error) {
-    console.warn('Falling back to generated historical data:', error.message);
+    console.warn('[history] Falling back to generated data:', error.message);
     historyCache.value = getFallbackHistoryState();
   }
 

@@ -343,6 +343,31 @@
     archiveConfirm = false;
   }
 
+  let merging = false;
+  let mergeError = null;
+  let mergeResult = null;
+
+  async function handleMergePeople(dryRun = false) {
+    merging = true;
+    mergeError = null;
+    if (!dryRun) mergeResult = null;
+
+    try {
+      const response = await fetch(`/api/admin/merge-people${dryRun ? '?dry=1' : ''}`, { method: 'POST' });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Merge failed');
+      }
+
+      mergeResult = result;
+    } catch (err) {
+      mergeError = err.message;
+    } finally {
+      merging = false;
+    }
+  }
+
   async function deleteTeamColor(seoName) {
     colorSaving = true;
     colorError = null;
@@ -768,6 +793,51 @@
           Archive {data.tournamentSettings?.displaySeasonYear || '???'} Season
         </button>
       {/if}
+    </div>
+
+    <div class="mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+      <h2 class="text-xl font-semibold text-zinc-100 mb-2">Merge Duplicate People</h2>
+      <p class="text-zinc-400 text-sm mb-4">
+        Detect and merge duplicate person records created when profile names don't match historical canonical names (e.g. "Josh" vs "Joshua").
+      </p>
+
+      {#if mergeError}
+        <div class="mb-4 bg-red-950/50 border border-red-900 text-red-400 rounded-lg p-3">{mergeError}</div>
+      {/if}
+
+      {#if mergeResult}
+        {#if mergeResult.merged.length === 0}
+          <div class="mb-4 bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-lg p-3">
+            No duplicate people found.
+          </div>
+        {:else}
+          <div class="mb-4 rounded-lg p-3 {mergeResult.dryRun ? 'bg-blue-950/40 border border-blue-900 text-blue-400' : 'bg-emerald-950/40 border border-emerald-900 text-emerald-400'}">
+            <div class="font-medium mb-2">{mergeResult.dryRun ? 'Preview' : 'Merged'}: {mergeResult.merged.length} duplicate(s)</div>
+            {#each mergeResult.merged as m}
+              <div class="text-sm">
+                "{m.duplicate.name}" ({m.duplicate.results} results) &rarr; "{m.primary.name}" ({m.primary.results} results)
+              </div>
+            {/each}
+          </div>
+        {/if}
+      {/if}
+
+      <div class="flex gap-3">
+        <button
+          class="px-4 py-2 rounded-lg bg-zinc-700 text-zinc-300 font-medium disabled:opacity-50"
+          on:click={() => handleMergePeople(true)}
+          disabled={merging}
+        >
+          {merging ? 'Scanning...' : 'Dry Run'}
+        </button>
+        <button
+          class="px-4 py-2 rounded-lg bg-amber-600 text-white font-medium disabled:opacity-50"
+          on:click={() => handleMergePeople(false)}
+          disabled={merging}
+        >
+          {merging ? 'Merging...' : 'Merge Now'}
+        </button>
+      </div>
     </div>
 
     <div class="mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-6">

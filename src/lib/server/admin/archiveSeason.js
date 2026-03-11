@@ -16,16 +16,28 @@ async function findOrCreatePerson(db, firstName, lastName, profileId) {
   const normalizedFirst = (firstName || '').trim();
   const normalizedLast = (lastName || '').trim();
 
-  // Look for existing person by name match (case-insensitive)
+  // First, check for existing person by linked profile ID (most reliable)
+  if (profileId) {
+    const { data: linkedPerson } = await db
+      .from('people')
+      .select('id, slug')
+      .eq('linked_profile_id', profileId)
+      .maybeSingle();
+
+    if (linkedPerson) {
+      return linkedPerson.id;
+    }
+  }
+
+  // Fall back to exact name match (case-insensitive)
   const { data: existing } = await db
     .from('people')
-    .select('id, slug, linked_profile_id')
+    .select('id, slug, linked_profile_id, canonical_first_name')
     .ilike('canonical_first_name', normalizedFirst)
     .ilike('canonical_last_name', normalizedLast);
 
   if (existing && existing.length === 1) {
     const person = existing[0];
-    // Link profile if not already linked
     if (!person.linked_profile_id && profileId) {
       await db
         .from('people')
@@ -33,6 +45,33 @@ async function findOrCreatePerson(db, firstName, lastName, profileId) {
         .eq('id', person.id);
     }
     return person.id;
+  }
+
+  // Try fuzzy first-name match: same last name, first name is a prefix match.
+  // Handles cases like profile "Josh" matching canonical "Joshua".
+  if (existing?.length === 0 && normalizedFirst && normalizedLast) {
+    const { data: lastNameMatches } = await db
+      .from('people')
+      .select('id, slug, linked_profile_id, canonical_first_name')
+      .ilike('canonical_last_name', normalizedLast);
+
+    if (lastNameMatches?.length) {
+      const firstLower = normalizedFirst.toLowerCase();
+      const fuzzyMatch = lastNameMatches.find(p => {
+        const canonical = (p.canonical_first_name || '').toLowerCase();
+        return canonical.startsWith(firstLower) || firstLower.startsWith(canonical);
+      });
+
+      if (fuzzyMatch) {
+        if (!fuzzyMatch.linked_profile_id && profileId) {
+          await db
+            .from('people')
+            .update({ linked_profile_id: profileId })
+            .eq('id', fuzzyMatch.id);
+        }
+        return fuzzyMatch.id;
+      }
+    }
   }
 
   // Create new person
