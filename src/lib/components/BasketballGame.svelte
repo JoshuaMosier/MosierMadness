@@ -460,6 +460,12 @@
         if (!scoredThisShot && shotTaken) {
             streak = 0;
         }
+
+        // Re-enable ball interaction after reset
+        if (shotTaken) {
+            Matter.World.add(world, mouseConstraint);
+        }
+        shotTaken = false;
         hitRimOrBackboard = false;
         scoredThisShot = false;
 
@@ -476,7 +482,6 @@
         score = 0;
         shotsRemaining = 10;
         gameActive = true;
-        shotTaken = false;
         madeShots = 0;
         showModal = false;
         streak = 0;
@@ -657,7 +662,6 @@
             }
 
             isDragging = false;
-            Matter.World.add(world, mouseConstraint);
         }
     }
 
