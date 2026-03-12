@@ -606,7 +606,7 @@
             clientY - containerRect.top
         );
 
-        if (Matter.Vector.magnitude(Matter.Vector.sub(mousePos, ballPos)) < BALL_RADIUS * 2.5) {
+        if (!shotTaken && Matter.Vector.magnitude(Matter.Vector.sub(mousePos, ballPos)) < BALL_RADIUS * 2.5) {
             isDragging = true;
             startPos = { x: ballPos.x, y: ballPos.y };
             shotTaken = false;
