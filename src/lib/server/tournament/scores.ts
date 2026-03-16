@@ -2,7 +2,7 @@ import { getDailyNcaaScoreboard } from '$lib/server/tournament/dailyScores';
 import { getScoreboardGamesForDate } from '$lib/server/tournament/snapshot';
 import { getCurrentOrNextTickerRound, getTournamentSettings } from '$lib/server/tournament/settings';
 import { sortScoreboardGames } from '$lib/utils/scoreboardUtils';
-import { isTournamentLive, isArchive, isComplete } from '$lib/utils/stageUtils';
+import { isTournamentLive, isBracketOpen, isArchive, isComplete } from '$lib/utils/stageUtils';
 import { getErrorMessage } from '$lib/server/tournament/constants';
 import type { TournamentSettings, ScoreboardGame } from '$lib/types';
 
@@ -27,8 +27,9 @@ async function getCurrentRoundGames(settings: TournamentSettings): Promise<Score
     return [];
   }
 
+  const isFirstFour = round.key === 'first-four';
   return sortScoreboardGames(
-    await getGamesForDates(round.dates, { settings, allowNonTournament: false }),
+    await getGamesForDates(round.dates, { settings, allowNonTournament: isFirstFour }),
   );
 }
 
@@ -36,7 +37,7 @@ export async function getTickerScores(explicitSettings: TournamentSettings | nul
   try {
     const settings = explicitSettings || await getTournamentSettings();
 
-    if (isTournamentLive(settings.stage)) {
+    if (isTournamentLive(settings.stage) || isBracketOpen(settings.stage)) {
       return getCurrentRoundGames(settings);
     }
 
@@ -71,7 +72,7 @@ export async function getTournamentScores(
       );
     }
 
-    if (isTournamentLive(settings.stage)) {
+    if (isTournamentLive(settings.stage) || isBracketOpen(settings.stage)) {
       return getCurrentRoundGames(settings);
     }
 

@@ -15,9 +15,9 @@
   const MARQUEE_DURATION_S = 900; /* 5× slower than original 320s */
 
   $: tournamentStage = tournamentSettings?.stage || 'archive';
-  $: viewAllLabel = tournamentStage === 'tournament-live' ? 'Tournament Scores' : 'Today\'s Scores';
+  $: viewAllLabel = tournamentStage === 'tournament-live' || tournamentStage === 'bracket-open' ? 'Tournament Scores' : 'Today\'s Scores';
   $: emptyStateMessage =
-    tournamentStage === 'tournament-live'
+    tournamentStage === 'tournament-live' || tournamentStage === 'bracket-open'
       ? 'No tournament games scheduled right now.'
       : 'No games scheduled at this time.';
   

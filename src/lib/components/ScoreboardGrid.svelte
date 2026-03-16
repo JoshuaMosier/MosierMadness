@@ -9,16 +9,17 @@
 
   $: matches = scores;
   $: tournamentStage = tournamentSettings?.stage || 'archive';
+  $: isTournamentMode = tournamentStage === 'tournament-live' || tournamentStage === 'bracket-open';
   $: scoreboardTitle =
-    tournamentStage === 'tournament-live'
+    isTournamentMode
       ? 'Tournament Scoreboard'
       : 'Live Scoreboard';
   $: scoreboardSubtitle =
-    tournamentStage === 'tournament-live'
+    isTournamentMode
       ? 'Showing active tournament games from the current settings window'
       : 'Showing today\'s NCAA games based on the current tournament settings';
   $: emptyStateMessage =
-    tournamentStage === 'tournament-live'
+    isTournamentMode
       ? 'No tournament games are scheduled in the current settings window.'
       : 'No NCAA games are scheduled today.';
   

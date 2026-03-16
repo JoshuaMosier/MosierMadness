@@ -222,7 +222,13 @@ export { getTodayEtDateString } from '$lib/server/tournament/dates';
 
 export function getCurrentOrNextTickerRound(settings: TournamentSettings, date: Date = new Date()): TickerRound | null {
   const today = getTodayEtDateString(date);
-  const rounds = settings.tickerRounds || [];
+  const firstFourDates = settings.firstFourConfig?.dates?.filter(Boolean) || [];
+  const rounds: TickerRound[] = [
+    ...(firstFourDates.length > 0
+      ? [{ key: 'first-four', label: 'First Four', dates: firstFourDates }]
+      : []),
+    ...(settings.tickerRounds || []),
+  ];
 
   for (const round of rounds) {
     const sortedDates = [...round.dates].sort();
