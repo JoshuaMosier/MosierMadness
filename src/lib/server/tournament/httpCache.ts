@@ -1,4 +1,4 @@
-import { RESPONSE_TTL_MS } from '$lib/server/tournament/constants';
+import { HTTP_FETCH_TIMEOUT_MS, RESPONSE_TTL_MS, getErrorMessage } from '$lib/server/tournament/constants';
 import { HttpError } from '$lib/types';
 
 interface CacheEntry {
@@ -8,6 +8,23 @@ interface CacheEntry {
 
 const responseCache = new Map<string, CacheEntry>();
 const inflight = new Map<string, Promise<unknown>>();
+
+async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } catch (error: unknown) {
+    if (controller.signal.aborted) {
+      throw new Error(`Timed out fetching NCAA API after ${timeoutMs}ms: ${url}`);
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchJsonWithCache(url: string, ttlMs: number = RESPONSE_TTL_MS): Promise<any> {
@@ -22,19 +39,28 @@ export async function fetchJsonWithCache(url: string, ttlMs: number = RESPONSE_T
   }
 
   const promise = (async () => {
-    const response = await fetch(url);
-    if (!response.ok) {
-      const error = new HttpError(`NCAA API responded with status ${response.status} for ${url}`, response.status);
+    try {
+      const response = await fetchWithTimeout(url, HTTP_FETCH_TIMEOUT_MS);
+      if (!response.ok) {
+        const error = new HttpError(`NCAA API responded with status ${response.status} for ${url}`, response.status);
+        throw error;
+      }
+
+      const value: unknown = await response.json();
+      responseCache.set(url, {
+        value,
+        expiresAt: Date.now() + ttlMs,
+      });
+
+      return value;
+    } catch (error: unknown) {
+      if (cached) {
+        console.warn(`Using stale NCAA API cache for ${url}: ${getErrorMessage(error)}`);
+        return cached.value;
+      }
+
       throw error;
     }
-
-    const value: unknown = await response.json();
-    responseCache.set(url, {
-      value,
-      expiresAt: Date.now() + ttlMs,
-    });
-
-    return value;
   })().finally(() => inflight.delete(url));
 
   inflight.set(url, promise);

@@ -5,3 +5,8 @@ export const NCAA_CONTESTS_WEB_SHA = '7287cda610a9326931931080cb3a604828febe6fe3
 
 export const SNAPSHOT_TTL_MS = 30_000;
 export const RESPONSE_TTL_MS = 30_000;
+export const HTTP_FETCH_TIMEOUT_MS = 8_000;
+
+export function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}

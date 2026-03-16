@@ -1,6 +1,7 @@
 import {
   NCAA_SCOREBOARD_BASE_URL,
   SNAPSHOT_TTL_MS,
+  getErrorMessage,
 } from '$lib/server/tournament/constants';
 import { parseDateParts } from '$lib/server/tournament/dates';
 import { fetchTournamentDayForDate } from '$lib/server/tournament/tournamentFetch';
@@ -487,6 +488,46 @@ function buildSnapshotCacheKey(settings: TournamentSettings): string {
   });
 }
 
+function buildEmptyBracketMatches(): Record<number, BracketMatch> {
+  const matches: Record<number, BracketMatch> = {};
+
+  for (let bracketIndex = 1; bracketIndex <= 63; bracketIndex++) {
+    matches[bracketIndex] = {
+      gameId: null,
+      bracketIndex,
+      roundNumber: null,
+      region: null,
+      teamA: null,
+      teamB: null,
+      winner: null,
+      gameState: null,
+      period: '',
+      clock: '',
+      startTime: '',
+      displayClock: '',
+    };
+  }
+
+  return matches;
+}
+
+function buildEmptyTournamentSnapshot(settings: TournamentSettings): TournamentSnapshot {
+  return {
+    fetchedAt: new Date().toISOString(),
+    settings,
+    canonicalByNcaaName: new Map(),
+    firstRoundTeams: new Array(64).fill(null),
+    masterBracket: new Array(63).fill(''),
+    bracketMatches: buildEmptyBracketMatches(),
+    champion: null,
+    gamesById: new Map(),
+    gamesByIndex: new Map(),
+    scoreboardGames: [],
+    teamByName: new Map(),
+    teamBySelection: new Map(),
+  };
+}
+
 async function buildTournamentSnapshot(settings: TournamentSettings): Promise<TournamentSnapshot> {
   await loadTeamColors();
   const firstRoundDates =
@@ -551,6 +592,19 @@ export async function getTournamentSnapshot(explicitSettings: TournamentSettings
       checkAndResolveFirstFour(settings).catch((err: Error) => console.warn('First Four check failed:', err.message));
 
       return snapshot;
+    })
+    .catch((error: unknown) => {
+      if (snapshotCache.value && snapshotCache.cacheKey === cacheKey) {
+        console.warn(`Using stale tournament snapshot cache: ${getErrorMessage(error)}`);
+        return snapshotCache.value;
+      }
+
+      console.warn(`Falling back to empty tournament snapshot: ${getErrorMessage(error)}`);
+      const emptySnapshot = buildEmptyTournamentSnapshot(settings);
+      snapshotCache.value = emptySnapshot;
+      snapshotCache.cacheKey = cacheKey;
+      snapshotCache.expiresAt = Date.now() + SNAPSHOT_TTL_MS;
+      return emptySnapshot;
     })
     .finally(() => {
       inflightSnapshotPromise = null;
