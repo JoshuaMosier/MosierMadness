@@ -36,13 +36,26 @@ function getDefaultEntryDeadlineAt(entrySeasonYear: number): string {
   return buildEasternTimestamp(tipoffThursday, 12);
 }
 
+/** Canonical first round dates (Thu–Fri after Selection Sunday) for a tournament year. */
+export function getCanonicalFirstRoundDates(entrySeasonYear: number): string[] {
+  const selectionSunday = getNthWeekdayOfMonth(entrySeasonYear, 2, 0, 3);
+  const thursday = new Date(selectionSunday);
+  thursday.setUTCDate(thursday.getUTCDate() + 4);
+  const friday = new Date(selectionSunday);
+  friday.setUTCDate(friday.getUTCDate() + 5);
+  return [
+    `${thursday.getUTCFullYear()}-${padNumber(thursday.getUTCMonth() + 1)}-${padNumber(thursday.getUTCDate())}`,
+    `${friday.getUTCFullYear()}-${padNumber(friday.getUTCMonth() + 1)}-${padNumber(friday.getUTCDate())}`,
+  ];
+}
+
 export const DEFAULT_TICKER_ROUNDS: TickerRound[] = [
-  { key: 'round-1', label: 'First Round', dates: ['2025-03-20', '2025-03-21'] },
-  { key: 'round-2', label: 'Second Round', dates: ['2025-03-22', '2025-03-23'] },
-  { key: 'sweet-16', label: 'Sweet 16', dates: ['2025-03-27', '2025-03-28'] },
-  { key: 'elite-8', label: 'Elite 8', dates: ['2025-03-29', '2025-03-30'] },
-  { key: 'final-four', label: 'Final Four', dates: ['2025-04-05'] },
-  { key: 'championship', label: 'Championship', dates: ['2025-04-07'] },
+  { key: 'round-1', label: 'First Round', dates: ['2026-03-19', '2026-03-20'] },
+  { key: 'round-2', label: 'Second Round', dates: ['2026-03-21', '2026-03-22'] },
+  { key: 'sweet-16', label: 'Sweet 16', dates: ['2026-03-26', '2026-03-27'] },
+  { key: 'elite-8', label: 'Elite 8', dates: ['2026-03-28', '2026-03-29'] },
+  { key: 'final-four', label: 'Final Four', dates: ['2026-04-04'] },
+  { key: 'championship', label: 'Championship', dates: ['2026-04-06'] },
 ];
 
 export const DEFAULT_FIRST_FOUR_CONFIG: FirstFourConfig = {
@@ -57,7 +70,7 @@ export const DEFAULT_TOURNAMENT_SETTINGS: TournamentSettings = {
   displaySeasonYear: 2025,
   stage: 'archive',
   archiveScoreboardDate: '2025-04-07',
-  firstRoundDates: ['2025-03-20', '2025-03-21'],
+  firstRoundDates: ['2026-03-19', '2026-03-20'],
   tickerRounds: DEFAULT_TICKER_ROUNDS,
   firstFourConfig: DEFAULT_FIRST_FOUR_CONFIG,
 };
@@ -69,12 +82,22 @@ const settingsCache: { value: TournamentSettings | null; expiresAt: number } = {
 
 const SETTINGS_TTL_MS = 30_000;
 
+/** Normalize to YYYY-MM-DD (handles PostgreSQL date[] returning ISO timestamps). */
+function toYyyyMmDd(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+  }
+  return null;
+}
+
 function normalizeDateArray(value: unknown, fallback: string[]): string[] {
   if (!Array.isArray(value) || value.length === 0) {
     return fallback;
   }
 
-  return value.filter(Boolean) as string[];
+  const normalized = value.map(toYyyyMmDd).filter((s): s is string => s != null);
+  return normalized.length > 0 ? normalized : fallback;
 }
 
 function normalizeFirstFourConfig(value: unknown): FirstFourConfig {
