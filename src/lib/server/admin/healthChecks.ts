@@ -123,11 +123,14 @@ export async function getAdminHealthChecks(settings: TournamentSettings): Promis
 
   try {
     const snapshot = await getTournamentSnapshot(settings);
+    const firstRoundTeamCount = snapshot.firstRoundTeams.filter(Boolean).length;
     health.snapshot = {
       fetchedAt: snapshot.fetchedAt,
       ageMinutes: getSnapshotAgeMinutes(snapshot.fetchedAt),
       scoreboardGameCount: snapshot.scoreboardGames.length,
-      firstRoundTeamCount: snapshot.firstRoundTeams.filter(Boolean).length,
+      firstRoundTeamCount,
+      firstRoundDatesUsed: snapshot.settings.firstRoundDates || [],
+      entrySeasonYear: snapshot.settings.entrySeasonYear,
       ...summarizeScoreboardTeams(snapshot.scoreboardGames, logoSlugs),
     };
   } catch (error: unknown) {

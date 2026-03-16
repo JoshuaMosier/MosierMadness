@@ -223,6 +223,7 @@
         throw upsertError;
       }
 
+      await fetch('/api/admin/invalidate-settings', { method: 'POST' });
       await loadSeasons();
       success = 'Tournament settings saved.';
     } catch (err) {
@@ -666,6 +667,8 @@
                 <div class="mt-2 text-sm text-zinc-400 space-y-1">
                   <div>Fetched: {formatTime(healthChecks?.snapshot?.fetchedAt)}</div>
                   <div>Age: {healthChecks?.snapshot?.ageMinutes ?? 'n/a'} min</div>
+                  <div>First round teams: {healthChecks?.snapshot?.firstRoundTeamCount ?? 0}/64</div>
+                  <div>First round dates: {(healthChecks?.snapshot?.firstRoundDatesUsed || []).join(', ') || 'none'}</div>
                   <div>Tracked teams: {healthChecks?.snapshot?.trackedTeamCount || 0}</div>
                   <div>Gray primary fallback teams: {healthChecks?.snapshot?.grayPrimaryFallbackTeams?.length || 0}</div>
                 </div>
