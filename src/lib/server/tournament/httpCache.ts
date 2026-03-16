@@ -40,3 +40,19 @@ export async function fetchJsonWithCache(url: string, ttlMs: number = RESPONSE_T
   inflight.set(url, promise);
   return promise;
 }
+
+/**
+ * Fetch casablanca scoreboard JSON. Returns { games: [] } on 404 instead of throwing.
+ * Use for tournament snapshot dates where the API may not have data (rest days, future dates).
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function fetchScoreboardOrEmpty(url: string, ttlMs: number = RESPONSE_TTL_MS): Promise<{ games: any[] }> {
+  try {
+    return await fetchJsonWithCache(url, ttlMs);
+  } catch (error: unknown) {
+    if (error instanceof HttpError && error.status === 404) {
+      return { games: [] };
+    }
+    throw error;
+  }
+}

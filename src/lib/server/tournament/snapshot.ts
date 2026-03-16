@@ -2,11 +2,11 @@ import {
   NCAA_SCOREBOARD_BASE_URL,
   SNAPSHOT_TTL_MS,
 } from '$lib/server/tournament/constants';
-import { fetchJsonWithCache } from '$lib/server/tournament/httpCache';
 import { parseDateParts } from '$lib/server/tournament/dates';
+import { fetchTournamentDayForDate } from '$lib/server/tournament/tournamentFetch';
 import { getStatusPriority, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
 import { formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils';
-import { getTournamentSettings } from '$lib/server/tournament/settings';
+import { getTournamentSettings, getCanonicalFirstRoundDates } from '$lib/server/tournament/settings';
 import { loadTeamColors, getTeamColorSet, buildNormalizedTeam } from '$lib/server/tournament/teamColors';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { supabase } from '$lib/supabase';
@@ -489,11 +489,14 @@ function buildSnapshotCacheKey(settings: TournamentSettings): string {
 
 async function buildTournamentSnapshot(settings: TournamentSettings): Promise<TournamentSnapshot> {
   await loadTeamColors();
-  const firstRoundUrls = (settings.firstRoundDates || []).map(getScoreboardUrlForDate);
-  const roundUrls = getUniqueRoundDates(settings).map(getScoreboardUrlForDate);
+  const firstRoundDates =
+    (settings.firstRoundDates?.length ?? 0) >= 2
+      ? (settings.firstRoundDates || [])
+      : getCanonicalFirstRoundDates(settings.entrySeasonYear);
+  const roundDates = getUniqueRoundDates(settings);
   const [firstRoundDays, roundData] = await Promise.all([
-    Promise.all(firstRoundUrls.map(fetchJsonWithCache)),
-    Promise.all(roundUrls.map(fetchJsonWithCache)),
+    Promise.all(firstRoundDates.map(fetchTournamentDayForDate)),
+    Promise.all(roundDates.map(fetchTournamentDayForDate)),
   ]);
 
   const overrides = getFirstFourOverrides(settings);
@@ -562,18 +565,9 @@ export async function getScoreboardGamesForDate(
   options: { settings?: TournamentSettings; allowNonTournament?: boolean } = {},
 ): Promise<ScoreboardGame[]> {
   const snapshot = await getTournamentSnapshot(options.settings ?? null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let dayData: any;
-
-  try {
-    dayData = await fetchJsonWithCache(getScoreboardUrlForDate(date));
-  } catch (error: unknown) {
-    if ((error as { status?: number })?.status === 404) {
-      return [];
-    }
-
-    throw error;
-  }
+  const { year, month, day } = parseDateParts(date);
+  const dateStr = `${year}-${month}-${day}`;
+  const dayData = await fetchTournamentDayForDate(dateStr);
 
   return sortScoreboardGames(
     (dayData.games || [])

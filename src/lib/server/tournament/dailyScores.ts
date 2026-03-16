@@ -9,7 +9,7 @@ import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { getStatusPriority } from '$lib/utils/scoreboardUtils';
 import type { ScoreboardGame } from '$lib/types';
 
-function buildContestsUrl(dateValue: Date | string = new Date()): string {
+export function buildContestsUrl(dateValue: Date | string = new Date()): string {
   const url = new URL(NCAA_SDATA_API_URL);
   url.searchParams.set('meta', 'GetContests_web');
   url.searchParams.set('extensions', JSON.stringify({
@@ -95,6 +95,17 @@ function normalizeContest(contest: any): ScoreboardGame | null {
     sortPriority: getStatusPriority(statusLabel),
     isTournamentGame: false,
   };
+}
+
+/**
+ * Fetch raw contests from sdataprod for a given date.
+ * Returns tournament contests (with bracketId) and optionally all contests.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function fetchContestsForDate(dateValue: Date | string = new Date()): Promise<any[]> {
+  const url = buildContestsUrl(dateValue);
+  const payload = await fetchJsonWithCache(url);
+  return payload?.data?.contests || [];
 }
 
 export async function getDailyNcaaScoreboard(dateValue: Date | string = new Date()): Promise<ScoreboardGame[]> {

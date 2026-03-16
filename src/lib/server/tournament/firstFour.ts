@@ -1,5 +1,4 @@
-import { NCAA_SCOREBOARD_BASE_URL } from '$lib/server/tournament/constants';
-import { fetchJsonWithCache } from '$lib/server/tournament/httpCache';
+import { fetchTournamentDayForDate } from '$lib/server/tournament/tournamentFetch';
 import { invalidateSettingsCache } from '$lib/server/tournament/settings';
 import { supabase } from '$lib/supabase';
 import type { TournamentSettings } from '$lib/types';
@@ -36,11 +35,6 @@ export function getFirstFourOverrides(settings: TournamentSettings): Record<numb
   return overrides;
 }
 
-function getScoreboardUrl(dateString: string): string {
-  const [year, month, day] = dateString.split('-');
-  return `${NCAA_SCOREBOARD_BASE_URL}/${year}/${month}/${day}/scoreboard.json`;
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getCanonicalTeamName(teamData: any): string {
   return teamData.names.short.length < 20 ? teamData.names.short : teamData.names.char6;
@@ -59,12 +53,8 @@ export async function checkAndResolveFirstFour(settings: TournamentSettings): Pr
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let allGames: any[] = [];
   for (const dateStr of config.dates) {
-    try {
-      const data = await fetchJsonWithCache(getScoreboardUrl(dateStr));
-      allGames = allGames.concat(data.games || []);
-    } catch {
-      return;
-    }
+    const data = await fetchTournamentDayForDate(dateStr);
+    allGames = allGames.concat(data.games || []);
   }
 
   const firstFourGames = allGames.filter(
