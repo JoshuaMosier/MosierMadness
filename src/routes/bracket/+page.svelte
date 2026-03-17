@@ -250,7 +250,7 @@
 
     try {
       saving = true;
-      
+
       // Create a new bracket in the database
       const { data, error: createError } = await supabase
         .from('brackets')

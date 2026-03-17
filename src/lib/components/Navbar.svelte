@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
   import { page } from '$app/stores';
@@ -51,22 +50,13 @@
     }
   }
 
-  // Load profile whenever user changes (from server prop or client auth)
+  // Load profile whenever user changes. The layout's onAuthStateChange listener
+  // calls invalidate('supabase:auth') which re-runs the server load, updating
+  // serverUser → user → this reactive statement. No additional onAuthStateChange
+  // listener is needed here (and having one caused deadlocks because Supabase
+  // runs the callback inside an auth lock, and the loadProfile query internally
+  // calls getSession which tries to re-acquire the same lock).
   $: loadProfile(user);
-
-  onMount(() => {
-    // Listen for auth changes to keep profile data (admin status, name) in sync.
-    // The Login/Logout button itself is driven by serverUser from the layout load.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        await loadProfile(session.user);
-      }
-    });
-
-    return () => {
-      subscription?.unsubscribe();
-    };
-  });
   
   function toggleMenu() {
     isMenuOpen = !isMenuOpen;
@@ -76,16 +66,12 @@
     isMenuOpen = false;
   }
 
-  async function handleLogout(event: Event): Promise<void> {
+  function handleLogout(event: Event): void {
     event.preventDefault();
-    try {
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.error('Error signing out:', err);
-    }
-    // Always redirect with full reload, even if signOut fails —
-    // local session cookies are cleared regardless
-    window.location.href = '/';
+    // Navigate to the server-side /logout route, which calls signOut() on the
+    // server Supabase client (no browser auth lock involved), clears the session
+    // cookie, and redirects to /. Full page load ensures clean client state.
+    window.location.href = '/logout';
   }
 
   // Function to handle entries navigation

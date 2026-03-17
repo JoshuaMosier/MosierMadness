@@ -1,21 +1,8 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { supabase } from '$lib/supabase';
-  import { goto } from '$app/navigation';
-  
-  onMount(async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error signing out:', error);
-      }
-    } catch (err) {
-      console.error('Unexpected error during logout:', err);
-    } finally {
-      // Redirect to home page after logout attempt (successful or not)
-      goto('/');
-    }
-  });
+  // The server load (+page.server.ts) calls signOut() and redirects to /.
+  // This page only renders as a brief flash if the redirect hasn't completed yet.
+  // No client-side signOut() call needed — the server handles session cleanup,
+  // avoiding browser auth lock issues entirely.
 </script>
 
 <div class="container mx-auto px-4 py-8 flex justify-center items-center min-h-[50vh]">
