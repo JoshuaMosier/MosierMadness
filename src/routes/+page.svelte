@@ -11,6 +11,8 @@
 
   export let data: any;
 
+  $: user = $page.data.user;
+
   const stage: TournamentStage = data.tournamentSettings?.stage || 'archive';
   const settings = data.tournamentSettings || {};
 
@@ -123,19 +125,36 @@
     </div>
   {:else if isBracketOpen(stage)}
     <div class="space-y-8" in:fade={FADE_CONTENT}>
-      <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8">
-        <div class="max-w-3xl mb-6">
-          <div class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">
-            Entries Open
-          </div>
-          <h2 class="mt-4 text-3xl md:text-4xl font-semibold text-zinc-100">Bracket season is live</h2>
-        </div>
+      <div class="relative rounded-2xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-amber-900/5 pointer-events-none"></div>
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent"></div>
 
-        <Countdown
-          title="Countdown to Entry Deadline"
-          targetAt={data.frontDoor?.entryDeadlineAt}
-          eventLabel="Bracket deadline"
-        />
+        <div class="relative p-6 md:p-10">
+          <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-center">
+            <div class="space-y-5">
+              <div class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">
+                <span class="mr-2 inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                Entries Open
+              </div>
+              <h2 class="text-3xl md:text-4xl font-semibold text-zinc-100">Bracket season is live</h2>
+              <p class="text-sm md:text-base text-zinc-400 max-w-md">Lock in your picks before the deadline. Once the tournament tips off, brackets are final.</p>
+              <a href={user ? '/bracket' : '/login'} class="inline-flex items-center gap-2 text-lg md:text-xl font-bold bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white px-8 py-3.5 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg hover:scale-[1.02]">
+                Create Your Bracket
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+              </a>
+            </div>
+
+            <div class="lg:border-l lg:border-zinc-800 lg:pl-8">
+              <Countdown
+                title="Countdown to Entry Deadline"
+                targetAt={data.frontDoor?.entryDeadlineAt}
+                eventLabel="Bracket deadline"
+                plainTitle
+                embedded
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">

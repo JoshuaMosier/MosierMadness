@@ -6,6 +6,8 @@
   export let title: string = 'Countdown';
   export let targetAt: string | null = null;
   export let eventLabel: string = 'Upcoming event';
+  export let plainTitle: boolean = false;
+  export let embedded: boolean = false;
 
   let timeRemaining: { days: number; hours: number; minutes: number; seconds: number } = {
     days: 0,
@@ -96,18 +98,24 @@
   });
 </script>
 
-<div class="w-full max-w-4xl mx-auto bg-stone-900/50 rounded-lg shadow-lg p-6 backdrop-blur-sm border border-stone-800/50 relative overflow-hidden group">
-  <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-amber-700 to-amber-500" style="width: {$progress}%"></div>
+<div class="w-full max-w-4xl mx-auto {embedded ? 'p-0' : 'bg-stone-900/50 rounded-lg shadow-lg p-6 backdrop-blur-sm border border-stone-800/50'} relative overflow-hidden group">
+  {#if !embedded}
+    <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-amber-700 to-amber-500" style="width: {$progress}%"></div>
+  {/if}
 
-  <div class="text-center mb-12 relative">
-    <div class="inline-block">
-      <h1 class="text-4xl font-bold relative">
-        <span class="bg-gradient-to-r from-amber-700 to-amber-600 text-white px-6 py-3 rounded-lg shadow-md inline-block">
-          {title}
-        </span>
-      </h1>
-    </div>
-    <p class="mt-6 text-zinc-400 flex items-center justify-center gap-2">
+  <div class="text-center {plainTitle ? 'mb-8' : 'mb-12'} relative">
+    {#if plainTitle}
+      <h2 class="text-2xl md:text-3xl font-semibold text-zinc-300">{title}</h2>
+    {:else}
+      <div class="inline-block">
+        <h1 class="text-4xl font-bold relative">
+          <span class="bg-gradient-to-r from-amber-700 to-amber-600 text-white px-6 py-3 rounded-lg shadow-md inline-block">
+            {title}
+          </span>
+        </h1>
+      </div>
+    {/if}
+    <p class="{plainTitle ? 'mt-3' : 'mt-6'} text-zinc-400 flex items-center justify-center gap-2">
       <span class="inline-block w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
       <span>{eventLabel}: {formattedEventTime}</span>
     </p>
