@@ -138,7 +138,7 @@
               </div>
               <h2 class="text-3xl md:text-4xl font-semibold text-zinc-100">Bracket season is live</h2>
               <p class="text-sm md:text-base text-zinc-400 max-w-md">Lock in your picks before the deadline. Once the tournament tips off, brackets are final.</p>
-              <a href={user ? '/bracket' : '/login'} class="inline-flex items-center gap-2 text-lg md:text-xl font-bold bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white px-8 py-3.5 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg hover:scale-[1.02]">
+              <a href={user ? '/bracket' : '/login?redirect=/bracket'} class="inline-flex items-center gap-2 text-lg md:text-xl font-bold bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white px-8 py-3.5 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg hover:scale-[1.02]">
                 Create Your Bracket
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
               </a>
