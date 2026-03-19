@@ -8,9 +8,9 @@ import { fetchTournamentDayForDate } from '$lib/server/tournament/tournamentFetc
 import { getStatusPriority, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
 import { formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils';
 import { getTournamentSettings, getCanonicalFirstRoundDates } from '$lib/server/tournament/settings';
+import { supabaseAdmin } from '$lib/server/supabaseAdmin';
 import { loadTeamColors, getTeamColorSet, buildNormalizedTeam } from '$lib/server/tournament/teamColors';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
-import { supabase } from '$lib/supabase';
 import { getFirstFourOverrides, checkAndResolveFirstFour } from '$lib/server/tournament/firstFour';
 import type { TournamentSettings, TournamentSnapshot, ScoreboardGame, ScoreboardTeam, BracketMatch } from '$lib/types';
 
@@ -583,7 +583,7 @@ export async function getTournamentSnapshot(explicitSettings: TournamentSettings
       snapshotCache.cacheKey = cacheKey;
       snapshotCache.expiresAt = Date.now() + SNAPSHOT_TTL_MS;
 
-      supabase
+      supabaseAdmin
         .from('realtime_updates')
         .upsert({ scope: 'tournament', updated_at: new Date().toISOString() })
         .then(() => {})

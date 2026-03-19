@@ -1,4 +1,4 @@
-import { supabase } from '$lib/supabase';
+import { supabaseAdmin } from '$lib/server/supabaseAdmin';
 import { getTournamentSettings } from '$lib/server/tournament/settings';
 import type { Entry, Profile } from '$lib/types';
 
@@ -9,7 +9,7 @@ function hasCompleteSelections(selections: unknown): boolean {
 }
 
 export async function autoSubmitCompleteDraftBrackets(year: number): Promise<number> {
-  const { data: draftBrackets, error: draftError } = await supabase
+  const { data: draftBrackets, error: draftError } = await supabaseAdmin
     .from('brackets')
     .select('id, selections')
     .eq('year', year)
@@ -27,7 +27,7 @@ export async function autoSubmitCompleteDraftBrackets(year: number): Promise<num
     return 0;
   }
 
-  const { error: updateError } = await supabase
+  const { error: updateError } = await supabaseAdmin
     .from('brackets')
     .update({
       is_submitted: true,
@@ -78,7 +78,7 @@ function normalizeSubmittedBracket(bracket: Record<string, any>): Entry {
 export async function getSubmittedEntries(year?: number): Promise<Entry[]> {
   await maybeAutoSubmitLiveTournamentBrackets(year);
 
-  let query = supabase
+  let query = supabaseAdmin
     .from('brackets')
     .select(`
       id,
@@ -110,7 +110,7 @@ export async function getSubmittedEntries(year?: number): Promise<Entry[]> {
 export async function getEntriesWithProfiles(year?: number): Promise<any[]> {
   await maybeAutoSubmitLiveTournamentBrackets(year);
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('profiles')
     .select(`
       id,
@@ -146,7 +146,7 @@ export async function getEntriesWithProfiles(year?: number): Promise<any[]> {
 }
 
 export async function getProfileByUserId(userId: string): Promise<Profile | null> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('profiles')
     .select('id, first_name, last_name, email, is_admin')
     .eq('id', userId)

@@ -1,6 +1,6 @@
 import { fetchTournamentDayForDate } from '$lib/server/tournament/tournamentFetch';
+import { supabaseAdmin } from '$lib/server/supabaseAdmin';
 import { invalidateSettingsCache } from '$lib/server/tournament/settings';
-import { supabase } from '$lib/supabase';
 import type { TournamentSettings } from '$lib/types';
 
 interface FirstFourOverride {
@@ -44,9 +44,12 @@ function getCanonicalTeamName(teamData: any): string {
  * Check if all First Four games are final. If so, replace composite selections
  * in the brackets table with the canonical winner names.
  */
-export async function checkAndResolveFirstFour(settings: TournamentSettings): Promise<void> {
+export async function checkAndResolveFirstFour(
+  settings: TournamentSettings,
+  options: { force?: boolean } = {},
+): Promise<void> {
   const config = settings.firstFourConfig;
-  if (!config?.games?.length || !config.dates?.length || config.replacementCompletedAt) {
+  if (!config?.games?.length || !config.dates?.length || (config.replacementCompletedAt && !options.force)) {
     return;
   }
 
@@ -88,7 +91,7 @@ export async function checkAndResolveFirstFour(settings: TournamentSettings): Pr
   const year = settings.entrySeasonYear;
 
   try {
-    const { data: brackets, error: fetchError } = await supabase
+    const { data: brackets, error: fetchError } = await supabaseAdmin
       .from('brackets')
       .select('id, selections')
       .eq('year', year);
@@ -98,8 +101,11 @@ export async function checkAndResolveFirstFour(settings: TournamentSettings): Pr
       return;
     }
 
+    let updatedBracketCount = 0;
+    let failedBracketUpdates = 0;
+
     for (const bracket of brackets || []) {
-      let selections: string[] = bracket.selections;
+      let selections: string[] = Array.isArray(bracket.selections) ? [...bracket.selections] : [];
       let changed = false;
 
       for (const { oldSelection, newSelection } of replacements) {
@@ -110,15 +116,24 @@ export async function checkAndResolveFirstFour(settings: TournamentSettings): Pr
       }
 
       if (changed) {
-        const { error: updateError } = await supabase
+        const { error: updateError } = await supabaseAdmin
           .from('brackets')
           .update({ selections, updated_at: new Date().toISOString() })
           .eq('id', bracket.id);
 
         if (updateError) {
+          failedBracketUpdates += 1;
           console.warn(`First Four: failed to update bracket ${bracket.id}:`, updateError.message);
+          continue;
         }
+
+        updatedBracketCount += 1;
       }
+    }
+
+    if (failedBracketUpdates > 0) {
+      console.warn(`First Four: skipped completion flag because ${failedBracketUpdates} bracket update(s) failed.`);
+      return;
     }
 
     const updatedConfig = {
@@ -126,7 +141,7 @@ export async function checkAndResolveFirstFour(settings: TournamentSettings): Pr
       replacementCompletedAt: new Date().toISOString(),
     };
 
-    const { error: configError } = await supabase
+    const { error: configError } = await supabaseAdmin
       .from('tournament_seasons')
       .update({
         first_four_config: updatedConfig,
@@ -140,7 +155,7 @@ export async function checkAndResolveFirstFour(settings: TournamentSettings): Pr
     }
 
     invalidateSettingsCache();
-    console.log(`First Four: replaced ${replacements.length} composites across ${brackets?.length || 0} brackets`);
+    console.log(`First Four: resolved ${replacements.length} First Four winner(s) across ${updatedBracketCount} bracket(s)`);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.warn('First Four resolution failed:', message);

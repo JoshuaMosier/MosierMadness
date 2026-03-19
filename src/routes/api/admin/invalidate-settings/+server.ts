@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { autoSubmitCompleteDraftBrackets } from '$lib/server/tournament/entries';
+import { checkAndResolveFirstFour } from '$lib/server/tournament/firstFour';
 import { getTournamentSettings, invalidateSettingsCache } from '$lib/server/tournament/settings';
 
 export const POST: RequestHandler = async ({ locals }) => {
@@ -21,6 +22,7 @@ export const POST: RequestHandler = async ({ locals }) => {
     const settings = await getTournamentSettings();
     if (settings.stage === 'tournament-live') {
       autoSubmittedCount = await autoSubmitCompleteDraftBrackets(settings.entrySeasonYear);
+      await checkAndResolveFirstFour(settings, { force: true });
     }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

@@ -1,4 +1,4 @@
-import { supabase } from '$lib/supabase';
+import { supabaseAdmin } from '$lib/server/supabaseAdmin';
 import { getTodayEtDateString } from '$lib/server/tournament/dates';
 import type { TournamentStage, TournamentSettings, TickerRound, FirstFourConfig, FirstFourGame } from '$lib/types';
 
@@ -181,7 +181,7 @@ export async function getTournamentSettings(): Promise<TournamentSettings> {
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('tournament_seasons')
       .select(`
         entry_season_year,
