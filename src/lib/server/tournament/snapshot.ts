@@ -5,10 +5,10 @@ import {
 } from '$lib/server/tournament/constants';
 import { parseDateParts } from '$lib/server/tournament/dates';
 import { fetchTournamentDayForDate } from '$lib/server/tournament/tournamentFetch';
+import { getTournamentSnapshotFingerprint, notifyTournamentRefresh } from '$lib/server/tournament/realtime';
 import { getStatusPriority, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
 import { formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils';
 import { getTournamentSettings, getCanonicalFirstRoundDates } from '$lib/server/tournament/settings';
-import { supabaseAdmin } from '$lib/server/supabaseAdmin';
 import { loadTeamColors, getTeamColorSet, buildNormalizedTeam } from '$lib/server/tournament/teamColors';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { getFirstFourOverrides, checkAndResolveFirstFour } from '$lib/server/tournament/firstFour';
@@ -37,9 +37,15 @@ interface TeamLookup {
   teamBySelection: Map<string, CanonicalTeam>;
 }
 
-const snapshotCache: { value: TournamentSnapshot | null; cacheKey: string | null; expiresAt: number } = {
+const snapshotCache: {
+  value: TournamentSnapshot | null;
+  cacheKey: string | null;
+  fingerprint: string | null;
+  expiresAt: number;
+} = {
   value: null,
   cacheKey: null,
+  fingerprint: null,
   expiresAt: 0,
 };
 
@@ -579,15 +585,17 @@ export async function getTournamentSnapshot(explicitSettings: TournamentSettings
   inflightSnapshotCacheKey = cacheKey;
   inflightSnapshotPromise = buildTournamentSnapshot(settings)
     .then(snapshot => {
+      const nextFingerprint = getTournamentSnapshotFingerprint(snapshot);
+      const shouldNotify = snapshotCache.cacheKey !== cacheKey || snapshotCache.fingerprint !== nextFingerprint;
+
       snapshotCache.value = snapshot;
       snapshotCache.cacheKey = cacheKey;
+      snapshotCache.fingerprint = nextFingerprint;
       snapshotCache.expiresAt = Date.now() + SNAPSHOT_TTL_MS;
 
-      supabaseAdmin
-        .from('realtime_updates')
-        .upsert({ scope: 'tournament', updated_at: new Date().toISOString() })
-        .then(() => {})
-        .catch((err: Error) => console.warn('Realtime notify failed:', err.message));
+      if (shouldNotify) {
+        notifyTournamentRefresh().catch(() => {});
+      }
 
       checkAndResolveFirstFour(settings).catch((err: Error) => console.warn('First Four check failed:', err.message));
 
@@ -603,6 +611,7 @@ export async function getTournamentSnapshot(explicitSettings: TournamentSettings
       const emptySnapshot = buildEmptyTournamentSnapshot(settings);
       snapshotCache.value = emptySnapshot;
       snapshotCache.cacheKey = cacheKey;
+      snapshotCache.fingerprint = getTournamentSnapshotFingerprint(emptySnapshot);
       snapshotCache.expiresAt = Date.now() + SNAPSHOT_TTL_MS;
       return emptySnapshot;
     })

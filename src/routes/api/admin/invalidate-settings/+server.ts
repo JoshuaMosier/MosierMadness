@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { autoSubmitCompleteDraftBrackets } from '$lib/server/tournament/entries';
 import { checkAndResolveFirstFour } from '$lib/server/tournament/firstFour';
+import { notifyTournamentRefresh } from '$lib/server/tournament/realtime';
 import { getTournamentSettings, invalidateSettingsCache } from '$lib/server/tournament/settings';
 
 export const POST: RequestHandler = async ({ locals }) => {
@@ -16,6 +17,7 @@ export const POST: RequestHandler = async ({ locals }) => {
   if (!profile?.is_admin) return json({ error: 'Not authorized' }, { status: 403 });
 
   invalidateSettingsCache();
+  await notifyTournamentRefresh();
 
   let autoSubmittedCount = 0;
   try {

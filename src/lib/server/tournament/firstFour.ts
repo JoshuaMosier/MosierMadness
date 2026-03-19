@@ -1,4 +1,5 @@
 import { fetchTournamentDayForDate } from '$lib/server/tournament/tournamentFetch';
+import { notifyTournamentRefresh } from '$lib/server/tournament/realtime';
 import { supabaseAdmin } from '$lib/server/supabaseAdmin';
 import { invalidateSettingsCache } from '$lib/server/tournament/settings';
 import type { TournamentSettings } from '$lib/types';
@@ -155,6 +156,7 @@ export async function checkAndResolveFirstFour(
     }
 
     invalidateSettingsCache();
+    await notifyTournamentRefresh();
     console.log(`First Four: resolved ${replacements.length} First Four winner(s) across ${updatedBracketCount} bracket(s)`);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);

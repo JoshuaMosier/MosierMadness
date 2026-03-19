@@ -3,11 +3,19 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const dataRefreshSignal = writable<number>(0);
 
-const FALLBACK_POLL_MS = 45_000;
+const DEFAULT_FALLBACK_POLL_MS = 45_000;
 
-export function initRealtimeRefresh(supabaseClient: SupabaseClient): () => void {
+interface RealtimeRefreshOptions {
+  fallbackPollMs?: number | null;
+}
+
+export function initRealtimeRefresh(
+  supabaseClient: SupabaseClient,
+  options: RealtimeRefreshOptions = {},
+): () => void {
   let pendingRefresh = false;
-  let fallbackInterval: ReturnType<typeof setInterval>;
+  let fallbackInterval: ReturnType<typeof setInterval> | null = null;
+  const fallbackPollMs = options.fallbackPollMs ?? DEFAULT_FALLBACK_POLL_MS;
 
   function signal(): void {
     dataRefreshSignal.update((n) => n + 1);
@@ -44,17 +52,21 @@ export function initRealtimeRefresh(supabaseClient: SupabaseClient): () => void 
 
   document.addEventListener('visibilitychange', onVisibilityChange);
 
-  fallbackInterval = setInterval(() => {
-    if (document.visibilityState === 'visible') {
-      signal();
-    } else {
-      pendingRefresh = true;
-    }
-  }, FALLBACK_POLL_MS);
+  if (fallbackPollMs && fallbackPollMs > 0) {
+    fallbackInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        signal();
+      } else {
+        pendingRefresh = true;
+      }
+    }, fallbackPollMs);
+  }
 
   return function cleanup(): void {
     supabaseClient.removeChannel(channel);
-    clearInterval(fallbackInterval);
+    if (fallbackInterval) {
+      clearInterval(fallbackInterval);
+    }
     document.removeEventListener('visibilitychange', onVisibilityChange);
   };
 }

@@ -9,6 +9,7 @@
   import { onMount } from 'svelte'
   import { page } from '$app/stores'
   import { dataRefreshSignal, initRealtimeRefresh } from '$lib/stores/realtimeUpdates'
+  import type { TournamentStage } from '$lib/types';
 
   export let data: any;
   injectAnalytics({ mode: dev ? 'development' : 'production' });
@@ -27,6 +28,49 @@
   let invalidateTimeout: ReturnType<typeof setTimeout>;
   let isNavigating = false;
   let pendingInvalidate = false;
+  let mounted = false;
+  let cleanupRealtime: (() => void) | null = null;
+  let currentRealtimeKey = '';
+
+  const HOT_ROUTE_POLL_MS = 60_000;
+  const HOME_ROUTE_POLL_MS = 90_000;
+  const STANDARD_ROUTE_POLL_MS = 180_000;
+  const BRACKET_OPEN_POLL_MS = 300_000;
+  const IDLE_POLL_MS = 600_000;
+
+  $: tournamentStage = (data.tournamentSettings?.stage || 'archive') as TournamentStage;
+
+  function getFallbackPollMs(pathname: string, stage: TournamentStage): number {
+    if (stage === 'tournament-live') {
+      if (pathname === '/scores' || pathname === '/live-bracket' || pathname.startsWith('/game/')) {
+        return HOT_ROUTE_POLL_MS;
+      }
+
+      if (pathname === '/') {
+        return HOME_ROUTE_POLL_MS;
+      }
+
+      return STANDARD_ROUTE_POLL_MS;
+    }
+
+    if (stage === 'bracket-open') {
+      return BRACKET_OPEN_POLL_MS;
+    }
+
+    return pathname === '/scores' ? BRACKET_OPEN_POLL_MS : IDLE_POLL_MS;
+  }
+
+  $: fallbackPollMs = getFallbackPollMs($page.url.pathname, tournamentStage);
+
+  function syncRealtimeRefresh(nextKey: string): void {
+    if (!mounted || nextKey === currentRealtimeKey) {
+      return;
+    }
+
+    cleanupRealtime?.();
+    cleanupRealtime = initRealtimeRefresh(supabase, { fallbackPollMs });
+    currentRealtimeKey = nextKey;
+  }
 
   beforeNavigate(() => {
     isNavigating = true;
@@ -51,18 +95,24 @@
     }, INVALIDATE_DEBOUNCE_MS);
   }
 
+  $: syncRealtimeRefresh(`${tournamentStage}:${$page.url.pathname}:${fallbackPollMs}`);
+
   onMount(() => {
+    mounted = true;
+    syncRealtimeRefresh(`${tournamentStage}:${$page.url.pathname}:${fallbackPollMs}`);
+
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(() => {
       invalidate('supabase:auth')
     })
 
-    const cleanupRealtime = initRealtimeRefresh(supabase);
-
     return () => {
+      mounted = false;
+      currentRealtimeKey = '';
       subscription.unsubscribe();
-      cleanupRealtime();
+      cleanupRealtime?.();
+      cleanupRealtime = null;
     }
   })
 </script>
