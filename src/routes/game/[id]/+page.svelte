@@ -6,13 +6,19 @@
 
   export let data: any;
 
-  let gameData: any = data.gameDetail?.game || null;
-  let pageError: string | null = !gameData ? 'No games available at this time' : null;
+  let gameData: any = null;
+  let pageError: string | null = null;
   let entriesLoading = false;
-  let teamSelections: { home: any[]; away: any[]; other: any[] } = data.gameDetail?.teamSelections || { home: [], away: [], other: [] };
+  let teamSelections: { home: any[]; away: any[]; other: any[] } = { home: [], away: [], other: [] };
   let currentUserId: string | null = null;
-  const tournamentStage: string = data.tournamentSettings?.stage || 'archive';
-  const gamePageContext: string =
+  let tournamentStage: string = 'archive';
+  let gamePageContext: string = 'Tournament game details';
+
+  $: gameData = data.gameDetail?.game || null;
+  $: pageError = gameData ? null : 'No games available at this time';
+  $: teamSelections = data.gameDetail?.teamSelections || { home: [], away: [], other: [] };
+  $: tournamentStage = data.tournamentSettings?.stage || 'archive';
+  $: gamePageContext =
     tournamentStage === 'tournament-live'
       ? 'Live tournament game details'
       : tournamentStage === 'bracket-open'

@@ -12,7 +12,7 @@
   let duplicatedMatches: ScoreboardGame[] = [];
   let marqueeContent: HTMLDivElement | null = null;
   let rafId: number | null = null;
-  const MARQUEE_DURATION_S = 900; /* 5× slower than original 320s */
+  const MARQUEE_DURATION_S = 200;
 
   $: tournamentStage = tournamentSettings?.stage || 'archive';
   $: viewAllLabel = tournamentStage === 'tournament-live' || tournamentStage === 'bracket-open' ? 'Tournament Scores' : 'Today\'s Scores';
