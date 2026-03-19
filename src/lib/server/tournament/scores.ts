@@ -1,6 +1,6 @@
 import { getDailyNcaaScoreboard } from '$lib/server/tournament/dailyScores';
 import { getScoreboardGamesForDate } from '$lib/server/tournament/snapshot';
-import { getCurrentOrNextTickerRound, getTournamentSettings } from '$lib/server/tournament/settings';
+import { getCurrentOrNextTickerRound, getTodayEtDateString, getTournamentSettings } from '$lib/server/tournament/settings';
 import { sortScoreboardGames } from '$lib/utils/scoreboardUtils';
 import { isTournamentLive, isBracketOpen, isArchive, isComplete } from '$lib/utils/stageUtils';
 import { getErrorMessage } from '$lib/server/tournament/constants';
@@ -21,15 +21,34 @@ async function getGamesForDates(
   return dedupeGames(gamesByDate.flat());
 }
 
-async function getCurrentRoundGames(settings: TournamentSettings): Promise<ScoreboardGame[]> {
-  const round = getCurrentOrNextTickerRound(settings);
+function getDisplayDatesForRound(roundDates: string[], date: Date = new Date()): string[] {
+  const sortedDates = [...roundDates].sort();
+  if (sortedDates.length <= 1) {
+    return sortedDates;
+  }
+
+  const today = getTodayEtDateString(date);
+  if (sortedDates.includes(today)) {
+    return [today];
+  }
+
+  if (today > sortedDates[sortedDates.length - 1]) {
+    return [sortedDates[sortedDates.length - 1]];
+  }
+
+  return sortedDates;
+}
+
+async function getCurrentRoundGames(settings: TournamentSettings, date: Date = new Date()): Promise<ScoreboardGame[]> {
+  const round = getCurrentOrNextTickerRound(settings, date);
   if (!round) {
     return [];
   }
 
   const isFirstFour = round.key === 'first-four';
+  const displayDates = getDisplayDatesForRound(round.dates, date);
   return sortScoreboardGames(
-    await getGamesForDates(round.dates, { settings, allowNonTournament: isFirstFour }),
+    await getGamesForDates(displayDates, { settings, allowNonTournament: isFirstFour }),
   );
 }
 
