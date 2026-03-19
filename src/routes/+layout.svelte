@@ -68,7 +68,11 @@
 </script>
 
 <div class="flex flex-col min-h-screen">
-  <Navbar stage={data.tournamentSettings?.stage || 'archive'} serverUser={data.user} />
+  <Navbar
+    stage={data.tournamentSettings?.stage || 'archive'}
+    scenariosAvailable={data.scenariosAvailable ?? false}
+    serverUser={data.user}
+  />
   <div class="container mx-auto px-4">
     {#if showScoreTicker}
       <ScoreTicker tournamentSettings={data.tournamentSettings} tickerScores={data.tickerScores ?? []} />

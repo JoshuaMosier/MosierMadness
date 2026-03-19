@@ -2,18 +2,27 @@ import type { PageServerLoad } from './$types';
 import { getSubmittedEntries } from '$lib/server/tournament/entries';
 import { getScenarioSeedData } from '$lib/server/tournament/projections';
 import { getTournamentSnapshot } from '$lib/server/tournament/snapshot';
-import { getTournamentSettings } from '$lib/server/tournament/settings';
 
-export const load: PageServerLoad = async ({ depends }) => {
+export const load: PageServerLoad = async ({ depends, parent }) => {
   depends('app:tournament');
-  const settings = await getTournamentSettings();
+  const { tournamentSettings, scenariosAvailable } = await parent();
+
+  if (!scenariosAvailable) {
+    return {
+      scenario: null,
+      scenariosAvailable,
+      tournamentSettings,
+    };
+  }
+
   const [snapshot, entries] = await Promise.all([
-    getTournamentSnapshot(settings),
-    getSubmittedEntries(settings.displaySeasonYear),
+    getTournamentSnapshot(tournamentSettings),
+    getSubmittedEntries(tournamentSettings.displaySeasonYear),
   ]);
 
   return {
     scenario: getScenarioSeedData(entries, snapshot),
-    tournamentSettings: settings,
+    scenariosAvailable,
+    tournamentSettings,
   };
 };

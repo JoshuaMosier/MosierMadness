@@ -64,7 +64,7 @@ test.describe('Desktop navigation', () => {
     if (stage !== 'tournament-live') {
       const disabledScenarios = nav.locator('span[title]', { hasText: 'Scenarios' });
       const title = await disabledScenarios.getAttribute('title');
-      expect(title).toContain('tournament');
+      expect(title).toContain('Sweet Sixteen');
     }
   });
 });

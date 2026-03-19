@@ -2,11 +2,12 @@
   import { goto } from '$app/navigation';
   import { supabase } from '$lib/supabase';
   import { page } from '$app/stores';
-  import { canSubmitBracket, canViewEntries, canViewScenarios, isBracketOpen } from '$lib/utils/stageUtils';
+  import { canSubmitBracket, canViewEntries } from '$lib/utils/stageUtils';
   import NavLink from '$lib/components/NavLink.svelte';
   import type { TournamentStage } from '$lib/types';
 
   export let stage: TournamentStage = 'archive';
+  export let scenariosAvailable = false;
   export let serverUser: any = null;
 
   let isMenuOpen = false;
@@ -24,13 +25,13 @@
   $: disabledLinks = {
     '/bracket': !canSubmitBracket(stage),
     '/entries': !canViewEntries(stage),
-    '/scenarios': !canViewScenarios(stage),
+    '/scenarios': !scenariosAvailable,
   };
 
   $: disabledReasons = {
     '/bracket': stage === 'archive' ? 'Available when brackets open' : 'Brackets are locked',
     '/entries': 'Available when brackets open',
-    '/scenarios': 'Available during tournament',
+    '/scenarios': 'Available starting Sweet Sixteen',
   };
   async function loadProfile(authUser: any): Promise<void> {
     if (!authUser) {

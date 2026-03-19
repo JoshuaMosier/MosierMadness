@@ -80,9 +80,9 @@ test.describe('Stage-aware conditional pages', () => {
     if (stage === 'tournament-live') {
       await expect(page.locator('main')).toBeVisible();
     } else {
-      // Scenarios is only available during tournament-live;
-      // page may still render but with limited/empty content
+      // Scenarios is only available once the live tournament reaches Sweet Sixteen.
       await expect(page.locator('nav')).toBeVisible();
+      await expect(page.getByRole('heading', { name: /scenarios are not active yet/i })).toBeVisible();
     }
   });
 });

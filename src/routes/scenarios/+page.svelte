@@ -2,7 +2,6 @@
   import { fade } from 'svelte/transition';
   import { FADE_QUICK, FADE_DELAYED } from '$lib/constants/transitions';
   import Alert from '$lib/components/Alert.svelte';
-  import { canViewScenarios } from '$lib/utils/stageUtils';
   import { onMount } from 'svelte';
   import { supabase } from '$lib/supabase';
   import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
@@ -16,14 +15,13 @@
 
   export let data: any;
 
-  let entries: Entry[] = data.scenario.entries || [];
+  let entries: Entry[] = data.scenario?.entries || [];
   let loading = true;
   let error: string | null = null;
-  const tournamentStage: string = data.tournamentSettings?.stage || 'archive';
-  const scenariosAvailable: boolean = canViewScenarios(tournamentStage);
-  let liveBracketData: LiveBracketData = data.scenario.liveBracketData;
-  let masterBracket: string[] = data.scenario.masterBracket || [];
-  let teamSeoMap: Record<string, string> = data.scenario.teamSeoMap || {};
+  const scenariosAvailable: boolean = data.scenariosAvailable ?? false;
+  let liveBracketData: LiveBracketData = data.scenario?.liveBracketData || { matches: {}, champion: null };
+  let masterBracket: string[] = data.scenario?.masterBracket || [];
+  let teamSeoMap: Record<string, string> = data.scenario?.teamSeoMap || {};
   let remainingGames: number[] = [];
   let simulationInProgress = false;
   let scenariosCalculated = false;
@@ -308,7 +306,7 @@
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center">
       <h2 class="text-2xl font-semibold text-zinc-100">Scenarios are not active yet</h2>
       <p class="mt-3 text-zinc-400">
-        Scenario analysis becomes available once the tournament is live and there are remaining outcomes to simulate.
+        Scenario analysis becomes available once the live tournament reaches the Sweet Sixteen.
       </p>
     </div>
   {:else if error}

@@ -3,6 +3,10 @@ import { test as base, expect } from '@playwright/test';
 /**
  * Fixture that provides a helper to detect the current tournament stage
  * from the navbar's disabled/enabled link states.
+ *
+ * This is intentionally coarse. During early live-tournament days the
+ * scenarios link is disabled until Sweet Sixteen, which looks the same as
+ * the complete stage when you only inspect nav state.
  */
 export const test = base.extend({
   /** Resolves the current tournament stage by inspecting the DOM. */
