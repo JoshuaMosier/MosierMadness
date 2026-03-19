@@ -7,8 +7,10 @@ import {
   sortLeaderboardScores,
 } from '$lib/utils/scoringUtils';
 import {
+  areEquivalentSelections,
   formatTeamSelection,
   getTeamNameFromSelection,
+  includesEquivalentSelection,
 } from '$lib/utils/bracketUtils';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { getTeamColorSet } from '$lib/server/tournament/teamColors';
@@ -161,9 +163,9 @@ export function buildEntrantBracketData(selectedBracket: Entry | null, snapshot:
       teamA: cloneTeam(liveMatch?.teamA),
       teamB: cloneTeam(liveMatch?.teamB),
       winner: selections[i]
-        ? selections[i] === formatTeamSelection(liveMatch?.teamA)
+        ? areEquivalentSelections(selections[i], formatTeamSelection(liveMatch?.teamA))
           ? 'A'
-          : selections[i] === formatTeamSelection(liveMatch?.teamB)
+          : areEquivalentSelections(selections[i], formatTeamSelection(liveMatch?.teamB))
             ? 'B'
             : null
         : null,
@@ -186,16 +188,16 @@ export function buildEntrantBracketData(selectedBracket: Entry | null, snapshot:
 
     const teamAStatus = !projectedSelectionA
       ? 'pending'
-      : projectedSelectionA === liveSelectionA
+      : areEquivalentSelections(projectedSelectionA, liveSelectionA)
         ? 'correct'
-        : eliminatedTeams.has(projectedSelectionA)
+        : includesEquivalentSelection(eliminatedTeams, projectedSelectionA)
           ? 'eliminated'
           : 'pending';
     const teamBStatus = !projectedSelectionB
       ? 'pending'
-      : projectedSelectionB === liveSelectionB
+      : areEquivalentSelections(projectedSelectionB, liveSelectionB)
         ? 'correct'
-        : eliminatedTeams.has(projectedSelectionB)
+        : includesEquivalentSelection(eliminatedTeams, projectedSelectionB)
           ? 'eliminated'
           : 'pending';
 
@@ -207,9 +209,9 @@ export function buildEntrantBracketData(selectedBracket: Entry | null, snapshot:
       teamA: styleProjectedTeam(projectedTeamA, teamAStatus),
       teamB: styleProjectedTeam(projectedTeamB, teamBStatus),
       winner: selections[i]
-        ? selections[i] === projectedSelectionA
+        ? areEquivalentSelections(selections[i], projectedSelectionA)
           ? 'A'
-          : selections[i] === projectedSelectionB
+          : areEquivalentSelections(selections[i], projectedSelectionB)
             ? 'B'
             : null
         : null,
@@ -296,20 +298,22 @@ export function getGameDetailProjection(game: ScoreboardGame | null, entries: En
       user_id: entry.user_id,
     };
 
-    if (userPick === homeSelection) {
+    if (areEquivalentSelections(userPick, homeSelection)) {
       home.push(pickSummary);
       continue;
     }
 
-    if (userPick === awaySelection) {
+    if (areEquivalentSelections(userPick, awaySelection)) {
       away.push(pickSummary);
       continue;
     }
 
-    if (!otherMap.has(userPick)) {
-      otherMap.set(userPick, []);
+    const existingEquivalentKey = Array.from(otherMap.keys()).find((key) => areEquivalentSelections(key, userPick));
+    const mapKey = existingEquivalentKey || userPick;
+    if (!otherMap.has(mapKey)) {
+      otherMap.set(mapKey, []);
     }
-    otherMap.get(userPick)!.push(pickSummary);
+    otherMap.get(mapKey)!.push(pickSummary);
   }
 
   const other: OtherTeamPick[] = Array.from(otherMap.entries())

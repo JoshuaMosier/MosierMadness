@@ -3,7 +3,7 @@
   import BracketView from '$lib/components/BracketView.svelte';
   import { fade } from 'svelte/transition';
   import { FADE_QUICK, FADE_DELAYED, FADE_CONTENT } from '$lib/constants/transitions';
-  import { formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils';
+  import { areEquivalentSelections, formatTeamSelection, parseTeamSelection } from '$lib/utils/bracketUtils';
   import Alert from '$lib/components/Alert.svelte';
   import type { TeamInfo, TeamSelection } from '$lib/types';
   export let data: any;
@@ -45,7 +45,13 @@
       matches[i + 1] = {
         teamA: firstRoundTeams[i * 2],
         teamB: firstRoundTeams[i * 2 + 1],
-        winner: selections[i] ? (selections[i] === formatTeamString(firstRoundTeams[i * 2]) ? 'A' : 'B') : null
+        winner: selections[i]
+          ? areEquivalentSelections(selections[i], formatTeamString(firstRoundTeams[i * 2]))
+            ? 'A'
+            : areEquivalentSelections(selections[i], formatTeamString(firstRoundTeams[i * 2 + 1]))
+              ? 'B'
+              : null
+          : null
       };
     }
 
@@ -74,8 +80,8 @@
         teamA: winnerA,
         teamB: winnerB,
         winner: selections[i] ? 
-          (selections[i] === teamAString ? 'A' : 
-           selections[i] === teamBString ? 'B' : null) : 
+          (areEquivalentSelections(selections[i], teamAString) ? 'A' : 
+           areEquivalentSelections(selections[i], teamBString) ? 'B' : null) : 
           null
       };
     }

@@ -1,7 +1,9 @@
 import type { Entry, EntryScore, LiveBracketData } from '$lib/types';
 import {
+  areEquivalentSelections,
   formatTeamSelection,
   getPointsForSelectionIndex,
+  includesEquivalentSelection,
 } from '$lib/utils/bracketUtils';
 
 interface EntryLike {
@@ -56,7 +58,7 @@ export function calculateScores(masterBracket: string[], entries: EntryLike[]): 
     let score1 = 0, score2 = 0, score3 = 0, score4 = 0, score5 = 0, score6 = 0, games = 0;
 
     for (let i = 0; i < selections.length; i++) {
-      if (selections[i] === masterBracket[i] && masterBracket[i] !== '') {
+      if (masterBracket[i] !== '' && areEquivalentSelections(selections[i], masterBracket[i])) {
         const points = getPointsForSelectionIndex(i);
         if (i < 32) score1 += points;
         else if (i < 48) score2 += points;
@@ -103,14 +105,18 @@ export function calculatePotential(masterBracket: string[], eliminatedTeams: str
 
     for (const teamStr of eliminatedTeamSet) {
       for (let i = 0; i < selections.length; i++) {
-        if (selections[i] === teamStr) {
+        if (areEquivalentSelections(selections[i], teamStr)) {
           potential -= getPointsForSelectionIndex(i);
         }
       }
     }
 
     for (let i = 0; i < selections.length; i++) {
-      if (selections[i] === masterBracket[i] && masterBracket[i] !== '' && !eliminatedTeamSet.has(selections[i])) {
+      if (
+        masterBracket[i] !== ''
+        && areEquivalentSelections(selections[i], masterBracket[i])
+        && !includesEquivalentSelection(eliminatedTeamSet, selections[i])
+      ) {
         potential -= getPointsForSelectionIndex(i);
       }
     }

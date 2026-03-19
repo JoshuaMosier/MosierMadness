@@ -1,4 +1,5 @@
 import type { TeamSelection } from '$lib/types';
+import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 
 export const ROUND_POINT_VALUES: readonly number[] = [1, 2, 4, 8, 16, 32];
 
@@ -28,6 +29,40 @@ export function parseTeamSelection(selection: string | null | undefined): TeamSe
   }
 
   return { seed, name };
+}
+
+export function areEquivalentSelections(selectionA: string | null | undefined, selectionB: string | null | undefined): boolean {
+  if (!selectionA || !selectionB) {
+    return false;
+  }
+
+  if (selectionA === selectionB) {
+    return true;
+  }
+
+  const parsedA = parseTeamSelection(selectionA);
+  const parsedB = parseTeamSelection(selectionB);
+  if (!parsedA || !parsedB || parsedA.seed !== parsedB.seed) {
+    return false;
+  }
+
+  const seoNameA = resolveTeamSeoName(parsedA.name);
+  const seoNameB = resolveTeamSeoName(parsedB.name);
+
+  return Boolean(seoNameA && seoNameB && seoNameA === seoNameB);
+}
+
+export function includesEquivalentSelection(
+  selections: Iterable<string>,
+  target: string | null | undefined,
+): boolean {
+  for (const selection of selections) {
+    if (areEquivalentSelections(selection, target)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 export function getTeamNameFromSelection(selection: string | null | undefined): string | null {
