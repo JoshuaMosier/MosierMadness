@@ -82,7 +82,7 @@
   <meta name="description" content="Mosier Madness family March Madness tournament hub" />
 </svelte:head>
 
-<div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+<div class="mm-page space-y-8">
   {#if authError}
     <Alert class="flex items-center justify-between rounded-xl">
       <span>{authError}. <a href="/reset-password" class="text-amber-500 hover:text-amber-400 underline">Request a new link</a></span>
@@ -91,16 +91,16 @@
   {/if}
   {#if isArchive(stage)}
     <div class="space-y-8" in:fade={FADE_CONTENT}>
-      <div class="relative rounded-2xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+      <div class="mm-panel">
         <div class="absolute inset-0 bg-gradient-to-br from-amber-600/5 via-transparent to-amber-900/5 pointer-events-none"></div>
         <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent"></div>
         <div class="relative p-6 md:p-10 text-center space-y-8">
           <div>
-            <div class="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-300">
+            <div class="mm-section-badge">
               Pre-Tournament
             </div>
-            <h2 class="mt-4 text-3xl md:text-4xl font-semibold text-zinc-100">Mosier Madness returns soon</h2>
-            <p class="mt-3 text-sm text-zinc-500">
+            <h2 class="mm-section-title mt-4">Mosier Madness returns soon</h2>
+            <p class="mt-3 text-sm text-zinc-400">
               {settings.entrySeasonYear} Entry Season &middot; {settings.displaySeasonYear} Archive
             </p>
           </div>
@@ -116,7 +116,7 @@
       {#if BasketballGameModule}
         <svelte:component this={BasketballGameModule} {userId} />
       {:else if isArchive(stage)}
-        <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center">
+        <div class="mm-empty-state">
           <div class="h-64 flex items-center justify-center">
             <div class="animate-pulse text-zinc-500">Loading game...</div>
           </div>
@@ -125,20 +125,20 @@
     </div>
   {:else if isBracketOpen(stage)}
     <div class="space-y-8" in:fade={FADE_CONTENT}>
-      <div class="relative rounded-2xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+      <div class="mm-panel">
         <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-amber-900/5 pointer-events-none"></div>
         <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent"></div>
 
         <div class="relative p-6 md:p-10">
           <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-center">
             <div class="space-y-5">
-              <div class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">
+              <div class="mm-section-badge is-live">
                 <span class="mr-2 inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
                 Entries Open
               </div>
-              <h2 class="text-3xl md:text-4xl font-semibold text-zinc-100">Bracket season is live</h2>
-              <p class="text-sm md:text-base text-zinc-400 max-w-md">Lock in your picks before the deadline. Once the tournament tips off, brackets are final.</p>
-              <a href={user ? '/bracket' : '/login?redirect=/bracket'} class="inline-flex items-center gap-2 text-lg md:text-xl font-bold bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white px-8 py-3.5 rounded-lg shadow-md transition-all duration-200 hover:shadow-lg hover:scale-[1.02]">
+              <h2 class="mm-section-title">Bracket season is live</h2>
+              <p class="max-w-md text-sm md:text-base text-zinc-300">Lock in your picks before the deadline. Once the tournament tips off, brackets are final.</p>
+              <a href={user ? '/bracket' : '/login?redirect=/bracket'} class="mm-button-primary text-lg md:text-xl">
                 Create Your Bracket
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
               </a>
@@ -159,14 +159,14 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {#each bracketOpenCards as card}
-          <a href={card.href} class="rounded-xl border border-zinc-800 bg-zinc-900 p-5 hover:border-emerald-600/40 hover:bg-zinc-800/80 transition-colors">
+          <a href={card.href} class="mm-panel-link">
             <div class="text-lg font-semibold text-zinc-100">{card.title}</div>
-            <p class="mt-2 text-sm leading-6 text-zinc-400">{card.description}</p>
+            <p class="mt-2 text-sm leading-6 text-zinc-300">{card.description}</p>
           </a>
         {/each}
       </div>
 
-      <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center">
+      <div class="mm-empty-state">
         <h3 class="text-xl font-semibold text-zinc-200 mb-3">Leaderboard Hidden Until Tipoff</h3>
         <p class="text-zinc-300">
           Entries are open, but standings stay hidden until the tournament begins so picks remain private.

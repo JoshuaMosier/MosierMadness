@@ -7,11 +7,16 @@ export default {
         'mm-blue': '#0a3161',
         'mm-gold': '#ac9437',
         'mm-gray': '#2d2d2d',
+        'mm-night': '#06070b',
+        'mm-ink': '#0f172a',
+        'mm-ember': '#f59e0b',
       },
       fontFamily: {
-        'montserrat': ['Montserrat', 'sans-serif'],
+        montserrat: ['Montserrat', 'sans-serif'],
+        display: ['Barlow Condensed', 'sans-serif'],
+        condensed: ['Barlow Condensed', 'sans-serif'],
       },
     },
   },
   plugins: [],
-} 
+}

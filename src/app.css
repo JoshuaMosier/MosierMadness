@@ -2,13 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles */
+:root {
+  --mm-bg: #06070b;
+  --mm-surface: rgba(13, 18, 28, 0.82);
+  --mm-surface-strong: rgba(10, 14, 22, 0.92);
+  --mm-surface-soft: rgba(255, 255, 255, 0.04);
+  --mm-surface-hover: rgba(255, 255, 255, 0.08);
+  --mm-border: rgba(255, 255, 255, 0.1);
+  --mm-border-strong: rgba(255, 255, 255, 0.16);
+  --mm-text: #f5f7fb;
+  --mm-muted: #bbc3d1;
+  --mm-subtle: #8790a3;
+  --mm-gold: #f59e0b;
+  --mm-gold-deep: #b45309;
+  --mm-teal: #34d399;
+  --mm-shadow: 0 28px 70px rgba(2, 6, 12, 0.48);
+  --mm-panel-shadow: 0 20px 40px rgba(2, 6, 12, 0.36);
+}
+
 @layer base {
   html {
     font-family: 'Montserrat', sans-serif;
     overflow-y: scroll !important; /* Force scrollbar to always show */
   }
-  
+
   body {
     @apply min-h-screen bg-zinc-900 text-zinc-100;
   }
@@ -29,19 +46,236 @@
 }
 
 @layer components {
-  .btn-primary {
-    @apply bg-mm-blue text-white font-semibold py-2 px-4 rounded hover:bg-opacity-90 transition-colors;
+  .mm-page {
+    @apply relative mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10;
   }
 
-  .btn-outline {
-    @apply bg-transparent border-2 border-mm-blue text-mm-blue font-semibold py-2 px-4 rounded hover:bg-mm-blue hover:text-white transition-colors;
-  }
-  
+  .mm-shell,
+  .mm-panel,
+  .mm-table-shell,
+  .mm-form-shell,
   .card {
-    @apply bg-white rounded-lg shadow-md p-4;
+    position: relative;
+    border: 1px solid var(--mm-border);
+    background: linear-gradient(180deg, rgba(16, 21, 31, 0.84), rgba(8, 11, 18, 0.94));
+    box-shadow: var(--mm-panel-shadow);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
   }
-  
+
+  .mm-shell::before,
+  .mm-panel::before,
+  .mm-table-shell::before,
+  .mm-form-shell::before,
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+    pointer-events: none;
+  }
+
+  .mm-shell {
+    border-radius: 30px;
+    box-shadow: var(--mm-shadow);
+  }
+
+  .mm-panel,
+  .mm-table-shell {
+    @apply overflow-hidden rounded-[26px];
+  }
+
+  .mm-form-shell,
+  .card {
+    @apply rounded-[24px];
+  }
+
+  .mm-panel-muted {
+    @apply rounded-3xl border;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+    box-shadow: var(--mm-panel-shadow);
+  }
+
+  .mm-panel-header {
+    @apply border-b px-6 py-5 md:px-8;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  }
+
+  .mm-panel-body {
+    @apply p-6 md:p-8;
+  }
+
+  .mm-section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(245, 158, 11, 0.24);
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0.08));
+    color: #fcd34d;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mm-section-badge.is-live {
+    border-color: rgba(52, 211, 153, 0.28);
+    background: linear-gradient(180deg, rgba(52, 211, 153, 0.18), rgba(52, 211, 153, 0.08));
+    color: #a7f3d0;
+  }
+
+  .mm-section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.02em;
+    @apply text-3xl font-semibold text-zinc-50 md:text-4xl;
+  }
+
+  .mm-body-copy {
+    color: var(--mm-muted);
+    line-height: 1.75;
+  }
+
+  .mm-button-primary,
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-white transition-all duration-200;
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    background: linear-gradient(135deg, var(--mm-gold-deep), #d97706 48%, var(--mm-gold));
+    box-shadow: 0 14px 30px rgba(180, 83, 9, 0.28);
+  }
+
+  .mm-button-primary:hover,
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 34px rgba(180, 83, 9, 0.34);
+    filter: brightness(1.05);
+  }
+
+  .mm-button-secondary,
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold transition-all duration-200;
+    border: 1px solid var(--mm-border-strong);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--mm-text);
+  }
+
+  .mm-button-secondary:hover,
+  .btn-outline:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.24);
+  }
+
+  .mm-panel-link {
+    display: block;
+    height: 100%;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+    padding: 1.35rem;
+    box-shadow: var(--mm-panel-shadow);
+    transition:
+      transform 180ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .mm-panel-link:hover {
+    transform: translateY(-2px);
+    border-color: rgba(52, 211, 153, 0.28);
+    background: linear-gradient(180deg, rgba(52, 211, 153, 0.08), rgba(255, 255, 255, 0.025));
+    box-shadow: 0 24px 38px rgba(2, 6, 12, 0.34);
+  }
+
+  .mm-metric-card {
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+    padding: 1.5rem;
+    box-shadow: var(--mm-panel-shadow);
+  }
+
+  .mm-form-shell {
+    @apply p-8;
+  }
+
+  .mm-input,
+  .mm-select {
+    @apply block w-full rounded-2xl border-0 px-4 py-3 text-sm text-zinc-100 shadow-sm ring-1 ring-inset transition-all duration-200;
+    background: rgba(9, 12, 19, 0.74);
+    --tw-ring-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .mm-input::placeholder,
+  .mm-select::placeholder {
+    color: var(--mm-subtle);
+  }
+
+  .mm-input:focus,
+  .mm-select:focus {
+    outline: none;
+    box-shadow:
+      0 0 0 1px rgba(245, 158, 11, 0.55),
+      0 0 0 4px rgba(245, 158, 11, 0.14);
+  }
+
+  .mm-table-shell {
+    border-radius: 26px;
+  }
+
+  .mm-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .mm-table thead th {
+    @apply px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.18em];
+    color: var(--mm-muted);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .mm-table tbody td {
+    @apply px-6 py-4;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .mm-table tbody tr {
+    transition: background-color 180ms ease;
+  }
+
+  .mm-table tbody tr:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.015);
+  }
+
+  .mm-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .mm-table-row-highlight {
+    background: linear-gradient(90deg, rgba(180, 83, 9, 0.28), rgba(245, 158, 11, 0.08));
+  }
+
+  .mm-empty-state {
+    @apply rounded-[26px] px-8 py-10 text-center;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+    box-shadow: var(--mm-panel-shadow);
+  }
+
+  .card {
+    @apply p-4;
+    color: var(--mm-text);
+  }
+
   .game-status {
     @apply text-center text-sm mt-2;
+    color: var(--mm-muted);
   }
-} 
+}

@@ -8,7 +8,7 @@
   export let error: string | null = null;
 </script>
 
-<div class="max-w-7xl mx-auto px-4 py-8">
+<div class="mm-page">
   {#if loading}
     <div class="flex justify-center items-center min-h-[400px]" in:fade={FADE_QUICK}>
       <div class="flex flex-col items-center gap-3">
@@ -22,33 +22,31 @@
     </div>
   {:else}
     <div in:fade={FADE_CONTENT}>
-      <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div class="border-b border-zinc-800 bg-zinc-900/50">
-          <div class="p-6">
-            <h2 class="text-2xl font-semibold text-zinc-100">Tournament Entries</h2>
-            <p class="text-sm text-zinc-400 mt-1">View all bracket submissions and their status</p>
-          </div>
+      <div class="mm-table-shell">
+        <div class="mm-panel-header">
+          <h2 class="mm-section-title text-2xl md:text-3xl">Tournament Entries</h2>
+          <p class="mt-1 text-sm text-zinc-400">View all bracket submissions and their status</p>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full">
+          <table class="mm-table">
             <thead>
-              <tr class="bg-zinc-800">
-                <th class="px-6 py-4 text-left text-sm font-semibold text-zinc-300">Name</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-zinc-300">Status</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-zinc-300">Picks Made</th>
-                <th class="px-6 py-4 text-left text-sm font-semibold text-zinc-300">Last Updated</th>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Picks Made</th>
+                <th>Last Updated</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-zinc-800">
+            <tbody>
               {#each entries.filter(entry => 
                 entry.brackets[0]?.selections?.filter(Boolean).length > 0
               ) as entry}
                 {@const bracket = entry.brackets[0]}
-                <tr class="hover:bg-zinc-800/50 transition-colors">
-                  <td class="px-6 py-4">
+                <tr>
+                  <td>
                     <div class="text-zinc-200">{entry.first_name} {entry.last_name}</div>
                   </td>
-                  <td class="px-6 py-4">
+                  <td>
                     {#if !bracket}
                       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-900 text-zinc-400">
                         No Bracket
@@ -63,14 +61,14 @@
                       </span>
                     {/if}
                   </td>
-                  <td class="px-6 py-4 text-zinc-300">
+                  <td class="text-zinc-300">
                     {#if bracket}
                       {bracket.selections.filter(Boolean).length} / 63
                     {:else}
                       0 / 63
                     {/if}
                   </td>
-                  <td class="px-6 py-4 text-zinc-400 text-sm">
+                  <td class="text-sm text-zinc-400">
                     {#if bracket}
                       {new Date(bracket.updated_at).toLocaleString()}
                     {:else}
@@ -91,4 +89,4 @@
       </div>
     </div>
   {/if}
-</div> 
+</div>
