@@ -2,6 +2,7 @@
   import { getStatusColor, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
   import { handleImageError } from '$lib/utils/imageUtils';
+  import { canViewGameDetails } from '$lib/utils/stageUtils';
   import type { TournamentSettings, ScoreboardGame } from '$lib/types';
 
   export let tournamentSettings: TournamentSettings | any = {};
@@ -42,7 +43,7 @@
   }
 
   function getGameHref(game: any): string | null {
-    return game?.isTournamentGame ? `/game/${game.gameId}` : null;
+    return game?.isTournamentGame && canViewGameDetails(tournamentStage) ? `/game/${game.gameId}` : null;
   }
 </script>
 

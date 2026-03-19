@@ -17,6 +17,9 @@ export const canViewEntries = (stage: TournamentStage): boolean => stage !== 'ar
 /** Scenarios are available only during live tournament */
 export const canViewScenarios = (stage: TournamentStage): boolean => stage === 'tournament-live';
 
+/** Game detail pages stay hidden while brackets are open but games have not started */
+export const canViewGameDetails = (stage: TournamentStage): boolean => stage !== 'bracket-open';
+
 /** Leaderboard scores are relevant during live or complete stages */
 export const hasLeaderboard = (stage: TournamentStage): boolean =>
   stage === 'tournament-live' || stage === 'complete';

@@ -3,6 +3,7 @@
   import { getStatusColor, sortScoreboardGames } from '$lib/utils/scoreboardUtils';
   import { getGradientStyleFromColor } from '$lib/utils/teamColorUtils';
   import { handleImageError } from '$lib/utils/imageUtils';
+  import { canViewGameDetails } from '$lib/utils/stageUtils';
   import type { TournamentSettings, ScoreboardGame } from '$lib/types';
 
   export let tournamentSettings: TournamentSettings | any = {};
@@ -43,7 +44,7 @@
   }
 
   function getGameHref(game: any): string {
-    return game?.isTournamentGame ? `/game/${game.gameId}` : '/scores';
+    return game?.isTournamentGame && canViewGameDetails(tournamentStage) ? `/game/${game.gameId}` : '/scores';
   }
 
   // Build duplicatedMatches for marquee: 2× for seamless scroll when 5+ games (reduced from 3× for less DOM/compositing)
