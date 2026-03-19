@@ -1,5 +1,64 @@
 import { supabase } from '$lib/supabase';
+import { getTournamentSettings } from '$lib/server/tournament/settings';
 import type { Entry, Profile } from '$lib/types';
+
+function hasCompleteSelections(selections: unknown): boolean {
+  return Array.isArray(selections)
+    && selections.length === 63
+    && selections.every(selection => typeof selection === 'string' && selection.trim().length > 0);
+}
+
+export async function autoSubmitCompleteDraftBrackets(year: number): Promise<number> {
+  const { data: draftBrackets, error: draftError } = await supabase
+    .from('brackets')
+    .select('id, selections')
+    .eq('year', year)
+    .eq('is_submitted', false);
+
+  if (draftError) {
+    throw draftError;
+  }
+
+  const completedBracketIds = (draftBrackets || [])
+    .filter((bracket: { id: string; selections: unknown }) => hasCompleteSelections(bracket.selections))
+    .map((bracket: { id: string }) => bracket.id);
+
+  if (completedBracketIds.length === 0) {
+    return 0;
+  }
+
+  const { error: updateError } = await supabase
+    .from('brackets')
+    .update({
+      is_submitted: true,
+      updated_at: new Date().toISOString(),
+    })
+    .in('id', completedBracketIds);
+
+  if (updateError) {
+    throw updateError;
+  }
+
+  return completedBracketIds.length;
+}
+
+async function maybeAutoSubmitLiveTournamentBrackets(year?: number): Promise<void> {
+  const settings = await getTournamentSettings();
+  if (settings.stage !== 'tournament-live') {
+    return;
+  }
+
+  if (year && year !== settings.entrySeasonYear) {
+    return;
+  }
+
+  try {
+    await autoSubmitCompleteDraftBrackets(settings.entrySeasonYear);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`Failed to auto-submit complete draft brackets: ${message}`);
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeSubmittedBracket(bracket: Record<string, any>): Entry {
@@ -17,6 +76,8 @@ function normalizeSubmittedBracket(bracket: Record<string, any>): Entry {
 }
 
 export async function getSubmittedEntries(year?: number): Promise<Entry[]> {
+  await maybeAutoSubmitLiveTournamentBrackets(year);
+
   let query = supabase
     .from('brackets')
     .select(`
@@ -47,6 +108,8 @@ export async function getSubmittedEntries(year?: number): Promise<Entry[]> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getEntriesWithProfiles(year?: number): Promise<any[]> {
+  await maybeAutoSubmitLiveTournamentBrackets(year);
+
   const { data, error } = await supabase
     .from('profiles')
     .select(`

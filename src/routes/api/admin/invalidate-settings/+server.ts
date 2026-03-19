@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { invalidateSettingsCache } from '$lib/server/tournament/settings';
+import { autoSubmitCompleteDraftBrackets } from '$lib/server/tournament/entries';
+import { getTournamentSettings, invalidateSettingsCache } from '$lib/server/tournament/settings';
 
 export const POST: RequestHandler = async ({ locals }) => {
   const { data: { user } } = await locals.supabase.auth.getUser();
@@ -14,5 +15,17 @@ export const POST: RequestHandler = async ({ locals }) => {
   if (!profile?.is_admin) return json({ error: 'Not authorized' }, { status: 403 });
 
   invalidateSettingsCache();
-  return json({ ok: true });
+
+  let autoSubmittedCount = 0;
+  try {
+    const settings = await getTournamentSettings();
+    if (settings.stage === 'tournament-live') {
+      autoSubmittedCount = await autoSubmitCompleteDraftBrackets(settings.entrySeasonYear);
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return json({ error: `Settings cache invalidated, but live-bracket finalization failed: ${message}` }, { status: 500 });
+  }
+
+  return json({ ok: true, autoSubmittedCount });
 };

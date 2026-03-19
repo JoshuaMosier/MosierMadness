@@ -223,9 +223,16 @@
         throw upsertError;
       }
 
-      await fetch('/api/admin/invalidate-settings', { method: 'POST' });
+      const invalidateResponse = await fetch('/api/admin/invalidate-settings', { method: 'POST' });
+      const invalidatePayload = await invalidateResponse.json().catch(() => ({}));
+      if (!invalidateResponse.ok) {
+        throw new Error(invalidatePayload.error || 'Failed to refresh tournament settings.');
+      }
+
       await loadSeasons();
-      success = 'Tournament settings saved.';
+      success = invalidatePayload.autoSubmittedCount > 0
+        ? `Tournament settings saved. Auto-submitted ${invalidatePayload.autoSubmittedCount} complete draft bracket${invalidatePayload.autoSubmittedCount === 1 ? '' : 's'}.`
+        : 'Tournament settings saved.';
     } catch (err) {
       error = err.message;
     } finally {
