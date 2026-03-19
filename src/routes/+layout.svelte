@@ -1,7 +1,9 @@
 <script lang="ts">
   import '../app.css';
+  import { dev } from '$app/environment';
   import Navbar from '$lib/components/Navbar.svelte';
   import ScoreTicker from '$lib/components/ScoreTicker.svelte';
+  import { injectAnalytics } from '@vercel/analytics/sveltekit';
   import { supabase } from '$lib/supabase'
   import { invalidate, beforeNavigate, afterNavigate } from '$app/navigation'
   import { onMount } from 'svelte'
@@ -9,6 +11,8 @@
   import { dataRefreshSignal, initRealtimeRefresh } from '$lib/stores/realtimeUpdates'
 
   export let data: any;
+  injectAnalytics({ mode: dev ? 'development' : 'production' });
+
   // Define routes where ScoreTicker should be hidden
   const hideScoreTickerRoutes: string[] = [
     '/scores',

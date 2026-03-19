@@ -28,6 +28,7 @@
 		"@supabase/ssr": "^0.9.0",
 		"@supabase/supabase-js": "^2.49.1",
 		"@types/matter-js": "^0.19.8",
+		"@vercel/analytics": "^2.0.1",
 		"matter-js": "^0.20.0"
 	}
 }
