@@ -106,18 +106,28 @@ function normalizeFirstFourConfig(value: unknown): FirstFourConfig {
   }
 
   const obj = value as Record<string, unknown>;
+  const dates = normalizeDateArray(obj.dates, []);
+  const games = Array.isArray(obj.games)
+    ? (obj.games as Record<string, unknown>[]).map((g): FirstFourGame => ({
+        firstFourBracketId: String(g?.firstFourBracketId || ''),
+        firstRoundBracketId: String(g?.firstRoundBracketId || ''),
+        seed: Number(g?.seed) || 16,
+        compositeDisplayName: String(g?.compositeDisplayName || ''),
+      })).filter(g => g.firstFourBracketId && g.firstRoundBracketId && g.compositeDisplayName)
+    : [];
+
+  const replacementCompletedAt = typeof obj.replacementCompletedAt === 'string'
+    && obj.replacementCompletedAt.trim().length > 0
+    && !Number.isNaN(Date.parse(obj.replacementCompletedAt))
+    && dates.length > 0
+    && games.length > 0
+      ? obj.replacementCompletedAt
+      : null;
 
   return {
-    dates: normalizeDateArray(obj.dates, []),
-    games: Array.isArray(obj.games)
-      ? (obj.games as Record<string, unknown>[]).map((g): FirstFourGame => ({
-          firstFourBracketId: String(g?.firstFourBracketId || ''),
-          firstRoundBracketId: String(g?.firstRoundBracketId || ''),
-          seed: Number(g?.seed) || 16,
-          compositeDisplayName: String(g?.compositeDisplayName || ''),
-        })).filter(g => g.firstFourBracketId && g.firstRoundBracketId && g.compositeDisplayName)
-      : [],
-    replacementCompletedAt: (obj.replacementCompletedAt as string | null) || null,
+    dates,
+    games,
+    replacementCompletedAt,
   };
 }
 

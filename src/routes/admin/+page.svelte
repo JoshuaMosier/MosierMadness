@@ -56,6 +56,36 @@
   let firstFourEnabled = false;
   let firstFourForm: { dates: string; games: any[]; replacementCompletedAt: string | null } = { dates: '', games: [], replacementCompletedAt: null };
   let firstFourSyncFromText = true;
+  let firstFourResolvedSignature: string | null = null;
+
+  function getNormalizedFirstFourGames(games: any[] = []): any[] {
+    return games
+      .map(game => ({
+        firstFourBracketId: game.firstFourBracketId || '',
+        firstRoundBracketId: game.firstRoundBracketId || '',
+        seed: Number(game.seed) || 16,
+        compositeDisplayName: game.compositeDisplayName || '',
+      }))
+      .sort((a, b) =>
+        a.firstRoundBracketId.localeCompare(b.firstRoundBracketId)
+        || a.firstFourBracketId.localeCompare(b.firstFourBracketId)
+        || a.compositeDisplayName.localeCompare(b.compositeDisplayName)
+      );
+  }
+
+  function getFirstFourSignature(config: { dates?: string[]; games?: any[] }): string {
+    return JSON.stringify({
+      dates: [...(config.dates || [])].sort(),
+      games: getNormalizedFirstFourGames(config.games || []),
+    });
+  }
+
+  function buildFirstFourConfigForSave() {
+    return {
+      dates: firstFourEnabled ? parseDates(firstFourForm.dates) : [],
+      games: firstFourEnabled ? getNormalizedFirstFourGames(firstFourForm.games) : [],
+    };
+  }
 
   function initFirstFourForm(configText: string): void {
     try {
@@ -66,9 +96,16 @@
         replacementCompletedAt: config.replacementCompletedAt || null,
       };
       firstFourEnabled = firstFourForm.games.length > 0 || firstFourForm.dates.trim().length > 0;
+      firstFourResolvedSignature = firstFourForm.replacementCompletedAt
+        ? getFirstFourSignature({
+            dates: config.dates || [],
+            games: config.games || [],
+          })
+        : null;
     } catch {
       firstFourForm = { dates: '', games: [], replacementCompletedAt: null };
       firstFourEnabled = false;
+      firstFourResolvedSignature = null;
     }
   }
 
@@ -76,15 +113,17 @@
   initFirstFourForm(form.firstFourConfigText);
 
   function syncFirstFourToText() {
+    const baseConfig = buildFirstFourConfigForSave();
+    const replacementCompletedAt = firstFourResolvedSignature
+      && getFirstFourSignature(baseConfig) === firstFourResolvedSignature
+      ? firstFourForm.replacementCompletedAt || null
+      : null;
+
+    firstFourForm.replacementCompletedAt = replacementCompletedAt;
+
     const config = {
-      dates: firstFourEnabled ? parseDates(firstFourForm.dates) : [],
-      games: firstFourEnabled ? firstFourForm.games.map(g => ({
-        firstFourBracketId: g.firstFourBracketId || '',
-        firstRoundBracketId: g.firstRoundBracketId || '',
-        seed: Number(g.seed) || 16,
-        compositeDisplayName: g.compositeDisplayName || '',
-      })) : [],
-      replacementCompletedAt: firstFourForm.replacementCompletedAt || null,
+      ...baseConfig,
+      replacementCompletedAt,
     };
     firstFourSyncFromText = false;
     form.firstFourConfigText = JSON.stringify(config, null, 2);
