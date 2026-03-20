@@ -132,13 +132,6 @@
           </div>
         </div>
       </div>
-
-      <div class="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/50 p-4 text-sm text-zinc-400">
-        <div>
-          Multi-game exact filtering returns automatically when the tournament reaches the Sweet 16 browser-exact mode.
-          This snapshot mode is the scalable fallback for larger trees.
-        </div>
-      </div>
     </div>
   </div>
 

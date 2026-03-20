@@ -1,7 +1,7 @@
 <script lang="ts">
   import { handleImageError } from '$lib/utils/imageUtils';
-  import { getOrdinalSuffix } from '$lib/utils/scenarioEngine';
-  import type { GeneratedScenarioEntry, GeneratedScenarioGamePreview } from '$lib/types';
+  import { hexToRgb } from '$lib/utils/teamColorUtils';
+  import type { GeneratedScenarioEntry, GeneratedScenarioGamePreview, GeneratedScenarioTeam } from '$lib/types';
 
   export let entries: GeneratedScenarioEntry[] = [];
   export let previewGames: GeneratedScenarioGamePreview[] = [];
@@ -112,6 +112,38 @@
     return summary.titleAlive ? `${summary.pct.toFixed(2)}%` : `P${summary.place}`;
   }
 
+  function getImpactPercent(left: BranchSummary | null, right: BranchSummary | null): number {
+    return Math.abs((left?.pct ?? 0) - (right?.pct ?? 0));
+  }
+
+  function getImpactPlaceDelta(left: BranchSummary | null, right: BranchSummary | null): number {
+    return Math.abs((left?.place ?? 0) - (right?.place ?? 0));
+  }
+
+  function getTeamLogoContainerStyle(team: GeneratedScenarioTeam): string {
+    const primaryRgb = hexToRgb(team.primaryColor ?? '');
+    const secondaryRgb = hexToRgb(team.secondaryColor ?? '');
+
+    if (!primaryRgb) {
+      return 'background-color: rgba(24, 24, 27, 0.95); border-color: rgba(63, 63, 70, 0.9);';
+    }
+
+    const borderColor = secondaryRgb
+      ? `rgba(${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}, 0.82)`
+      : `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.9)`;
+
+    return `
+      background: linear-gradient(135deg,
+        rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.94) 0%,
+        rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.72) 100%
+      );
+      border-color: ${borderColor};
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 6px 14px rgba(0, 0, 0, 0.24);
+    `;
+  }
+
   $: sortedEntries = [...entries].sort((left, right) => {
     const leftName = getDisplayName(left).toLowerCase();
     const rightName = getDisplayName(right).toLowerCase();
@@ -133,17 +165,9 @@
       : selectedPickTeamId === game.teamB.teamId
         ? 'B'
         : null;
-    const selectedPickName = selectedPickBranch === 'A'
-      ? game.teamA.name
-      : selectedPickBranch === 'B'
-        ? game.teamB.name
-        : null;
-    const preferredTeamName = favoredTeam === 'A'
-      ? game.teamA.name
-      : favoredTeam === 'B'
-        ? game.teamB.name
-        : null;
     const counterIntuitive = Boolean(favoredTeam && selectedPickBranch && favoredTeam !== selectedPickBranch);
+    const impactPct = getImpactPercent(teamASummary, teamBSummary);
+    const impactPlaceDelta = getImpactPlaceDelta(teamASummary, teamBSummary);
 
     return {
       ...game,
@@ -151,17 +175,25 @@
       teamBSummary,
       favoredTeam,
       selectedPickBranch,
-      selectedPickName,
-      preferredTeamName,
       counterIntuitive,
+      impactPct,
+      impactPlaceDelta,
     };
   }).sort((left, right) => {
-    if (left.counterIntuitive !== right.counterIntuitive) {
-      return left.counterIntuitive ? -1 : 1;
+    if (right.impactPct !== left.impactPct) {
+      return right.impactPct - left.impactPct;
+    }
+
+    if (right.impactPlaceDelta !== left.impactPlaceDelta) {
+      return right.impactPlaceDelta - left.impactPlaceDelta;
     }
 
     if ((left.favoredTeam !== null) !== (right.favoredTeam !== null)) {
       return left.favoredTeam !== null ? -1 : 1;
+    }
+
+    if (left.counterIntuitive !== right.counterIntuitive) {
+      return left.counterIntuitive ? -1 : 1;
     }
 
     return left.gameIndex - right.gameIndex;
@@ -171,18 +203,18 @@
 
 <div class="mb-6">
   <div class="mb-4">
-    <div class="flex flex-col md:flex-row items-start gap-4">
-      <div class="w-full md:w-auto">
-        <label for="generatedUserSelect" class="block text-sm font-medium text-zinc-300 mb-1">
+    <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+      <div class="flex min-w-0 flex-1 flex-col gap-3 lg:flex-row lg:items-center">
+        <label for="generatedUserSelect" class="shrink-0 text-sm font-medium text-zinc-300">
           {#if currentUserId && selectedEntry?.userId === currentUserId}
-            Your bracket is automatically selected:
+            Your bracket:
           {:else}
             Select a bracket:
           {/if}
         </label>
         <select
           id="generatedUserSelect"
-          class="bg-zinc-700 border border-zinc-600 rounded px-3 py-2 text-zinc-200 w-full md:w-72"
+          class="bg-zinc-700 border border-zinc-600 rounded px-3 py-2 text-zinc-200 w-full lg:w-80"
           bind:value={selectedUserValue}
           on:change={() => selectedUser = selectedUserValue || null}
         >
@@ -196,7 +228,7 @@
       </div>
 
       {#if selectedEntry}
-        <div class="bg-zinc-800 border border-amber-600 rounded-lg p-3 flex flex-wrap items-center gap-2">
+        <div class="shrink-0 bg-zinc-800 border border-amber-600 rounded-lg px-3 py-2 flex flex-wrap items-center gap-2">
           <span class="text-zinc-200 text-sm">Baseline 1st-place chance:</span>
           <span class="bg-amber-600/20 text-amber-400 px-2 py-0.5 rounded text-sm font-semibold">
             {selectedEntry.firstPlaceCount.toLocaleString()} scenarios
@@ -237,30 +269,35 @@
               <span class="text-xs uppercase tracking-[0.18em] text-zinc-400">Game {game.gameIndex + 1}</span>
             </div>
 
-            <div class="p-3 space-y-2.5">
-              <div class="flex flex-wrap gap-2">
-                {#if game.counterIntuitive && game.selectedPickName}
-                  <span
-                    class="inline-flex items-center rounded-full bg-rose-900/30 px-2 py-1 text-[11px] font-medium text-rose-300"
-                  >
-                    Against your bracket: {game.selectedPickName}
-                  </span>
-                {:else if !game.favoredTeam}
-                  <span class="inline-flex items-center rounded-full bg-zinc-700/60 px-2 py-1 text-[11px] font-medium text-zinc-300">
-                    No edge
-                  </span>
-                {/if}
-              </div>
+            <div class="min-h-[2rem] flex items-center justify-between gap-2 px-3 pt-2">
+              {#if !game.favoredTeam}
+                <span class="inline-flex items-center rounded-full bg-zinc-700/60 px-2 py-1 text-[11px] font-medium text-zinc-300">
+                  No edge
+                </span>
+              {:else}
+                <span></span>
+              {/if}
 
+              {#if game.counterIntuitive}
+                <span class="inline-flex items-center rounded-full bg-rose-900/30 px-2 py-1 text-[11px] font-medium text-rose-300">
+                  Against your bracket
+                </span>
+              {/if}
+            </div>
+
+            <div class="p-3 pt-1 space-y-2.5">
               <div
                 class={`flex items-center gap-3 rounded-lg p-2.5 ${
                   game.favoredTeam === 'A'
                     ? 'bg-green-900/20 border border-green-900/70'
                     : 'bg-zinc-700/30 border border-zinc-700'
-                }`}
+                } ${game.selectedPickBranch === 'A' ? 'ring-1 ring-amber-500/60 ring-inset' : ''}`}
               >
-                <div class="flex items-center gap-3 min-w-0">
-                  <div class="w-10 h-10 rounded-md overflow-hidden bg-zinc-900 flex-shrink-0 p-1">
+                <div class="flex min-w-0 flex-1 items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-md overflow-hidden border flex-shrink-0 p-1"
+                    style={getTeamLogoContainerStyle(game.teamA)}
+                  >
                     <img
                       src={game.teamA.seoName ? `/images/team-logos/${game.teamA.seoName}.svg` : '/images/placeholder-team.svg'}
                       alt={`${game.teamA.name} logo`}
@@ -273,7 +310,7 @@
                   </div>
                 </div>
                 {#if game.teamASummary}
-                  <div class={`text-sm font-semibold ${game.favoredTeam === 'A' ? 'text-green-400' : 'text-amber-400'}`}>
+                  <div class={`ml-auto min-w-[60px] text-right text-sm font-semibold ${game.favoredTeam === 'A' ? 'text-green-400' : 'text-amber-400'}`}>
                     {formatBranchValue(game.teamASummary)}
                   </div>
                 {/if}
@@ -284,10 +321,13 @@
                   game.favoredTeam === 'B'
                     ? 'bg-green-900/20 border border-green-900/70'
                     : 'bg-zinc-700/30 border border-zinc-700'
-                }`}
+                } ${game.selectedPickBranch === 'B' ? 'ring-1 ring-amber-500/60 ring-inset' : ''}`}
               >
-                <div class="flex items-center gap-3 min-w-0">
-                  <div class="w-10 h-10 rounded-md overflow-hidden bg-zinc-900 flex-shrink-0 p-1">
+                <div class="flex min-w-0 flex-1 items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-md overflow-hidden border flex-shrink-0 p-1"
+                    style={getTeamLogoContainerStyle(game.teamB)}
+                  >
                     <img
                       src={game.teamB.seoName ? `/images/team-logos/${game.teamB.seoName}.svg` : '/images/placeholder-team.svg'}
                       alt={`${game.teamB.name} logo`}
@@ -300,7 +340,7 @@
                   </div>
                 </div>
                 {#if game.teamBSummary}
-                  <div class={`text-sm font-semibold ${game.favoredTeam === 'B' ? 'text-green-400' : 'text-amber-400'}`}>
+                  <div class={`ml-auto min-w-[60px] text-right text-sm font-semibold ${game.favoredTeam === 'B' ? 'text-green-400' : 'text-amber-400'}`}>
                     {formatBranchValue(game.teamBSummary)}
                   </div>
                 {/if}

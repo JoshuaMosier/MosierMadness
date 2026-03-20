@@ -200,6 +200,8 @@ export interface GeneratedScenarioTeam {
 	seed: number;
 	name: string;
 	seoName: string;
+	primaryColor?: string;
+	secondaryColor?: string;
 }
 
 export interface GeneratedScenarioOutcome {

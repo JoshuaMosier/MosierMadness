@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { GeneratedScenarioArtifact } from '$lib/types';
+import { getTeamColorSet, loadTeamColors } from '$lib/server/tournament/teamColors';
 
 const GENERATED_SCENARIO_PATH = path.resolve(
 	process.cwd(),
@@ -17,6 +18,24 @@ export async function getGeneratedScenarioArtifact(): Promise<GeneratedScenarioA
 		if (!parsed || !Array.isArray(parsed.entries)) {
 			return null;
 		}
+
+		if (Array.isArray(parsed.previewGames) && parsed.previewGames.length > 0) {
+			await loadTeamColors();
+			parsed.previewGames = parsed.previewGames.map((game) => ({
+				...game,
+				teamA: {
+					...game.teamA,
+					primaryColor: getTeamColorSet(game.teamA?.seoName).primaryColor,
+					secondaryColor: getTeamColorSet(game.teamA?.seoName).secondaryColor,
+				},
+				teamB: {
+					...game.teamB,
+					primaryColor: getTeamColorSet(game.teamB?.seoName).primaryColor,
+					secondaryColor: getTeamColorSet(game.teamB?.seoName).secondaryColor,
+				},
+			}));
+		}
+
 		return parsed;
 	} catch {
 		return null;
