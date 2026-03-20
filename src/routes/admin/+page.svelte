@@ -359,6 +359,51 @@
   let archiveError: string | null = null;
   let archiveSuccess: string | null = null;
   let archiveConfirm = false;
+  let scenarioExporting = false;
+  let scenarioExportError: string | null = null;
+  let scenarioExportSuccess: string | null = null;
+  let scenarioExportSummary: any = null;
+  let scenarioExportPath: string | null = null;
+
+  function downloadScenarioExport(fileName: string, payload: unknown): void {
+    const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  async function handleScenarioExport(): Promise<void> {
+    scenarioExporting = true;
+    scenarioExportError = null;
+    scenarioExportSuccess = null;
+
+    try {
+      const response = await fetch('/api/admin/scenario-export', { method: 'POST' });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Scenario export failed');
+      }
+
+      downloadScenarioExport(result.fileName, result.payload);
+      scenarioExportSummary = result.payload?.source || null;
+      scenarioExportPath = result.writtenPath || null;
+      scenarioExportSuccess = result.writeError
+        ? `Downloaded ${result.fileName}. Disk write failed: ${result.writeError}`
+        : result.writtenPath
+          ? `Downloaded ${result.fileName} and wrote ${result.writtenPath}.`
+          : `Downloaded ${result.fileName}.`;
+    } catch (err) {
+      scenarioExportError = err.message;
+    } finally {
+      scenarioExporting = false;
+    }
+  }
 
   async function handleArchiveSeason() {
     if (!archiveConfirm) {
@@ -792,6 +837,40 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+      <h2 class="text-xl font-semibold text-zinc-100 mb-2">Scenario Export</h2>
+      <p class="text-zinc-400 text-sm mb-4">
+        Freeze the live bracket state and submitted entries into a standalone scenario input file for offline computation.
+      </p>
+
+      <Alert message={scenarioExportError} compact class="mb-4" />
+
+      {#if scenarioExportSuccess}
+        <div class="mb-4 bg-emerald-950/40 border border-emerald-900 text-emerald-400 rounded-lg p-3">
+          {scenarioExportSuccess}
+        </div>
+      {/if}
+
+      {#if scenarioExportSummary}
+        <div class="mb-4 rounded-lg border border-zinc-800 bg-zinc-800/30 p-4 text-sm text-zinc-300 space-y-1">
+          <div>Entries: {scenarioExportSummary.entryCount}</div>
+          <div>Remaining games: {scenarioExportSummary.remainingGameCount}</div>
+          <div>Total possible outcomes: {scenarioExportSummary.totalPossibleOutcomes}</div>
+          {#if scenarioExportPath}
+            <div class="break-all text-zinc-400">Saved path: {scenarioExportPath}</div>
+          {/if}
+        </div>
+      {/if}
+
+      <button
+        class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-emerald-700 to-emerald-600 text-white font-medium disabled:opacity-50"
+        on:click={handleScenarioExport}
+        disabled={scenarioExporting}
+      >
+        {scenarioExporting ? 'Exporting...' : 'Export Scenario Input'}
+      </button>
     </div>
 
     <div class="mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-6">
