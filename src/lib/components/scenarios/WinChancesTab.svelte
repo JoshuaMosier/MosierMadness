@@ -21,7 +21,7 @@
       {#each userWinCounts as user, i}
         <tr class={i % 2 === 0 ? 'bg-zinc-800' : ''}>
           <td class="px-2 py-2 whitespace-nowrap text-sm text-zinc-300">
-            {user.firstName} {user.lastName}
+            {user.displayName || `${user.firstName} ${user.lastName}`.trim()}
           </td>
           <td class="px-2 py-2 whitespace-nowrap text-sm text-zinc-300 text-center">
             <div class="inline-flex items-center">

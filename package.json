@@ -8,6 +8,7 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"generate:historical-seed": "python scripts/generate_historical_seed.py",
+		"scenarios:import": "node scripts/import_latest_scenario_artifact.mjs",
 		"test": "playwright test",
 		"test:ui": "playwright test --ui",
 		"prepare": "svelte-kit sync || echo ''"

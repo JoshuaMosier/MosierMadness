@@ -56,7 +56,7 @@
               class:bg-amber-800={hoveredRow === i}
               class:bg-zinc-700={i % 2 === 0 && hoveredRow !== i}
               class:bg-zinc-800={i % 2 !== 0 && hoveredRow !== i}>
-            {user.firstName} {user.lastName}
+            {user.displayName || `${user.firstName} ${user.lastName}`.trim()}
           </td>
           {#each Array(numEntries) as _, j}
             {@const position = j + 1}

@@ -10,11 +10,14 @@
   import MatchSelector from '$lib/components/scenarios/MatchSelector.svelte';
   import WinChancesTab from '$lib/components/scenarios/WinChancesTab.svelte';
   import FullStandingsTab from '$lib/components/scenarios/FullStandingsTab.svelte';
+  import GeneratedScenariosPage from '$lib/components/scenarios/GeneratedScenariosPage.svelte';
   import RootingGuideTab from '$lib/components/scenarios/RootingGuideTab.svelte';
   import type { LiveBracketData, Entry, SimulationResult } from '$lib/types';
 
   export let data: any;
 
+  const scenarioMode = data.mode ?? 'browser-exact';
+  const browserExactMode = scenarioMode === 'browser-exact';
   let entries: Entry[] = data.scenario?.entries || [];
   let loading = true;
   let error: string | null = null;
@@ -52,7 +55,7 @@
 
   onMount(async () => {
     try {
-      if (!scenariosAvailable) return;
+      if (!browserExactMode || !scenariosAvailable) return;
 
       for (let i = 0; i < entries.length; i++) {
         entryIdToIndex.set(entries[i].entryId, i);
@@ -314,101 +317,103 @@
       <Alert message={error} center class="mb-4" />
     </div>
   {:else}
-    <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-      <div class="border-b border-zinc-800 bg-zinc-900/50">
-        <div class="p-6">
-          <div class="flex flex-col md:flex-row justify-between items-center">
-            <div>
-              <h2 class="text-2xl font-semibold text-zinc-100">Tournament Outcome Probabilities</h2>
-              <p class="text-sm text-zinc-400 mt-1">
-                {#if hasSelections}
-                  Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'filtered'} tournament outcomes
-                  <span class="text-amber-500">(filtered by {Object.keys(selectedWinners).length} selections)</span>
-                {:else}
-                  Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'all possible'} tournament outcomes
-                {/if}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="p-6">
-        {#if remainingGames.length > 12}
-          <div class="bg-amber-800/20 border border-amber-800/30 text-amber-400 p-3 rounded mb-4 text-sm">
-            Warning: There are {remainingGames.length} games remaining, which means {Math.pow(2, remainingGames.length).toLocaleString()} possible scenarios.
-            Calculation may take a long time or crash your browser.
-          </div>
-        {/if}
-
-        {#if scenariosCalculated}
-          <MatchSelector
-            {matchSimulationDetails}
-            onSelectWinner={handleSelectWinner}
-            onReset={resetSelections}
-          />
-
-          <!-- Tab Buttons -->
-          <div class="mb-6">
-            <div class="border-b border-zinc-700">
-              <div class="flex">
-                <button
-                  class={`py-2 px-4 font-medium text-sm ${selectedTab === 'win' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
-                  on:click={() => selectedTab = 'win'}
-                >
-                  Win Chances
-                </button>
-                <button
-                  class={`py-2 px-4 font-medium text-sm hidden md:block ${selectedTab === 'full' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
-                  on:click={() => selectedTab = 'full'}
-                >
-                  Full Standings
-                </button>
-                <button
-                  class={`py-2 px-4 font-medium text-sm ${selectedTab === 'root' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
-                  on:click={() => selectedTab = 'root'}
-                >
-                  Rooting Guide
-                </button>
+    {#if scenarioMode === 'generated-snapshot'}
+      <GeneratedScenariosPage artifact={data.generatedScenario} />
+    {:else}
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        <div class="border-b border-zinc-800 bg-zinc-900/50">
+          <div class="p-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+              <div>
+                <h2 class="text-2xl font-semibold text-zinc-100">Tournament Outcome Probabilities</h2>
+                <p class="text-sm text-zinc-400 mt-1">
+                  {#if hasSelections}
+                    Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'filtered'} tournament outcomes
+                    <span class="text-amber-500">(filtered by {Object.keys(selectedWinners).length} selections)</span>
+                  {:else}
+                    Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'all possible'} tournament outcomes
+                  {/if}
+                </p>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Tab Content -->
-          {#if selectedTab === 'win'}
-            <WinChancesTab {userWinCounts} />
-          {:else if selectedTab === 'full'}
-            <FullStandingsTab
-              {positionProbabilities}
-              {totalScenarios}
-              numEntries={entries.length}
-              bind:displayMode
-            />
-          {:else if selectedTab === 'root'}
-            <RootingGuideTab
-              {entries}
-              {currentUser}
-              bind:selectedUser
-              {selectedWinners}
-              {matchSimulationDetails}
-              {teamWinContributions}
-              {positionProbabilities}
-              {userWinCounts}
-              {totalScenarios}
-              {targetPosition}
-              {scenariosCalculated}
-              onUserChange={handleUserChange}
-            />
-          {/if}
-        {:else}
-          <div class="text-center py-12 text-zinc-500">
-            <div class="animate-pulse flex flex-col items-center">
-              <div class="w-10 h-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-3"></div>
-              <p>Calculating tournament scenarios automatically...</p>
+        <div class="p-6">
+          {#if remainingGames.length > 12}
+            <div class="bg-amber-800/20 border border-amber-800/30 text-amber-400 p-3 rounded mb-4 text-sm">
+              Warning: There are {remainingGames.length} games remaining, which means {Math.pow(2, remainingGames.length).toLocaleString()} possible scenarios.
+              Calculation may take a long time or crash your browser.
             </div>
-          </div>
-        {/if}
+          {/if}
+
+          {#if scenariosCalculated}
+            <MatchSelector
+              {matchSimulationDetails}
+              onSelectWinner={handleSelectWinner}
+              onReset={resetSelections}
+            />
+
+            <div class="mb-6">
+              <div class="border-b border-zinc-700">
+                <div class="flex">
+                  <button
+                    class={`py-2 px-4 font-medium text-sm ${selectedTab === 'win' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
+                    on:click={() => selectedTab = 'win'}
+                  >
+                    Win Chances
+                  </button>
+                  <button
+                    class={`py-2 px-4 font-medium text-sm hidden md:block ${selectedTab === 'full' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
+                    on:click={() => selectedTab = 'full'}
+                  >
+                    Full Standings
+                  </button>
+                  <button
+                    class={`py-2 px-4 font-medium text-sm ${selectedTab === 'root' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
+                    on:click={() => selectedTab = 'root'}
+                  >
+                    Rooting Guide
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {#if selectedTab === 'win'}
+              <WinChancesTab {userWinCounts} />
+            {:else if selectedTab === 'full'}
+              <FullStandingsTab
+                {positionProbabilities}
+                {totalScenarios}
+                numEntries={entries.length}
+                bind:displayMode
+              />
+            {:else if selectedTab === 'root'}
+              <RootingGuideTab
+                {entries}
+                {currentUser}
+                bind:selectedUser
+                {selectedWinners}
+                {matchSimulationDetails}
+                {teamWinContributions}
+                {positionProbabilities}
+                {userWinCounts}
+                {totalScenarios}
+                {targetPosition}
+                {scenariosCalculated}
+                onUserChange={handleUserChange}
+              />
+            {/if}
+          {:else}
+            <div class="text-center py-12 text-zinc-500">
+              <div class="animate-pulse flex flex-col items-center">
+                <div class="w-10 h-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p>Calculating tournament scenarios automatically...</p>
+              </div>
+            </div>
+          {/if}
+        </div>
       </div>
-    </div>
+    {/if}
   {/if}
 </div>
