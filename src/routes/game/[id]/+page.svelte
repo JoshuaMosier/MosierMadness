@@ -148,7 +148,7 @@
       </div>
 
       <!-- Entries Comparison Section -->
-      <div class="bg-black bg-opacity-30 rounded-lg p-6 shadow-lg border border-white/10">
+      <div class="bg-black bg-opacity-30 rounded-lg p-6 shadow-lg border border-white/10 overflow-hidden">
         <h3 class="text-center text-2xl text-white font-semibold mb-6">Who Picked Each Team</h3>
         
         {#if entriesLoading}
@@ -170,15 +170,15 @@
                 <h4 class="text-base sm:text-lg font-semibold text-white">{gameData.awayTeam.name} ({teamSelections.away.length})</h4>
               </div>
               
-              <div class="bg-zinc-800/30 p-2 sm:p-4 rounded-b-lg">
+              <div class="bg-zinc-800/30 p-2 sm:p-4 rounded-b-lg overflow-hidden">
                 {#if teamSelections.away.length === 0}
                   <div class="text-center text-gray-400 py-4">No entries picked this team.</div>
                 {:else}
                   <div class="grid grid-cols-2 gap-2 sm:gap-3">
                     {#each teamSelections.away as entry}
-                      <div class="px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
-                        <a 
-                          href="/entries?selected={entry.name.replace(' ', '|')}" 
+                      <div class="min-w-0 px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
+                        <a
+                          href="/entries?selected={entry.name.replace(' ', '|')}"
                           class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate text-sm sm:text-base"
                           title={entry.name}
                         >
@@ -190,28 +190,28 @@
                 {/if}
               </div>
             </div>
-            
+
             <!-- Home Team Section -->
             <div class="team-section">
               <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-2">
-                <img 
-                  class="w-6 h-6 sm:w-8 sm:h-8" 
-                  src="/images/team-logos/{gameData.homeTeam.seoName}.svg" 
+                <img
+                  class="w-6 h-6 sm:w-8 sm:h-8"
+                  src="/images/team-logos/{gameData.homeTeam.seoName}.svg"
                   alt="{gameData.homeTeam.name} logo"
                   on:error={handleImageError}
                 >
                 <h4 class="text-base sm:text-lg font-semibold text-white">{gameData.homeTeam.name} ({teamSelections.home.length})</h4>
               </div>
-              
-              <div class="bg-zinc-800/30 p-2 sm:p-4 rounded-b-lg">
+
+              <div class="bg-zinc-800/30 p-2 sm:p-4 rounded-b-lg overflow-hidden">
                 {#if teamSelections.home.length === 0}
                   <div class="text-center text-gray-400 py-4">No entries picked this team.</div>
                 {:else}
                   <div class="grid grid-cols-2 gap-2 sm:gap-3">
                     {#each teamSelections.home as entry}
-                      <div class="px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
-                        <a 
-                          href="/entries?selected={entry.name.replace(' ', '|')}" 
+                      <div class="min-w-0 px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
+                        <a
+                          href="/entries?selected={entry.name.replace(' ', '|')}"
                           class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate text-sm sm:text-base"
                           title={entry.name}
                         >
@@ -228,24 +228,24 @@
           <!-- Desktop Layout (md breakpoint and above) -->
           <div class="hidden md:flex md:flex-row justify-between gap-8">
             <!-- Away Team Picks Column -->
-            <div class="flex-1 team-column">
+            <div class="flex-1 min-w-0 team-column">
               <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-3">
-                <img 
-                  class="w-8 h-8" 
-                  src="/images/team-logos/{gameData.awayTeam.seoName}.svg" 
+                <img
+                  class="w-8 h-8"
+                  src="/images/team-logos/{gameData.awayTeam.seoName}.svg"
                   alt="{gameData.awayTeam.name} logo"
                   on:error={handleImageError}
                 >
                 <h4 class="text-lg font-semibold text-white">{gameData.awayTeam.name} ({teamSelections.away.length})</h4>
               </div>
-              
-              <div class="bg-zinc-800/30 p-4 rounded-b-lg">
+
+              <div class="bg-zinc-800/30 p-4 rounded-b-lg overflow-hidden">
                 {#if teamSelections.away.length === 0}
                   <div class="text-center text-gray-400 py-6">No entries picked this team.</div>
                 {:else}
                   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                     {#each teamSelections.away as entry}
-                      <div class="px-3 py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
+                      <div class="min-w-0 px-3 py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
                         <a 
                           href="/entries?selected={entry.name.replace(' ', '|')}" 
                           class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate"
@@ -261,24 +261,24 @@
             </div>
             
             <!-- Home Team Picks Column -->
-            <div class="flex-1 team-column">
+            <div class="flex-1 min-w-0 team-column">
               <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-3">
-                <img 
-                  class="w-8 h-8" 
-                  src="/images/team-logos/{gameData.homeTeam.seoName}.svg" 
+                <img
+                  class="w-8 h-8"
+                  src="/images/team-logos/{gameData.homeTeam.seoName}.svg"
                   alt="{gameData.homeTeam.name} logo"
                   on:error={handleImageError}
                 >
                 <h4 class="text-lg font-semibold text-white">{gameData.homeTeam.name} ({teamSelections.home.length})</h4>
               </div>
-              
-              <div class="bg-zinc-800/30 p-4 rounded-b-lg">
+
+              <div class="bg-zinc-800/30 p-4 rounded-b-lg overflow-hidden">
                 {#if teamSelections.home.length === 0}
                   <div class="text-center text-gray-400 py-6">No entries picked this team.</div>
                 {:else}
                   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                     {#each teamSelections.home as entry}
-                      <div class="px-3 py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
+                      <div class="min-w-0 px-3 py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
                         <a 
                           href="/entries?selected={entry.name.replace(' ', '|')}" 
                           class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate"
@@ -320,9 +320,9 @@
                 <div class="bg-zinc-800/30 p-2 sm:p-4 rounded-b-lg">
                   <div class="grid grid-cols-2 gap-1.5 text-sm">
                     {#each teamGroup.users as entry}
-                      <div class="px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
-                        <a 
-                          href="/entries?selected={entry.name.replace(' ', '|')}" 
+                      <div class="min-w-0 px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
+                        <a
+                          href="/entries?selected={entry.name.replace(' ', '|')}"
                           class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate text-sm sm:text-base"
                           title={entry.name}
                         >

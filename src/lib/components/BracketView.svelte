@@ -119,7 +119,7 @@
 </div>
 
 <style>
-  :global(.truncate) {
+  .truncate {
     font-family: Inter, "Segoe UI", Roboto, -apple-system, sans-serif;
     font-feature-settings: "tnum" on, "lnum" on;
     letter-spacing: -0.01em;
