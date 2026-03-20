@@ -195,36 +195,14 @@
     <div class="leaderboard-mobile">
       {#each sortedScores as score, index}
         <div class="leaderboard-mobile-row" class:leaderboard-row--current-user={isCurrentUserRow(score)} in:fade={fadeStagger(index)}>
-          <div class="leaderboard-mobile-top">
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-3 min-w-0">
-                <span class="leaderboard-rank">{getRankLabel(ranks[index])}</span>
-                <a href={getEntryHref(score)} class={getNameButtonClass()}>
-                  <span class="leaderboard-name">{score.firstName} {score.lastName}</span>
-                </a>
-              </div>
-
-              <div class="leaderboard-mobile-meta">
-                <span>Games {score.correctGames}</span>
-                <span>R1 {score.round1}</span>
-                <span>R2 {score.round2}</span>
-                <span>S16 {score.round3}</span>
-              </div>
-            </div>
-
-            <div class="leaderboard-mobile-metrics">
-              <div class="leaderboard-mobile-metric">
-                <span class="leaderboard-mobile-label">Total</span>
-                <span class="leaderboard-metric is-total">{score.total}</span>
-              </div>
-              <div class="leaderboard-mobile-metric">
-                <span class="leaderboard-mobile-label">Potential</span>
-                <span class="leaderboard-metric is-potential" style={getPotentialColor(score.potential, sortedScores)}>
-                  {getPotentialDisplay(score.potential)}
-                </span>
-              </div>
-            </div>
-          </div>
+          <span class="leaderboard-rank leaderboard-rank--mobile">{getRankLabel(ranks[index])}</span>
+          <a href={getEntryHref(score)} class={`${getNameButtonClass()} leaderboard-name-button--mobile`}>
+            <span class="leaderboard-name leaderboard-name--mobile">{score.firstName} {score.lastName}</span>
+          </a>
+          <span class="leaderboard-metric leaderboard-metric--mobile is-total">{score.total}</span>
+          <span class="leaderboard-metric leaderboard-metric--mobile is-potential" style={getPotentialColor(score.potential, sortedScores)}>
+            {getPotentialDisplay(score.potential)}
+          </span>
         </div>
       {/each}
     </div>
@@ -355,67 +333,44 @@
     background: rgba(10, 10, 11, 0.96);
   }
 
+  .leaderboard-shell::before {
+    content: none;
+  }
+
   .leaderboard-mobile {
     display: grid;
-    gap: 0.8rem;
+    gap: 0;
     padding: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(14, 14, 15, 0.92);
   }
 
   .leaderboard-mobile-row {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 22px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
-    padding: 1rem;
-    box-shadow: var(--mm-panel-shadow);
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr) 2.8rem 3.3rem;
+    align-items: center;
+    gap: 0.55rem;
+    white-space: nowrap;
+  }
+
+  .leaderboard-mobile-row {
+    padding: 0.46rem 0.8rem;
+    background: rgba(255, 255, 255, 0.015);
+  }
+
+  .leaderboard-mobile-row + .leaderboard-mobile-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .leaderboard-mobile-row:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.028);
   }
 
   .leaderboard-mobile-row.leaderboard-row--current-user {
-    border-color: rgba(245, 158, 11, 0.32);
     background:
-      linear-gradient(90deg, rgba(180, 83, 9, 0.24), rgba(245, 158, 11, 0.08) 46%, rgba(255, 255, 255, 0.015));
-    box-shadow:
-      inset 0 0 0 1px rgba(245, 158, 11, 0.08),
-      var(--mm-panel-shadow);
-  }
-
-  .leaderboard-mobile-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .leaderboard-mobile-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem 0.9rem;
-    margin-top: 0.75rem;
-    padding-left: 3.75rem;
-    color: var(--mm-subtle);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .leaderboard-mobile-metrics {
-    display: grid;
-    gap: 0.5rem;
-    min-width: 5.4rem;
-  }
-
-  .leaderboard-mobile-metric {
-    display: grid;
-    gap: 0.22rem;
-    justify-items: end;
-  }
-
-  .leaderboard-mobile-label {
-    color: var(--mm-subtle);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+      linear-gradient(90deg, rgba(180, 83, 9, 0.26), rgba(245, 158, 11, 0.1) 36%, rgba(255, 255, 255, 0.02));
+    box-shadow: inset 3px 0 0 rgba(245, 158, 11, 0.52);
   }
 
   .leaderboard-table-shell {
@@ -490,6 +445,12 @@
     background: rgba(245, 158, 11, 0.08);
   }
 
+  .leaderboard-row--current-user .leaderboard-name-button--mobile {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+
   .leaderboard-row--current-user .leaderboard-name {
     color: #fde68a;
   }
@@ -538,9 +499,24 @@
     padding: 0.38rem 0.9rem;
   }
 
+  .leaderboard-name-button--mobile {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    border-radius: 0.55rem;
+    background: transparent;
+    padding: 0.14rem 0;
+  }
+
   .leaderboard-name-button:hover {
     border-color: rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.05);
+  }
+
+  .leaderboard-name-button--mobile:hover {
+    border-color: transparent;
+    background: transparent;
   }
 
   .leaderboard-name-button:focus-visible {
@@ -548,6 +524,12 @@
     border-color: rgba(245, 158, 11, 0.28);
     background: rgba(245, 158, 11, 0.06);
     box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+  }
+
+  .leaderboard-name-button--mobile:focus-visible {
+    border-color: transparent;
+    background: rgba(245, 158, 11, 0.06);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.16);
   }
 
   .leaderboard-name {
@@ -560,6 +542,11 @@
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .leaderboard-name--mobile {
+    font-size: 0.9rem;
+    text-align: left;
   }
 
   .leaderboard-metric,
@@ -577,6 +564,11 @@
     padding: 0;
     font-size: 1.2rem;
     letter-spacing: 0;
+  }
+
+  .leaderboard-metric--mobile {
+    justify-self: end;
+    font-size: 1rem;
   }
 
   .leaderboard-metric.is-total {
@@ -631,6 +623,13 @@
     font-size: 0.9rem;
   }
 
+  .leaderboard-rank--mobile {
+    min-width: 0;
+    width: 100%;
+    padding: 0.28rem 0.5rem;
+    font-size: 0.78rem;
+  }
+
   @media (min-width: 768px) {
     .leaderboard-mobile {
       display: none;
@@ -642,17 +641,14 @@
   }
 
   @media (max-width: 767px) {
-    .leaderboard-mobile-meta {
-      padding-left: 0;
+    .leaderboard-mobile-row {
+      grid-template-columns: 2.8rem minmax(0, 1fr) 2.65rem 3.1rem;
+      gap: 0.45rem;
     }
 
-    .leaderboard-rank {
-      min-width: 3.8rem;
-      padding: 0.42rem 0.75rem;
-    }
-
-    .leaderboard-name {
-      font-size: 0.92rem;
+    .leaderboard-mobile-row {
+      padding-left: 0.7rem;
+      padding-right: 0.7rem;
     }
   }
 </style>
