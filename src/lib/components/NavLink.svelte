@@ -6,111 +6,136 @@
   export let active: boolean = false;
   export let mobile: boolean = false;
   export let onClick: (() => void) | null = null;
+
+  $: desktopClass = `nav-button${active ? ' active' : ''}${disabled ? ' disabled' : ''}`;
+  $: mobileClass = `mobile-nav-button${active ? ' active' : ''}${disabled ? ' disabled' : ''}`;
 </script>
 
 {#if mobile}
   {#if disabled}
-    <span class="mobile-nav-button disabled" title={disabledReason} aria-label="{label} - {disabledReason}">{label}</span>
+    <span class={mobileClass} title={disabledReason} aria-label="{label} - {disabledReason}">{label}</span>
   {:else if onClick}
-    <button on:click={onClick} class="mobile-nav-button w-full {active ? 'active' : ''}">{label}</button>
+    <button type="button" on:click={onClick} class={mobileClass}>{label}</button>
   {:else}
-    <a {href} class="mobile-nav-button {active ? 'active' : ''}" on:click>{label}</a>
+    <a {href} class={mobileClass} on:click>{label}</a>
   {/if}
 {:else}
   {#if disabled}
     <span class="nav-link" title={disabledReason} aria-label="{label} - {disabledReason}">
-      <div class="nav-button disabled">{label}</div>
+      <span class={desktopClass}>{label}</span>
     </span>
   {:else if onClick}
-    <button on:click={onClick} class="nav-link">
-      <div class="nav-button {active ? 'active' : ''}">{label}</div>
+    <button type="button" on:click={onClick} class="nav-link">
+      <span class={desktopClass}>{label}</span>
     </button>
   {:else}
     <a {href} class="nav-link">
-      <div class="nav-button {active ? 'active' : ''}">{label}</div>
+      <span class={desktopClass}>{label}</span>
     </a>
   {/if}
 {/if}
 
 <style>
   .nav-link {
-    @apply flex-shrink-0;
-    width: 132px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    text-decoration: none;
   }
 
   .nav-button {
-    @apply flex items-center justify-center relative px-4;
-    height: 48px;
-    width: 100%;
-    font-size: 15px;
-    font-weight: 500;
-    color: #fff;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 22px;
-    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.7rem;
+    padding: 0.62rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--mm-muted);
+    font-size: 0.94rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
   }
 
   .nav-button:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
-  }
-
-  .nav-button:active {
-    background: rgba(255, 255, 255, 0.05);
-    transform: translateY(0);
-  }
-
-  .mobile-nav-button {
-    @apply block w-full px-4 py-3 rounded-md text-white text-center;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .mobile-nav-button:hover {
-    background: rgba(255, 255, 255, 0.15);
-  }
-
-  @media (max-width: 1280px) {
-    .nav-link {
-      width: 160px;
-    }
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--mm-text);
   }
 
   .nav-button.active {
-    @apply bg-amber-400/20 border-amber-400/30;
+    border-color: rgba(245, 158, 11, 0.22);
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.16), rgba(180, 83, 9, 0.08));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    color: #fde68a;
   }
 
   .nav-button.active:hover {
-    @apply bg-amber-400/30 border-amber-400/40;
-  }
-
-  .mobile-nav-button.active {
-    @apply bg-amber-400/20 border-amber-400/30;
-  }
-
-  .mobile-nav-button.active:hover {
-    @apply bg-amber-400/30;
+    border-color: rgba(245, 158, 11, 0.28);
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.2), rgba(180, 83, 9, 0.1));
+    color: #fef3c7;
   }
 
   .nav-button.disabled,
   .nav-button.disabled:hover {
-    opacity: 0.35;
+    border-color: transparent;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.3);
     cursor: not-allowed;
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.05);
-    transform: none;
+  }
+
+  .mobile-nav-button {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 3.15rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--mm-text);
+    font-size: 0.98rem;
+    font-weight: 600;
+    line-height: 1.15;
+    text-decoration: none;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .mobile-nav-button:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  .mobile-nav-button.active {
+    border-color: rgba(245, 158, 11, 0.22);
+    background: rgba(245, 158, 11, 0.12);
+    color: #fde68a;
+  }
+
+  .mobile-nav-button.active:hover {
+    border-color: rgba(245, 158, 11, 0.28);
+    background: rgba(245, 158, 11, 0.16);
   }
 
   .mobile-nav-button.disabled,
   .mobile-nav-button.disabled:hover {
-    opacity: 0.35;
+    border-color: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.02);
+    color: rgba(255, 255, 255, 0.3);
     cursor: not-allowed;
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.05);
   }
 </style>
