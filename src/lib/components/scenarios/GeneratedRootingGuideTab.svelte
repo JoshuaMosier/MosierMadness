@@ -8,6 +8,24 @@
   export let currentUserId: string | null = null;
   export let selectedUser: string | null = null;
   let selectedUserValue = '';
+  const teamLogoClass = 'w-full h-full object-contain p-0.5 opacity-90';
+  const teamLogoContainerClass = 'w-10 h-10 rounded-lg p-1 overflow-hidden shadow-inner relative';
+  const svgFilter = `
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <filter id="generatedTeamLogoOutline" x="-20%" y="-20%" width="140%" height="140%">
+        <feMorphology operator="dilate" radius="1" in="SourceAlpha" result="blackThicken" />
+        <feFlood flood-color="black" result="blackOutline" />
+        <feComposite in="blackOutline" in2="blackThicken" operator="in" result="blackOutline" />
+        <feMorphology operator="dilate" radius="0.5" in="SourceAlpha" result="whiteThicken" />
+        <feFlood flood-color="white" result="whiteOutline" />
+        <feComposite in="whiteOutline" in2="whiteThicken" operator="in" result="whiteOutline" />
+        <feComposite in="whiteOutline" in2="blackOutline" operator="over" result="outlines" />
+        <feComposite in="SourceGraphic" in2="outlines" operator="over" />
+      </filter>
+    </defs>
+  </svg>
+  `;
 
   type BranchSnapshot = {
     entryId: string;
@@ -122,26 +140,36 @@
 
   function getTeamLogoContainerStyle(team: GeneratedScenarioTeam): string {
     const primaryRgb = hexToRgb(team.primaryColor ?? '');
-    const secondaryRgb = hexToRgb(team.secondaryColor ?? '');
 
     if (!primaryRgb) {
-      return 'background-color: rgba(24, 24, 27, 0.95); border-color: rgba(63, 63, 70, 0.9);';
+      return `
+        background-color: rgba(24, 24, 27, 0.95);
+        filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3)) drop-shadow(-1px -1px 1px rgba(255, 255, 255, 0.1));
+      `;
     }
 
-    const borderColor = secondaryRgb
-      ? `rgba(${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}, 0.82)`
-      : `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.9)`;
-
     return `
-      background: linear-gradient(135deg,
-        rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.94) 0%,
-        rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.72) 100%
-      );
-      border-color: ${borderColor};
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.14),
-        0 6px 14px rgba(0, 0, 0, 0.24);
+      background-color: rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.8);
+      filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3)) drop-shadow(-1px -1px 1px rgba(255, 255, 255, 0.1));
     `;
+  }
+
+  function formatGameStartLabel(startTime: string | undefined): string {
+    if (!startTime) {
+      return 'TBD';
+    }
+
+    const parsedDate = new Date(startTime);
+    if (!Number.isNaN(parsedDate.getTime())) {
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      }).format(parsedDate).replace(',', ' ·');
+    }
+
+    return startTime;
   }
 
   $: sortedEntries = [...entries].sort((left, right) => {
@@ -200,6 +228,8 @@
   });
   $: counterIntuitiveCount = gameSummaries.filter((game) => game.counterIntuitive).length;
 </script>
+
+{@html svgFilter}
 
 <div class="mb-6">
   <div class="mb-4">
@@ -263,45 +293,44 @@
 
       <div class="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
         {#each gameSummaries as game}
-          <div class="bg-zinc-800 border border-zinc-700 rounded-lg overflow-hidden">
-            <div class="bg-zinc-700 px-3 py-2 text-sm font-medium text-zinc-300 flex items-center justify-between gap-3">
+          <div
+            class={`bg-zinc-800 border rounded-lg overflow-hidden ${
+              game.counterIntuitive
+                ? 'border-rose-900/70'
+                : 'border-zinc-700'
+            }`}
+          >
+            <div
+              class={`px-3 py-2 text-sm font-medium flex items-center justify-between gap-3 ${
+                game.counterIntuitive
+                  ? 'bg-rose-950/40 text-rose-200'
+                  : 'bg-zinc-700 text-zinc-300'
+              }`}
+            >
               <span>{game.roundLabel}</span>
-              <span class="text-xs uppercase tracking-[0.18em] text-zinc-400">Game {game.gameIndex + 1}</span>
+              <span class={`text-xs whitespace-nowrap ${game.counterIntuitive ? 'text-rose-300/80' : 'text-zinc-400'}`}>
+                {formatGameStartLabel(game.startTime)}
+              </span>
             </div>
 
-            <div class="min-h-[2rem] flex items-center justify-between gap-2 px-3 pt-2">
-              {#if !game.favoredTeam}
-                <span class="inline-flex items-center rounded-full bg-zinc-700/60 px-2 py-1 text-[11px] font-medium text-zinc-300">
-                  No edge
-                </span>
-              {:else}
-                <span></span>
-              {/if}
-
-              {#if game.counterIntuitive}
-                <span class="inline-flex items-center rounded-full bg-rose-900/30 px-2 py-1 text-[11px] font-medium text-rose-300">
-                  Against your bracket
-                </span>
-              {/if}
-            </div>
-
-            <div class="p-3 pt-1 space-y-2.5">
+            <div class="p-3 space-y-2.5">
               <div
                 class={`flex items-center gap-3 rounded-lg p-2.5 ${
                   game.favoredTeam === 'A'
                     ? 'bg-green-900/20 border border-green-900/70'
                     : 'bg-zinc-700/30 border border-zinc-700'
-                } ${game.selectedPickBranch === 'A' ? 'ring-1 ring-amber-500/60 ring-inset' : ''}`}
+                }`}
               >
                 <div class="flex min-w-0 flex-1 items-center gap-3">
                   <div
-                    class="w-10 h-10 rounded-md overflow-hidden border flex-shrink-0 p-1"
+                    class={teamLogoContainerClass}
                     style={getTeamLogoContainerStyle(game.teamA)}
                   >
                     <img
                       src={game.teamA.seoName ? `/images/team-logos/${game.teamA.seoName}.svg` : '/images/placeholder-team.svg'}
                       alt={`${game.teamA.name} logo`}
-                      class="w-full h-full object-contain"
+                      class={teamLogoClass}
+                      style="filter: url(#generatedTeamLogoOutline);"
                       on:error={handleImageError}
                     />
                   </div>
@@ -321,17 +350,18 @@
                   game.favoredTeam === 'B'
                     ? 'bg-green-900/20 border border-green-900/70'
                     : 'bg-zinc-700/30 border border-zinc-700'
-                } ${game.selectedPickBranch === 'B' ? 'ring-1 ring-amber-500/60 ring-inset' : ''}`}
+                }`}
               >
                 <div class="flex min-w-0 flex-1 items-center gap-3">
                   <div
-                    class="w-10 h-10 rounded-md overflow-hidden border flex-shrink-0 p-1"
+                    class={teamLogoContainerClass}
                     style={getTeamLogoContainerStyle(game.teamB)}
                   >
                     <img
                       src={game.teamB.seoName ? `/images/team-logos/${game.teamB.seoName}.svg` : '/images/placeholder-team.svg'}
                       alt={`${game.teamB.name} logo`}
-                      class="w-full h-full object-contain"
+                      class={teamLogoClass}
+                      style="filter: url(#generatedTeamLogoOutline);"
                       on:error={handleImageError}
                     />
                   </div>

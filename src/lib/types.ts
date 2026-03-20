@@ -214,6 +214,7 @@ export interface GeneratedScenarioGamePreview {
 	gameIndex: number;
 	round: number;
 	roundLabel: string;
+	startTime?: string;
 	teamA: GeneratedScenarioTeam;
 	teamB: GeneratedScenarioTeam;
 	outcomeA: GeneratedScenarioOutcome;
