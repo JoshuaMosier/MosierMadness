@@ -192,6 +192,7 @@ export interface GeneratedScenarioEntry {
 	firstPlaceCount: number;
 	firstPlacePct: number;
 	placeCounts: number[];
+	picks?: (number | null)[];
 }
 
 export interface GeneratedScenarioTeam {

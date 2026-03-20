@@ -74,14 +74,16 @@
   $: previewGames = artifact?.previewGames ?? [];
   $: selectedPreviewGameIndex = selectedPreviewGameValue === '' ? null : Number(selectedPreviewGameValue);
   $: selectedPreviewGame = previewGames.find((game) => game.gameIndex === selectedPreviewGameIndex) ?? null;
+  $: previewModeActive = selectedTab !== 'root';
   $: selectedPreviewOutcome = selectedPreviewGame && selectedPreviewWinner
     ? selectedPreviewWinner === 'A'
       ? selectedPreviewGame.outcomeA
       : selectedPreviewGame.outcomeB
     : null;
-  $: totalScenarios = selectedPreviewOutcome?.totalScenarios ?? artifact?.totalScenarios ?? 0;
-  $: activeEntries = selectedPreviewOutcome?.entries ?? entries;
-  $: activeSnapshotLabel = getPreviewLabel(selectedPreviewGame, selectedPreviewWinner);
+  $: effectivePreviewOutcome = previewModeActive ? selectedPreviewOutcome : null;
+  $: totalScenarios = effectivePreviewOutcome?.totalScenarios ?? artifact?.totalScenarios ?? 0;
+  $: activeEntries = effectivePreviewOutcome?.entries ?? entries;
+  $: activeSnapshotLabel = previewModeActive ? getPreviewLabel(selectedPreviewGame, selectedPreviewWinner) : null;
   $: ({ userWinCounts, positionProbabilities } = getActiveEntries(activeEntries, totalScenarios));
 
   onMount(async () => {
@@ -116,49 +118,32 @@
           </p>
         </div>
 
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[340px]">
-          <div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4">
-            <div class="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-              {activeSnapshotLabel ? 'Conditional Scenarios' : 'Exact Scenarios'}
-            </div>
-            <div class="mt-2 text-2xl font-semibold text-zinc-100">{totalScenarios.toLocaleString()}</div>
-            <div class="mt-1 text-xs text-zinc-500">
-              {#if activeSnapshotLabel}
-                Showing only outcomes where {activeSnapshotLabel}.
-              {:else}
-                Generated offline and imported into the site.
-              {/if}
-            </div>
+        <div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 lg:min-w-[260px]">
+          <div class="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+            {activeSnapshotLabel ? 'Conditional Scenarios' : 'Exact Scenarios'}
           </div>
-          <div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4">
-            <div class="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Assumption</div>
-            <div class="mt-2 text-sm font-medium text-zinc-100">{artifact?.assumptionSummary ?? 'N/A'}</div>
-            <div class="mt-1 text-xs text-zinc-500">{artifact?.unresolvedGameCount ?? 0} unresolved games in the imported tree.</div>
+          <div class="mt-2 text-2xl font-semibold text-zinc-100">{totalScenarios.toLocaleString()}</div>
+          <div class="mt-1 text-xs text-zinc-500">
+            {#if activeSnapshotLabel}
+              Showing only outcomes where {activeSnapshotLabel}.
+            {:else}
+              Exact standings and title odds from the imported snapshot.
+            {/if}
           </div>
         </div>
       </div>
 
-      <div class="mt-4 flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 p-4 text-sm text-zinc-400 lg:flex-row lg:items-center lg:justify-between">
+      <div class="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/50 p-4 text-sm text-zinc-400">
         <div>
           Multi-game exact filtering returns automatically when the tournament reaches the Sweet 16 browser-exact mode.
           This snapshot mode is the scalable fallback for larger trees.
         </div>
-        {#if artifact?.reportUrl}
-          <a
-            href={artifact.reportUrl}
-            class="inline-flex items-center justify-center rounded-lg bg-amber-600 px-4 py-2 font-medium text-white transition-colors hover:bg-amber-500"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open Detailed Report
-          </a>
-        {/if}
       </div>
     </div>
   </div>
 
   <div class="p-6">
-    {#if previewGames.length > 0}
+    {#if previewGames.length > 0 && selectedTab !== 'root'}
       <div class="mb-6 rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -218,7 +203,6 @@
         {#if activeSnapshotLabel}
           <div class="mt-4 rounded-lg border border-amber-700/40 bg-amber-900/10 px-4 py-3 text-sm text-amber-100">
             Showing conditional standings for <strong>{activeSnapshotLabel}</strong>.
-            Rooting guidance below stays tied to the baseline snapshot and does not chain multiple game previews together.
           </div>
         {/if}
       </div>

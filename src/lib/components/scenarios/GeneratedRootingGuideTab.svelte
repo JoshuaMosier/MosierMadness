@@ -7,6 +7,7 @@
   export let previewGames: GeneratedScenarioGamePreview[] = [];
   export let currentUserId: string | null = null;
   export let selectedUser: string | null = null;
+  let selectedUserValue = '';
 
   type BranchSnapshot = {
     entryId: string;
@@ -17,7 +18,6 @@
   };
 
   type BranchSummary = {
-    label: string;
     pct: number;
     count: number;
     place: number;
@@ -63,7 +63,6 @@
 
     if (snapshot.firstPlaceCount > 0) {
       return {
-        label: '1st place',
         pct: snapshot.firstPlacePct,
         count: snapshot.firstPlaceCount,
         place: 1,
@@ -74,7 +73,6 @@
     const bestPlace = getBestPlace(snapshot.placeCounts);
     const bestPlaceCount = bestPlace > 0 ? snapshot.placeCounts[bestPlace - 1] ?? 0 : 0;
     return {
-      label: `Best finish: ${bestPlace}${getOrdinalSuffix(bestPlace)}`,
       pct: snapshot.totalScenarios > 0 ? (bestPlaceCount / snapshot.totalScenarios) * 100 : 0,
       count: bestPlaceCount,
       place: bestPlace,
@@ -106,38 +104,12 @@
     return 0;
   }
 
-  function describeRecommendation(
-    preferredTeamName: string | null,
-    preferredSummary: BranchSummary | null,
-    otherSummary: BranchSummary | null,
-  ): string {
-    if (!preferredTeamName || !preferredSummary) {
-      return 'No current recommendation';
+  function formatBranchValue(summary: BranchSummary | null): string {
+    if (!summary) {
+      return 'N/A';
     }
 
-    if (preferredSummary.titleAlive) {
-      if (!otherSummary?.titleAlive) {
-        return `Must root for ${preferredTeamName} to keep a title path alive.`;
-      }
-      if (otherSummary.count === 0) {
-        return `Must root for ${preferredTeamName} to keep a title path alive.`;
-      }
-      return `Root for ${preferredTeamName} for the better first-place path.`;
-    }
-
-    if (!otherSummary) {
-      return `Root for ${preferredTeamName} for the strongest remaining finish.`;
-    }
-
-    if (preferredSummary.place < otherSummary.place) {
-      return `Root for ${preferredTeamName} for a better floor: ${preferredSummary.place}${getOrdinalSuffix(preferredSummary.place)} instead of ${otherSummary.place}${getOrdinalSuffix(otherSummary.place)}.`;
-    }
-
-    if (preferredSummary.place === otherSummary.place && preferredSummary.count !== otherSummary.count) {
-      return `Root for ${preferredTeamName} for more ${preferredSummary.place}${getOrdinalSuffix(preferredSummary.place)}-place paths.`;
-    }
-
-    return `Root for ${preferredTeamName} for the stronger remaining floor.`;
+    return summary.titleAlive ? `${summary.pct.toFixed(2)}%` : `P${summary.place}`;
   }
 
   $: sortedEntries = [...entries].sort((left, right) => {
@@ -146,8 +118,8 @@
     return leftName.localeCompare(rightName);
   });
 
+  $: selectedUserValue = selectedUser ?? '';
   $: selectedEntry = entries.find((entry) => entry.entryId === selectedUser) ?? null;
-
   $: gameSummaries = previewGames.map((game) => {
     const teamASnapshot = findEntrySnapshot(game.outcomeA.entries, selectedUser, game.outcomeA.totalScenarios);
     const teamBSnapshot = findEntrySnapshot(game.outcomeB.entries, selectedUser, game.outcomeB.totalScenarios);
@@ -155,20 +127,46 @@
     const teamBSummary = buildBranchSummary(teamBSnapshot);
     const comparison = compareBranchSummaries(teamASummary, teamBSummary);
     const favoredTeam = comparison > 0 ? 'A' : comparison < 0 ? 'B' : null;
-    const recommendation = comparison === 0
-      ? 'Both sides leave this bracket in essentially the same spot.'
-      : favoredTeam === 'A'
-        ? describeRecommendation(game.teamA.name, teamASummary, teamBSummary)
-        : describeRecommendation(game.teamB.name, teamBSummary, teamASummary);
+    const selectedPickTeamId = selectedEntry?.picks?.[game.gameIndex] ?? null;
+    const selectedPickBranch = selectedPickTeamId === game.teamA.teamId
+      ? 'A'
+      : selectedPickTeamId === game.teamB.teamId
+        ? 'B'
+        : null;
+    const selectedPickName = selectedPickBranch === 'A'
+      ? game.teamA.name
+      : selectedPickBranch === 'B'
+        ? game.teamB.name
+        : null;
+    const preferredTeamName = favoredTeam === 'A'
+      ? game.teamA.name
+      : favoredTeam === 'B'
+        ? game.teamB.name
+        : null;
+    const counterIntuitive = Boolean(favoredTeam && selectedPickBranch && favoredTeam !== selectedPickBranch);
 
     return {
       ...game,
       teamASummary,
       teamBSummary,
       favoredTeam,
-      recommendation,
+      selectedPickBranch,
+      selectedPickName,
+      preferredTeamName,
+      counterIntuitive,
     };
+  }).sort((left, right) => {
+    if (left.counterIntuitive !== right.counterIntuitive) {
+      return left.counterIntuitive ? -1 : 1;
+    }
+
+    if ((left.favoredTeam !== null) !== (right.favoredTeam !== null)) {
+      return left.favoredTeam !== null ? -1 : 1;
+    }
+
+    return left.gameIndex - right.gameIndex;
   });
+  $: counterIntuitiveCount = gameSummaries.filter((game) => game.counterIntuitive).length;
 </script>
 
 <div class="mb-6">
@@ -185,9 +183,10 @@
         <select
           id="generatedUserSelect"
           class="bg-zinc-700 border border-zinc-600 rounded px-3 py-2 text-zinc-200 w-full md:w-72"
-          bind:value={selectedUser}
+          bind:value={selectedUserValue}
+          on:change={() => selectedUser = selectedUserValue || null}
         >
-          <option value={null} disabled selected={!selectedUser}>Select a bracket...</option>
+          <option value="" disabled selected={!selectedUser}>Select a bracket...</option>
           {#each sortedEntries as entry}
             <option value={entry.entryId}>
               {getDisplayName(entry)}{entry.userId === currentUserId ? ' (You)' : ''}
@@ -218,7 +217,19 @@
     </div>
   {:else}
     <div class="bg-zinc-800/50 rounded-lg border border-zinc-700 p-4">
-      <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      <div class="mb-4 flex flex-wrap gap-2">
+        {#if counterIntuitiveCount > 0}
+          <span class="inline-flex items-center rounded-full bg-rose-900/30 px-3 py-1 text-xs font-medium text-rose-300">
+            {counterIntuitiveCount} current game{counterIntuitiveCount === 1 ? '' : 's'} help more if your pick loses
+          </span>
+        {:else}
+          <span class="inline-flex items-center rounded-full bg-zinc-700/70 px-3 py-1 text-xs font-medium text-zinc-300">
+            No current known games produce an against-your-bracket edge
+          </span>
+        {/if}
+      </div>
+
+      <div class="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
         {#each gameSummaries as game}
           <div class="bg-zinc-800 border border-zinc-700 rounded-lg overflow-hidden">
             <div class="bg-zinc-700 px-3 py-2 text-sm font-medium text-zinc-300 flex items-center justify-between gap-3">
@@ -226,9 +237,23 @@
               <span class="text-xs uppercase tracking-[0.18em] text-zinc-400">Game {game.gameIndex + 1}</span>
             </div>
 
-            <div class="p-3 space-y-3">
+            <div class="p-3 space-y-2.5">
+              <div class="flex flex-wrap gap-2">
+                {#if game.counterIntuitive && game.selectedPickName}
+                  <span
+                    class="inline-flex items-center rounded-full bg-rose-900/30 px-2 py-1 text-[11px] font-medium text-rose-300"
+                  >
+                    Against your bracket: {game.selectedPickName}
+                  </span>
+                {:else if !game.favoredTeam}
+                  <span class="inline-flex items-center rounded-full bg-zinc-700/60 px-2 py-1 text-[11px] font-medium text-zinc-300">
+                    No edge
+                  </span>
+                {/if}
+              </div>
+
               <div
-                class={`flex items-center justify-between gap-3 rounded-lg p-3 ${
+                class={`flex items-center gap-3 rounded-lg p-2.5 ${
                   game.favoredTeam === 'A'
                     ? 'bg-green-900/20 border border-green-900/70'
                     : 'bg-zinc-700/30 border border-zinc-700'
@@ -245,22 +270,17 @@
                   </div>
                   <div class="min-w-0">
                     <div class="text-zinc-100 font-medium truncate">{game.teamA.seed} {game.teamA.name}</div>
-                    {#if game.teamASummary}
-                      <div class="text-xs text-zinc-400">
-                        {game.teamASummary.label} in {game.teamASummary.count.toLocaleString()} scenarios ({game.teamASummary.pct.toFixed(2)}%)
-                      </div>
-                    {/if}
                   </div>
                 </div>
                 {#if game.teamASummary}
                   <div class={`text-sm font-semibold ${game.favoredTeam === 'A' ? 'text-green-400' : 'text-amber-400'}`}>
-                    {game.teamASummary.titleAlive ? `${game.teamASummary.pct.toFixed(2)}%` : `P${game.teamASummary.place}`}
+                    {formatBranchValue(game.teamASummary)}
                   </div>
                 {/if}
               </div>
 
               <div
-                class={`flex items-center justify-between gap-3 rounded-lg p-3 ${
+                class={`flex items-center gap-3 rounded-lg p-2.5 ${
                   game.favoredTeam === 'B'
                     ? 'bg-green-900/20 border border-green-900/70'
                     : 'bg-zinc-700/30 border border-zinc-700'
@@ -277,27 +297,12 @@
                   </div>
                   <div class="min-w-0">
                     <div class="text-zinc-100 font-medium truncate">{game.teamB.seed} {game.teamB.name}</div>
-                    {#if game.teamBSummary}
-                      <div class="text-xs text-zinc-400">
-                        {game.teamBSummary.label} in {game.teamBSummary.count.toLocaleString()} scenarios ({game.teamBSummary.pct.toFixed(2)}%)
-                      </div>
-                    {/if}
                   </div>
                 </div>
                 {#if game.teamBSummary}
                   <div class={`text-sm font-semibold ${game.favoredTeam === 'B' ? 'text-green-400' : 'text-amber-400'}`}>
-                    {game.teamBSummary.titleAlive ? `${game.teamBSummary.pct.toFixed(2)}%` : `P${game.teamBSummary.place}`}
+                    {formatBranchValue(game.teamBSummary)}
                   </div>
-                {/if}
-              </div>
-
-              <div class="rounded-lg bg-zinc-900/60 border border-zinc-700 px-3 py-2 text-sm text-zinc-300">
-                {#if game.favoredTeam === 'A'}
-                  <span class="text-amber-400 font-semibold">{game.recommendation}</span>
-                {:else if game.favoredTeam === 'B'}
-                  <span class="text-amber-400 font-semibold">{game.recommendation}</span>
-                {:else}
-                  <span class="text-zinc-400">{game.recommendation}</span>
                 {/if}
               </div>
             </div>

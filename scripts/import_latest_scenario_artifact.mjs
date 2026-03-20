@@ -1,7 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const siteRoot = process.cwd();
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const siteRoot = path.resolve(scriptDir, '..');
 const standaloneOutputDir = path.resolve(siteRoot, '..', 'bracket-scenarios', 'data', 'output');
 const targetDir = path.resolve(siteRoot, 'static', 'generated', 'scenarios');
 
@@ -55,6 +57,9 @@ function normalizeEntry(entry, baseEntry = null) {
     placeCounts: Array.isArray(entry?.placeCounts)
       ? entry.placeCounts.map((value) => Number(value))
       : [],
+    picks: Array.isArray(baseEntry?.picks)
+      ? baseEntry.picks.map((value) => value == null ? null : Number(value))
+      : undefined,
   };
 }
 
@@ -84,7 +89,21 @@ async function main() {
 
   const raw = await fs.readFile(latestExactJsonPath, 'utf8');
   const parsed = JSON.parse(raw);
-  const entries = (parsed.entries ?? []).map((entry) => normalizeEntry(entry));
+  let sourceEntryById = new Map();
+  if (typeof parsed.inputFile === 'string' && parsed.inputFile.length > 0) {
+    try {
+      const sourcePath = path.isAbsolute(parsed.inputFile)
+        ? parsed.inputFile
+        : path.resolve(standaloneOutputDir, '..', '..', parsed.inputFile);
+      const sourceRaw = await fs.readFile(sourcePath, 'utf8');
+      const sourceParsed = JSON.parse(sourceRaw);
+      sourceEntryById = new Map((sourceParsed.entries ?? []).map((entry) => [entry.entryId, entry]));
+    } catch {
+      sourceEntryById = new Map();
+    }
+  }
+
+  const entries = (parsed.entries ?? []).map((entry) => normalizeEntry(entry, sourceEntryById.get(entry.entryId) ?? null));
   const entryById = new Map(entries.map((entry) => [entry.entryId, entry]));
 
   const artifact = {
@@ -94,7 +113,7 @@ async function main() {
     totalScenarios: Number(parsed.totalScenarios),
     unresolvedGameCount: Number(parsed.unresolvedGameCount ?? 0),
     assumptionSummary: buildAssumptionSummary(parsed.assumptions),
-    reportUrl: '/generated/scenarios/current-report.html',
+    reportUrl: null,
     entries,
     previewGames: (parsed.previewGames ?? []).map((game) => {
       const teamA = normalizeTeam(game?.teamA);
@@ -115,21 +134,8 @@ async function main() {
   const targetJsonPath = path.join(targetDir, 'current.json');
   await fs.writeFile(targetJsonPath, `${JSON.stringify(artifact, null, 2)}\n`, 'utf8');
 
-  const reportPath = latestExactJsonPath.replace(/\.json$/i, '-report.html');
-  try {
-    await fs.copyFile(reportPath, path.join(targetDir, 'current-report.html'));
-  } catch {
-    artifact.reportUrl = null;
-    await fs.writeFile(targetJsonPath, `${JSON.stringify(artifact, null, 2)}\n`, 'utf8');
-  }
-
   console.log(`Imported latest exact scenario artifact: ${latestExactJsonPath}`);
   console.log(`Wrote site artifact: ${targetJsonPath}`);
-  if (artifact.reportUrl) {
-    console.log(`Copied report: ${path.join(targetDir, 'current-report.html')}`);
-  } else {
-    console.log('No matching report HTML found to copy.');
-  }
 }
 
 main().catch((error) => {
