@@ -257,6 +257,8 @@
                     on:error={handleImageError}
                   />
                 </div>
+
+                <h3 class="matchup-team-name">{gameData.awayTeam.name}</h3>
               </div>
 
               <div class="matchup-score-wrap">
@@ -286,6 +288,8 @@
                     on:error={handleImageError}
                   />
                 </div>
+
+                <h3 class="matchup-team-name">{gameData.homeTeam.name}</h3>
               </div>
 
               <div class="matchup-score-wrap">
@@ -557,8 +561,10 @@
   .matchup-side-main {
     min-width: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 0.7rem;
     padding-block: 0.3rem 0.5rem;
     z-index: 1;
   }
@@ -611,6 +617,21 @@
   .matchup-logo {
     position: relative;
     z-index: 1;
+  }
+
+  .matchup-team-name {
+    margin: 0;
+    max-width: 8.8rem;
+    color: var(--mm-text);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.05;
+    text-align: center;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-wrap: balance;
   }
 
   .pick-group-copy {
@@ -924,40 +945,101 @@
 
   @media (max-width: 767px) {
     .game-detail-shell {
-      padding: 0.75rem;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    .pick-share-panel-header {
+      flex-direction: row;
+      align-items: center;
     }
 
     .matchup-board {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem;
+      padding-top: 2.15rem;
     }
 
     .matchup-center {
-      order: 2;
+      display: none;
     }
 
-    .matchup-side.is-home .matchup-side-main,
-    .matchup-side.is-home .matchup-score-wrap,
-    .matchup-side.is-home .matchup-side-top {
-      justify-content: flex-start;
-      text-align: left;
+    .matchup-status-band {
+      top: 0.2rem;
     }
 
-    .matchup-side.is-home .matchup-side-main {
-      justify-content: center;
+    .matchup-side {
+      gap: 0.5rem;
+      padding: 0.68rem 0.62rem 0.62rem;
+      border-radius: 1.2rem;
+      background: rgba(255, 255, 255, 0.015);
+      box-shadow: none;
     }
 
-    .matchup-side.is-home::before {
-      inset: 0 auto 0 0;
+    .matchup-side::after {
+      display: none;
+    }
+
+    .matchup-side-main {
+      gap: 0.5rem;
+      padding-block: 0.1rem 0.2rem;
+    }
+
+    .matchup-logo-wrap {
+      width: 4.8rem;
+      border-radius: 0.95rem;
+      box-shadow: none;
+    }
+
+    .matchup-logo-wrap::before {
+      inset: 14%;
+      border-radius: 0.8rem;
+    }
+
+    .matchup-team-name {
+      max-width: 100%;
+      min-height: 1.95rem;
+      font-size: 0.9rem;
+      line-height: 1.05;
+    }
+
+    .matchup-score-wrap {
+      gap: 0.45rem;
+      padding-top: 0.42rem;
+    }
+
+    .matchup-score-label {
+      font-size: 0.64rem;
+      letter-spacing: 0.14em;
+    }
+
+    .matchup-score {
+      font-size: clamp(1.9rem, 8vw, 2.35rem);
     }
 
     .pick-share-legend {
-      flex-direction: column;
-      align-items: flex-start;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.7rem;
+    }
+
+    .pick-share-item {
+      flex: 1 1 0;
+      min-width: 0;
     }
 
     .pick-share-item.is-home {
       margin-left: 0;
-      justify-content: flex-start;
+      justify-content: flex-end;
+    }
+
+    .pick-share-name {
+      min-width: 0;
     }
 
     .matchup-center::before,
@@ -970,10 +1052,6 @@
     .game-matchup-panel,
     .game-picks-panel {
       border-radius: 1.35rem;
-    }
-
-    .game-matchup-panel,
-    .game-picks-panel {
       padding: 0.9rem;
     }
 
@@ -982,7 +1060,7 @@
     }
 
     .matchup-logo-wrap {
-      width: 6rem;
+      width: 4.55rem;
       border-radius: 1rem;
     }
 
