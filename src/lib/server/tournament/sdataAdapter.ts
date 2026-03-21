@@ -60,6 +60,8 @@ function sdataContestToCasablancaGame(contest: any): { game: any } | null {
 
   return {
     game: {
+      contestId: contest.contestId != null ? String(contest.contestId) : null,
+      url: contest.url || '',
       bracketId: String(contest.bracketId),
       bracketRound: contest.roundDescription || '',
       bracketRegion: contest.bracketRegion || null,

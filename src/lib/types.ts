@@ -67,6 +67,8 @@ export interface ScoreboardTeam {
 
 export interface ScoreboardGame {
 	gameId: string;
+	contestId: string | null;
+	ncaaUrl: string | null;
 	bracketId: string | null;
 	bracketIndex: number | null;
 	roundNumber: number | null;
@@ -259,6 +261,71 @@ export interface GameScenarioStakes {
 	home: GameScenarioStakeBranch;
 }
 
+export interface NcaaBasketballTeamStats {
+	fieldGoalsMade: string;
+	fieldGoalsAttempted: string;
+	freeThrowsMade: string;
+	freeThrowsAttempted: string;
+	threePointsMade: string;
+	threePointsAttempted: string;
+	offensiveRebounds: string;
+	totalRebounds: string;
+	assists: string;
+	turnovers: string;
+	personalFouls: string;
+	steals: string;
+	blockedShots: string;
+	points: string;
+	fieldGoalPercentage: string;
+	threePointPercentage: string;
+	freeThrowPercentage: string;
+}
+
+export interface NcaaBasketballPlayerStats {
+	id: string;
+	number: string;
+	firstName: string;
+	lastName: string;
+	position: string;
+	minutesPlayed: string;
+	starter: boolean;
+	fieldGoalsMade: string;
+	fieldGoalsAttempted: string;
+	freeThrowsMade: string;
+	freeThrowsAttempted: string;
+	threePointsMade: string;
+	threePointsAttempted: string;
+	offensiveRebounds: string;
+	totalRebounds: string;
+	assists: string;
+	turnovers: string;
+	personalFouls: string;
+	steals: string;
+	blockedShots: string;
+	points: string;
+}
+
+export interface NcaaBasketballBoxscoreTeam {
+	teamId: string;
+	isHome: boolean;
+	seoname: string;
+	name6Char: string;
+	nameFull: string;
+	nameShort: string;
+	teamName: string;
+	color: string | null;
+	playerStats: NcaaBasketballPlayerStats[];
+	teamStats: NcaaBasketballTeamStats | null;
+}
+
+export interface NcaaBasketballBoxscore {
+	contestId: string;
+	description: string;
+	status: string;
+	period: string;
+	teams: NcaaBasketballBoxscoreTeam[];
+}
+
 export interface SimulationConfig {
 	masterBracket: string[];
 	entries: Entry[];
@@ -356,6 +423,8 @@ export interface NcaaTeamData {
 }
 
 export interface NcaaGame {
+	contestId?: string | number;
+	url?: string;
 	bracketId: string;
 	bracketRound?: string;
 	bracketRegion?: string;

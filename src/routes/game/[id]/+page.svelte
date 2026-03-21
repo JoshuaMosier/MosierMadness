@@ -1,5 +1,10 @@
 <script lang="ts">
-  import type { GameScenarioStakeBranch } from '$lib/types';
+  import type {
+    GameScenarioStakeBranch,
+    NcaaBasketballBoxscore,
+    NcaaBasketballBoxscoreTeam,
+    NcaaBasketballTeamStats,
+  } from '$lib/types';
   import { supabase } from '$lib/supabase';
   import { onMount } from 'svelte';
   import { handleImageError } from '$lib/utils/imageUtils';
@@ -57,6 +62,49 @@
     branch: GameScenarioStakeBranch;
   };
 
+  type ContextCard = {
+    key: string;
+    label: string;
+    value: string;
+    detail: string;
+    team: TeamSurface | null;
+    tone?: 'winner' | 'loss' | 'neutral';
+  };
+
+  type PostgameStatRow = {
+    key: string;
+    label: string;
+    awayValue: string;
+    homeValue: string;
+    awayMetric: number | null;
+    homeMetric: number | null;
+    lowerIsBetter?: boolean;
+  };
+
+  type PostgameStatSection = {
+    key: string;
+    label: string;
+    rows: PostgameStatRow[];
+  };
+
+  const POSTGAME_STAT_SECTION_TEMPLATES: Array<{ key: string; label: string; rowKeys: string[] }> = [
+    {
+      key: 'shooting',
+      label: 'Shooting',
+      rowKeys: ['fg', '3pt', 'ft']
+    },
+    {
+      key: 'control',
+      label: 'Control',
+      rowKeys: ['reb', 'oreb', 'ast', 'to']
+    },
+    {
+      key: 'pressure',
+      label: 'Pressure',
+      rowKeys: ['stl', 'blk', 'pf']
+    }
+  ];
+
   let gameData: any = null;
   let pageError: string | null = null;
   let teamSelections: TeamSelectionState = { home: [], away: [], other: [] };
@@ -70,6 +118,20 @@
   let awayPickPercent = 50;
   let homePickPercent = 50;
   let stakeCards: StakeCard[] = [];
+  let isFinalResult = false;
+  let hasResolvedResult = false;
+  let winnerGroup: PickGroup | null = null;
+  let loserGroup: PickGroup | null = null;
+  let otherPickTotal = 0;
+  let fallbackPanelTitle = 'Pick Breakdown';
+  let fallbackPanelCopy = '';
+  let fallbackCards: ContextCard[] = [];
+  let postgameStats: NcaaBasketballBoxscore | null = null;
+  let postgameHomeTeam: NcaaBasketballBoxscoreTeam | null = null;
+  let postgameAwayTeam: NcaaBasketballBoxscoreTeam | null = null;
+  let postgameTeams: NcaaBasketballBoxscoreTeam[] = [];
+  let postgameStatRows: PostgameStatRow[] = [];
+  let postgameStatSections: PostgameStatSection[] = [];
   let svgFilter = `
   <svg width="0" height="0" style="position: absolute;">
     <defs>
@@ -91,6 +153,7 @@
   $: pageError = gameData ? null : 'No games available at this time';
   $: teamSelections = data.gameDetail?.teamSelections || { home: [], away: [], other: [] };
   $: scenarioStakes = data.gameDetail?.scenarioStakes || null;
+  $: postgameStats = data.postgameStats || null;
   $: tournamentStage = data.tournamentSettings?.stage || 'archive';
   $: primaryGroups = gameData
     ? [
@@ -139,6 +202,77 @@
         { key: 'home', team: gameData.homeTeam, branch: scenarioStakes.home }
       ]
     : [];
+  $: isFinalResult = Boolean(gameData && String(gameData.statusLabel || '').toUpperCase() === 'FINAL');
+  $: winnerGroup = primaryGroups.find((group) => isWinner(group.team)) ?? null;
+  $: loserGroup = isFinalResult && winnerGroup
+    ? primaryGroups.find((group) => group.key !== winnerGroup?.key) ?? null
+    : null;
+  $: hasResolvedResult = Boolean(isFinalResult && winnerGroup && loserGroup);
+  $: otherPickTotal = otherGroups.reduce((total, group) => total + group.count, 0);
+  $: fallbackPanelTitle = hasResolvedResult ? 'Pick Outcome' : 'Pick Breakdown';
+  $: fallbackPanelCopy = hasResolvedResult
+    ? 'Scenario previews move on once a result is locked in. This page now mainly shows who had the winner, who had the loser, and who was already on another team.'
+    : 'This matchup is outside the current generated scenario snapshot, but the pick groups below still show who backed each side and who chose another team from this path.';
+  $: fallbackCards = gameData
+    ? hasResolvedResult
+      ? [
+          {
+            key: 'winner',
+            label: 'Picked Winner',
+            value: getPickCountLabel(winnerGroup?.count ?? 0),
+            detail: winnerGroup?.team.name || 'Winning team',
+            team: winnerGroup?.team ?? null,
+            tone: 'winner'
+          },
+          {
+            key: 'loser',
+            label: 'Picked Loser',
+            value: getPickCountLabel(loserGroup?.count ?? 0),
+            detail: loserGroup?.team.name || 'Losing team',
+            team: loserGroup?.team ?? null,
+            tone: 'loss'
+          },
+          {
+            key: 'other',
+            label: 'Other Teams',
+            value: getPickCountLabel(otherPickTotal),
+            detail: otherPickTotal > 0 ? 'Picked teams that did not reach this game' : 'No alternate-team picks',
+            team: null,
+            tone: 'neutral'
+          }
+        ]
+      : [
+          {
+            key: 'away',
+            label: 'Picked Away',
+            value: getPickCountLabel(primaryGroups[0]?.count || 0),
+            detail: gameData.awayTeam.name,
+            team: gameData.awayTeam
+          },
+          {
+            key: 'home',
+            label: 'Picked Home',
+            value: getPickCountLabel(primaryGroups[1]?.count || 0),
+            detail: gameData.homeTeam.name,
+            team: gameData.homeTeam
+          },
+          {
+            key: 'other',
+            label: 'Other Teams',
+            value: getPickCountLabel(otherPickTotal),
+            detail: otherPickTotal > 0 ? 'Picked teams that did not reach this game' : 'No alternate-team picks',
+            team: null,
+            tone: 'neutral'
+          }
+        ]
+    : [];
+  $: postgameHomeTeam = postgameStats?.teams.find((team) => team.isHome) ?? null;
+  $: postgameAwayTeam = postgameStats?.teams.find((team) => !team.isHome) ?? null;
+  $: postgameTeams = postgameAwayTeam && postgameHomeTeam ? [postgameAwayTeam, postgameHomeTeam] : [];
+  $: postgameStatRows = postgameAwayTeam?.teamStats && postgameHomeTeam?.teamStats
+    ? buildPostgameStatRows(postgameAwayTeam.teamStats, postgameHomeTeam.teamStats)
+    : [];
+  $: postgameStatSections = buildPostgameStatSections(postgameStatRows);
 
   onMount(async () => {
     const {
@@ -197,20 +331,62 @@
     return '';
   }
 
-  function getPickGroupStateClass(group: PickGroup): string {
+  function getPickGroupOpponent(group: PickGroup): TeamSurface | any {
     if (group.side === 'away') {
-      return getTeamStateClass(group.team, gameData?.homeTeam);
+      return gameData?.homeTeam ?? null;
     }
 
     if (group.side === 'home') {
-      return getTeamStateClass(group.team, gameData?.awayTeam);
+      return gameData?.awayTeam ?? null;
     }
 
-    return group.team.eliminated ? 'is-eliminated' : '';
+    return null;
   }
 
-  function isPickGroupEliminated(group: PickGroup): boolean {
-    return getPickGroupStateClass(group) === 'is-eliminated';
+  function getPickGroupStateClass(group: PickGroup): string {
+    if (group.side === 'other') {
+      return group.team.eliminated ? 'is-eliminated' : '';
+    }
+
+    if (isWinner(group.team)) {
+      return 'is-winner';
+    }
+
+    const opponent = getPickGroupOpponent(group);
+    if (hasResolvedResult && isWinner(opponent)) {
+      return 'is-result-loss';
+    }
+
+    return '';
+  }
+
+  function getPickGroupStatusLabel(group: PickGroup): string | null {
+    if (group.side === 'other') {
+      return group.team.eliminated ? "Didn't Reach This Game" : 'Different Path';
+    }
+
+    if (!hasResolvedResult) {
+      return null;
+    }
+
+    if (isWinner(group.team)) {
+      return 'Winner';
+    }
+
+    const opponent = getPickGroupOpponent(group);
+    return isWinner(opponent) ? 'Loser' : null;
+  }
+
+  function getPickGroupStatusClass(group: PickGroup): string {
+    if (group.side === 'other') {
+      return 'is-neutral';
+    }
+
+    if (!hasResolvedResult) {
+      return '';
+    }
+
+    return isWinner(group.team) ? 'is-winner' : 'is-loss';
   }
 
   function getTeamColorVars(team: TeamSurface | any): string {
@@ -226,6 +402,10 @@
   }
 
   function getTeamLogoFilter(stateClass: string): string {
+    if (stateClass === 'is-result-loss') {
+      return 'filter: url(#teamLogoOutline) grayscale(0.14) saturate(0.55) brightness(0.96);';
+    }
+
     if (stateClass === 'is-eliminated') {
       return 'filter: url(#teamLogoOutline) grayscale(0.28) saturate(0.15) brightness(0.92);';
     }
@@ -239,6 +419,153 @@
 
   function getTeamAccentStyle(team: TeamSurface | any): string {
     return getTeamColorVars(team);
+  }
+
+  function getContextCardStyle(card: ContextCard): string {
+    return card.team
+      ? getTeamAccentStyle(card.team)
+      : '--team-rgb: 161, 161, 170; --team-secondary-rgb: 161, 161, 170;';
+  }
+
+  function formatTeamStatLine(made: string, attempted: string, percentage: string): string {
+    return `${made}-${attempted} (${percentage || '--'})`;
+  }
+
+  function toPostgameMetric(value: string | number | null | undefined): number | null {
+    const parsedValue = Number.parseFloat(String(value ?? '').replace(/[^\d.-]/g, ''));
+    return Number.isFinite(parsedValue) ? parsedValue : null;
+  }
+
+  function buildPostgameStatRows(
+    awayStats: NcaaBasketballTeamStats,
+    homeStats: NcaaBasketballTeamStats,
+  ): PostgameStatRow[] {
+    return [
+      {
+        key: 'fg',
+        label: 'FG',
+        awayValue: formatTeamStatLine(awayStats.fieldGoalsMade, awayStats.fieldGoalsAttempted, awayStats.fieldGoalPercentage),
+        homeValue: formatTeamStatLine(homeStats.fieldGoalsMade, homeStats.fieldGoalsAttempted, homeStats.fieldGoalPercentage),
+        awayMetric: toPostgameMetric(awayStats.fieldGoalPercentage),
+        homeMetric: toPostgameMetric(homeStats.fieldGoalPercentage),
+      },
+      {
+        key: '3pt',
+        label: '3PT',
+        awayValue: formatTeamStatLine(awayStats.threePointsMade, awayStats.threePointsAttempted, awayStats.threePointPercentage),
+        homeValue: formatTeamStatLine(homeStats.threePointsMade, homeStats.threePointsAttempted, homeStats.threePointPercentage),
+        awayMetric: toPostgameMetric(awayStats.threePointPercentage),
+        homeMetric: toPostgameMetric(homeStats.threePointPercentage),
+      },
+      {
+        key: 'ft',
+        label: 'FT',
+        awayValue: formatTeamStatLine(awayStats.freeThrowsMade, awayStats.freeThrowsAttempted, awayStats.freeThrowPercentage),
+        homeValue: formatTeamStatLine(homeStats.freeThrowsMade, homeStats.freeThrowsAttempted, homeStats.freeThrowPercentage),
+        awayMetric: toPostgameMetric(awayStats.freeThrowPercentage),
+        homeMetric: toPostgameMetric(homeStats.freeThrowPercentage),
+      },
+      {
+        key: 'reb',
+        label: 'Rebounds',
+        awayValue: awayStats.totalRebounds,
+        homeValue: homeStats.totalRebounds,
+        awayMetric: toPostgameMetric(awayStats.totalRebounds),
+        homeMetric: toPostgameMetric(homeStats.totalRebounds),
+      },
+      {
+        key: 'oreb',
+        label: 'Off Reb',
+        awayValue: awayStats.offensiveRebounds,
+        homeValue: homeStats.offensiveRebounds,
+        awayMetric: toPostgameMetric(awayStats.offensiveRebounds),
+        homeMetric: toPostgameMetric(homeStats.offensiveRebounds),
+      },
+      {
+        key: 'ast',
+        label: 'Assists',
+        awayValue: awayStats.assists,
+        homeValue: homeStats.assists,
+        awayMetric: toPostgameMetric(awayStats.assists),
+        homeMetric: toPostgameMetric(homeStats.assists),
+      },
+      {
+        key: 'to',
+        label: 'Turnovers',
+        awayValue: awayStats.turnovers,
+        homeValue: homeStats.turnovers,
+        awayMetric: toPostgameMetric(awayStats.turnovers),
+        homeMetric: toPostgameMetric(homeStats.turnovers),
+        lowerIsBetter: true,
+      },
+      {
+        key: 'stl',
+        label: 'Steals',
+        awayValue: awayStats.steals,
+        homeValue: homeStats.steals,
+        awayMetric: toPostgameMetric(awayStats.steals),
+        homeMetric: toPostgameMetric(homeStats.steals),
+      },
+      {
+        key: 'blk',
+        label: 'Blocks',
+        awayValue: awayStats.blockedShots,
+        homeValue: homeStats.blockedShots,
+        awayMetric: toPostgameMetric(awayStats.blockedShots),
+        homeMetric: toPostgameMetric(homeStats.blockedShots),
+      },
+      {
+        key: 'pf',
+        label: 'Fouls',
+        awayValue: awayStats.personalFouls,
+        homeValue: homeStats.personalFouls,
+        awayMetric: toPostgameMetric(awayStats.personalFouls),
+        homeMetric: toPostgameMetric(homeStats.personalFouls),
+        lowerIsBetter: true,
+      },
+    ];
+  }
+
+  function buildPostgameStatSections(rows: PostgameStatRow[]): PostgameStatSection[] {
+    return POSTGAME_STAT_SECTION_TEMPLATES.map((section) => ({
+      key: section.key,
+      label: section.label,
+      rows: section.rowKeys
+        .map((rowKey) => rows.find((row) => row.key === rowKey) ?? null)
+        .filter((row): row is PostgameStatRow => Boolean(row))
+    })).filter((section) => section.rows.length > 0);
+  }
+
+  function getPostgameFallbackTeam(team: NcaaBasketballBoxscoreTeam): TeamSurface | any {
+    return team.isHome ? gameData?.homeTeam ?? null : gameData?.awayTeam ?? null;
+  }
+
+  function getPostgameTeamName(team: NcaaBasketballBoxscoreTeam): string {
+    return team.nameShort || team.nameFull || team.teamName || getPostgameFallbackTeam(team)?.name || 'Team';
+  }
+
+  function isPostgameWinner(team: NcaaBasketballBoxscoreTeam): boolean {
+    return isWinner(getPostgameFallbackTeam(team));
+  }
+
+  function getPostgameStatTone(row: PostgameStatRow, team: NcaaBasketballBoxscoreTeam): string {
+    const currentMetric = team.isHome ? row.homeMetric : row.awayMetric;
+    const opposingMetric = team.isHome ? row.awayMetric : row.homeMetric;
+
+    if (currentMetric === null || opposingMetric === null || currentMetric === opposingMetric) {
+      return 'is-even';
+    }
+
+    const isLeading = row.lowerIsBetter ? currentMetric < opposingMetric : currentMetric > opposingMetric;
+    return isLeading ? 'is-leading' : 'is-trailing';
+  }
+
+  function getPostgameTeamStyle(team: NcaaBasketballBoxscoreTeam): string {
+    const fallbackTeam = team.isHome ? gameData?.homeTeam : gameData?.awayTeam;
+    return getTeamColorVars({
+      color: team.color || fallbackTeam?.color || '',
+      secondaryColor: fallbackTeam?.secondaryColor || team.color || fallbackTeam?.color || '',
+    });
   }
 
   function formatStakePercent(value: number): string {
@@ -448,6 +775,56 @@
                 {/each}
               </div>
             </div>
+          {:else if postgameStatRows.length > 0 && postgameTeams.length === 2}
+            <div class="stakes-panel">
+              <div class="stakes-panel-header">
+                <p class="stakes-panel-title">Postgame Stats</p>
+              </div>
+
+              <div class="stakes-grid postgame-team-grid">
+                {#each postgameTeams as team (team.teamId)}
+                  <article class={`stakes-card postgame-team-card ${isPostgameWinner(team) ? 'is-winner' : ''}`} style={getPostgameTeamStyle(team)}>
+                    <div class="postgame-team-card-header">
+                      <h3 class="postgame-team-card-title">{getPostgameTeamName(team)}</h3>
+                    </div>
+
+                    <div class="postgame-section-stack">
+                      {#each postgameStatSections as section (section.key)}
+                        <section class="postgame-section">
+                          <div class="postgame-section-heading">{section.label}</div>
+
+                          <div class="postgame-stat-list">
+                            {#each section.rows as row (row.key)}
+                              <div class={`postgame-stat-item ${getPostgameStatTone(row, team)}`}>
+                                <span class="postgame-stat-item-label">{row.label}</span>
+                                <strong class="postgame-stat-item-value">{team.isHome ? row.homeValue : row.awayValue}</strong>
+                              </div>
+                            {/each}
+                          </div>
+                        </section>
+                      {/each}
+                    </div>
+                  </article>
+                {/each}
+              </div>
+            </div>
+          {:else}
+            <div class="context-panel">
+              <div class="context-panel-header">
+                <p class="context-panel-title">{fallbackPanelTitle}</p>
+                <p class="context-panel-copy">{fallbackPanelCopy}</p>
+              </div>
+
+              <div class="context-grid">
+                {#each fallbackCards as card}
+                  <article class={`context-card ${card.tone ? `is-${card.tone}` : ''}`} style={getContextCardStyle(card)}>
+                    <div class="context-card-label">{card.label}</div>
+                    <div class="context-card-value">{card.value}</div>
+                    <div class="context-card-detail">{card.detail}</div>
+                  </article>
+                {/each}
+              </div>
+            </div>
           {/if}
         </section>
 
@@ -471,8 +848,8 @@
                     </div>
 
                     <div class="pick-group-copy">
-                      {#if isPickGroupEliminated(group)}
-                        <span class="pick-group-status">Already Eliminated</span>
+                      {#if getPickGroupStatusLabel(group)}
+                        <span class={`pick-group-status ${getPickGroupStatusClass(group)}`}>{getPickGroupStatusLabel(group)}</span>
                       {/if}
                       <h3 class="pick-group-name">{group.team.name}</h3>
                     </div>
@@ -501,6 +878,7 @@
           </div>
         </section>
       </div>
+
     </div>
   {/if}
 </div>
@@ -511,6 +889,8 @@
   }
 
   .game-detail-shell {
+    display: grid;
+    gap: 0.9rem;
     overflow: hidden;
     padding: 0.9rem;
     background: rgba(10, 10, 11, 0.96);
@@ -1049,6 +1429,205 @@
     line-height: 1.35;
   }
 
+  .context-panel {
+    display: grid;
+    gap: 0.85rem;
+    padding-top: 0.2rem;
+  }
+
+  .context-panel-header {
+    display: grid;
+    gap: 0.32rem;
+  }
+
+  .context-panel-title {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .context-panel-copy {
+    margin: 0;
+    max-width: 44rem;
+    color: var(--mm-muted);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .context-card {
+    position: relative;
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.82rem;
+    border: 1px solid rgba(var(--team-rgb), 0.22);
+    border-radius: 1.05rem;
+    background:
+      linear-gradient(180deg, rgba(var(--team-rgb), 0.12), rgba(11, 11, 12, 0.96) 44%),
+      rgba(11, 11, 12, 0.94);
+    overflow: hidden;
+  }
+
+  .context-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: rgb(var(--team-rgb));
+    opacity: 0.86;
+  }
+
+  .context-card.is-loss {
+    box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.08);
+  }
+
+  .context-card.is-neutral {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .context-card.is-neutral::before {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .context-card-label {
+    color: var(--mm-subtle);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .context-card-value {
+    color: var(--mm-text);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.08;
+  }
+
+  .context-card-detail {
+    color: var(--mm-muted);
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
+  .postgame-team-grid {
+    align-items: start;
+  }
+
+  .postgame-team-card {
+    min-width: 0;
+  }
+
+  .postgame-team-card.is-winner {
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.14);
+  }
+
+  .postgame-team-card-header {
+    display: flex;
+    align-items: center;
+    min-height: 1.6rem;
+  }
+
+  .postgame-team-card-title {
+    margin: 0;
+    color: var(--mm-text);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.05;
+  }
+
+  .postgame-team-card.is-winner .postgame-team-card-title {
+    color: #fde68a;
+  }
+
+  .postgame-section-stack {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .postgame-section {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .postgame-section + .postgame-section {
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .postgame-section-heading {
+    color: var(--mm-subtle);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .postgame-stat-list {
+    display: grid;
+    gap: 0.38rem;
+  }
+
+  .postgame-stat-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.08rem 0;
+  }
+
+  .postgame-stat-item + .postgame-stat-item {
+    padding-top: 0.42rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .postgame-stat-item-label {
+    color: var(--mm-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .postgame-stat-item-value {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.6rem;
+    padding: 0.14rem 0.52rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--mm-text);
+    font-size: 0.81rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .postgame-stat-item.is-leading .postgame-stat-item-value {
+    border-color: rgba(var(--team-rgb), 0.3);
+    background: rgba(var(--team-rgb), 0.16);
+  }
+
+  .postgame-stat-item.is-trailing .postgame-stat-item-value {
+    color: var(--mm-muted);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .postgame-stat-item.is-even .postgame-stat-item-value {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
   .pick-share-track {
     display: flex;
     width: 100%;
@@ -1128,6 +1707,12 @@
     box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.12);
   }
 
+  .pick-group.is-result-loss {
+    border-color: rgba(248, 113, 113, 0.2);
+    background: linear-gradient(180deg, rgba(42, 16, 16, 0.24) 0%, rgba(12, 12, 13, 0.94) 58%);
+    box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.05);
+  }
+
   .pick-group.is-eliminated {
     border-color: rgba(248, 113, 113, 0.26);
     background: linear-gradient(180deg, rgba(42, 16, 16, 0.44) 0%, rgba(12, 12, 13, 0.94) 58%);
@@ -1162,11 +1747,23 @@
   .pick-group-status {
     display: block;
     margin-bottom: 0.22rem;
-    color: #fca5a5;
+    color: var(--mm-subtle);
     font-size: 0.67rem;
     font-weight: 800;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+  }
+
+  .pick-group-status.is-winner {
+    color: #fde68a;
+  }
+
+  .pick-group-status.is-loss {
+    color: #fca5a5;
+  }
+
+  .pick-group-status.is-neutral {
+    color: var(--mm-subtle);
   }
 
   .pick-group-count {
@@ -1320,6 +1917,32 @@
 
     .stakes-grid {
       grid-template-columns: 1fr;
+    }
+
+    .context-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .postgame-team-card-title {
+      font-size: 0.94rem;
+    }
+
+    .postgame-stat-item {
+      gap: 0.65rem;
+    }
+
+    .postgame-section + .postgame-section {
+      padding-top: 0.72rem;
+    }
+
+    .postgame-stat-item-value {
+      min-height: 1.5rem;
+      padding-inline: 0.48rem;
+    }
+
+    .postgame-stat-item-label,
+    .postgame-stat-item-value {
+      font-size: 0.78rem;
     }
 
     .stakes-card {

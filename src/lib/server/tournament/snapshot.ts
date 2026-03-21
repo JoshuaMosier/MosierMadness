@@ -225,6 +225,8 @@ function normalizeScoreboardGame(wrapper: any, canonicalByNcaaName: Map<string, 
 
   return {
     gameId: parsed?.bracketId || fallbackId,
+    contestId: game.contestId != null ? String(game.contestId) : null,
+    ncaaUrl: typeof game.url === 'string' && game.url ? `https://www.ncaa.com${game.url}` : null,
     bracketId: parsed?.bracketId || null,
     bracketIndex: parsed?.bracketIndex || null,
     roundNumber: parsed?.roundNumber || null,

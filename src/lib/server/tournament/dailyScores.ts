@@ -78,6 +78,8 @@ function normalizeContest(contest: any): ScoreboardGame | null {
 
   return {
     gameId: `daily-${contest.contestId}`,
+    contestId: contest.contestId != null ? String(contest.contestId) : null,
+    ncaaUrl: typeof contest.url === 'string' && contest.url ? `https://www.ncaa.com${contest.url}` : null,
     bracketId: null,
     bracketIndex: null,
     roundNumber: null,

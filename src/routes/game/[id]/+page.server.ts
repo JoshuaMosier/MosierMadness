@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 import { getGeneratedScenarioArtifact } from '$lib/server/scenarios/generated';
 import { getSubmittedEntries } from '$lib/server/tournament/entries';
+import { getNcaaBasketballBoxscore } from '$lib/server/tournament/gameStats';
 import { getGameDetailProjection, resolveGame } from '$lib/server/tournament/projections';
 import { getTournamentSnapshot } from '$lib/server/tournament/snapshot';
 import { getTournamentSettings } from '$lib/server/tournament/settings';
@@ -25,8 +26,13 @@ export const load: PageServerLoad = async ({ params, depends, fetch }) => {
     throw error(404, 'Game not found');
   }
 
+  const postgameStats = String(game.statusLabel || game.status || '').toUpperCase() === 'FINAL'
+    ? await getNcaaBasketballBoxscore(game.contestId)
+    : null;
+
   return {
     gameDetail: getGameDetailProjection(game, entries, snapshot, generatedScenarioArtifact),
+    postgameStats,
     tournamentSettings: settings,
   };
 };
