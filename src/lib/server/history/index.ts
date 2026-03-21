@@ -634,11 +634,10 @@ export async function getPastWinnersPageData(): Promise<any> {
       continue;
     }
 
-    seasonStandings[season.year] = [...yearResults]
-      .sort((a, b) => a.finalRank - b.finalRank)
-      .map(result => {
+    const rows = [...yearResults].map(result => {
         const person = data.peopleById.get(result.personId);
         return {
+          personId: result.personId,
           rank: result.finalRank,
           name: person?.displayName || result.sourceDisplayName || 'Unknown',
           slug: person?.slug || null,
@@ -646,6 +645,29 @@ export async function getPastWinnersPageData(): Promise<any> {
           correctGames: result.correctGames,
         };
       });
+
+    if (season.status === 'completed' && season.winnerPersonId) {
+      const winner = data.peopleById.get(season.winnerPersonId);
+      const existingWinnerRow = rows.find(row => row.personId === season.winnerPersonId || row.rank === 1);
+
+      if (existingWinnerRow) {
+        existingWinnerRow.rank = 1;
+        existingWinnerRow.totalPoints ??= season.winningScore;
+      } else if (winner) {
+        rows.push({
+          personId: season.winnerPersonId,
+          rank: 1,
+          name: winner.displayName,
+          slug: winner.slug,
+          totalPoints: season.winningScore,
+          correctGames: null,
+        });
+      }
+    }
+
+    seasonStandings[season.year] = rows
+      .sort((a, b) => a.rank - b.rank)
+      .map(({ personId, ...row }) => row);
   }
 
   // Build player directory with aggregates
@@ -672,6 +694,8 @@ export async function getPastWinnersPageData(): Promise<any> {
         name: agg.person.displayName,
         slug: agg.person.slug,
         appearances: agg.appearances,
+        firstYear: agg.results[0]?.year ?? null,
+        mostRecentYear: agg.results[agg.results.length - 1]?.year ?? null,
         titles: agg.titles,
         averagePercentile,
         bestFinish: agg.bestFinish,
