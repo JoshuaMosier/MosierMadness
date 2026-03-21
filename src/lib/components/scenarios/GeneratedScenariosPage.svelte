@@ -104,129 +104,100 @@
   });
 </script>
 
-<div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-  <div class="border-b border-zinc-800 bg-zinc-900/50">
-    <div class="p-6">
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <div class="inline-flex items-center gap-2 rounded-full border border-amber-700/50 bg-amber-900/20 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-amber-400">
-            Generated Snapshot
-          </div>
-          <h2 class="mt-3 text-2xl font-semibold text-zinc-100">Tournament Outcome Probabilities</h2>
-          <p class="mt-2 max-w-3xl text-sm text-zinc-400">
-            This mode uses an offline-generated exact scenario snapshot. It keeps the standings and title odds on the site without trying to run a large exact tree in the browser.
-          </p>
-        </div>
+<div class="generated-scenarios mm-shell">
+  <div class="generated-scenarios-header">
+    <div class="generated-scenarios-header-row">
+      <div class="generated-scenarios-copy">
+        <div class="generated-scenarios-badge">Generated Snapshot</div>
+        <h2 class="generated-scenarios-title">Tournament Outcome Probabilities</h2>
+        <p class="generated-scenarios-subtitle">
+          Use Win Chances for title odds, Full Standings for every finishing position, and Rooting Guide to see which currently known outcomes help a bracket most.
+        </p>
+      </div>
 
-        <div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 lg:min-w-[260px]">
-          <div class="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-            {activeSnapshotLabel ? 'Conditional Scenarios' : 'Exact Scenarios'}
-          </div>
-          <div class="mt-2 text-2xl font-semibold text-zinc-100">{totalScenarios.toLocaleString()}</div>
-          <div class="mt-1 text-xs text-zinc-500">
-            {#if activeSnapshotLabel}
-              Showing only outcomes where {activeSnapshotLabel}.
-            {:else}
-              Exact standings and title odds from the imported snapshot.
-            {/if}
-          </div>
+      <div class="generated-scenarios-summary">
+        <div class="generated-scenarios-summary-label">
+          {activeSnapshotLabel ? 'Conditional Scenarios' : 'Exact Scenarios'}
         </div>
+        <div class="generated-scenarios-summary-value">{totalScenarios.toLocaleString()}</div>
       </div>
     </div>
   </div>
 
-  <div class="p-6">
+  <div class="generated-scenarios-body">
+    <div class="generated-scenarios-tabs">
+      <button
+        class={`generated-scenarios-tab ${selectedTab === 'win' ? 'is-active' : ''}`}
+        on:click={() => selectedTab = 'win'}
+      >
+        Win Chances
+      </button>
+      <button
+        class={`generated-scenarios-tab ${selectedTab === 'full' ? 'is-active' : ''}`}
+        on:click={() => selectedTab = 'full'}
+      >
+        Full Standings
+      </button>
+      {#if previewGames.length > 0}
+        <button
+          class={`generated-scenarios-tab ${selectedTab === 'root' ? 'is-active' : ''}`}
+          on:click={() => selectedTab = 'root'}
+        >
+          Rooting Guide
+        </button>
+      {/if}
+    </div>
+
     {#if previewGames.length > 0 && selectedTab !== 'root'}
-      <div class="mb-6 rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div class="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Single-Game Preview</div>
-            <div class="mt-2 text-sm text-zinc-300">
-              Pick one currently known matchup to see how the heatmap and win chances move if that team advances.
-            </div>
-          </div>
+      <div class="generated-scenarios-preview">
+        <div class="generated-scenarios-preview-row">
+          <div class="generated-scenarios-preview-kicker">Single-Game Preview</div>
 
-          <div class="flex flex-col gap-3 lg:items-end">
-            <select
-              class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-zinc-200 min-w-[280px]"
-              bind:value={selectedPreviewGameValue}
-              on:change={() => selectedPreviewWinner = null}
-            >
-              <option value="">Choose a game to preview...</option>
-              {#each previewGames as game}
-                <option value={String(game.gameIndex)}>
-                  {game.roundLabel}: {game.teamA.seed} {game.teamA.name} vs {game.teamB.seed} {game.teamB.name}
-                </option>
-              {/each}
-            </select>
+          <select
+            class="generated-scenarios-select"
+            bind:value={selectedPreviewGameValue}
+            on:change={() => selectedPreviewWinner = null}
+          >
+            <option value="">Choose a game to preview...</option>
+            {#each previewGames as game}
+              <option value={String(game.gameIndex)}>
+                {game.roundLabel}: {game.teamA.seed} {game.teamA.name} vs {game.teamB.seed} {game.teamB.name}
+              </option>
+            {/each}
+          </select>
 
+          <div class="generated-scenarios-preview-actions">
             {#if selectedPreviewGame}
-              <div class="flex flex-wrap gap-2">
+              <div class="generated-scenarios-preview-buttons">
                 <button
-                  class={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    selectedPreviewWinner === 'A'
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
-                  }`}
+                  class={`generated-scenarios-preview-button ${selectedPreviewWinner === 'A' ? 'is-active' : ''}`}
                   on:click={() => selectPreviewWinner('A')}
                 >
                   {selectedPreviewGame.teamA.seed} {selectedPreviewGame.teamA.name}
                 </button>
                 <button
-                  class={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    selectedPreviewWinner === 'B'
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
-                  }`}
+                  class={`generated-scenarios-preview-button ${selectedPreviewWinner === 'B' ? 'is-active' : ''}`}
                   on:click={() => selectPreviewWinner('B')}
                 >
                   {selectedPreviewGame.teamB.seed} {selectedPreviewGame.teamB.name}
                 </button>
                 <button
-                  class="rounded-lg border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-800"
+                  class="generated-scenarios-preview-button is-reset"
                   on:click={resetPreview}
                 >
                   Reset
                 </button>
               </div>
+            {:else}
+              <div class="generated-scenarios-preview-placeholder">
+                Pick a winner to preview
+              </div>
             {/if}
           </div>
         </div>
 
-        {#if activeSnapshotLabel}
-          <div class="mt-4 rounded-lg border border-amber-700/40 bg-amber-900/10 px-4 py-3 text-sm text-amber-100">
-            Showing conditional standings for <strong>{activeSnapshotLabel}</strong>.
-          </div>
-        {/if}
       </div>
     {/if}
-
-    <div class="mb-6">
-      <div class="border-b border-zinc-700">
-        <div class="flex">
-          <button
-            class={`py-2 px-4 font-medium text-sm ${selectedTab === 'win' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
-            on:click={() => selectedTab = 'win'}
-          >
-            Win Chances
-          </button>
-          <button
-            class={`py-2 px-4 font-medium text-sm ${selectedTab === 'full' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
-            on:click={() => selectedTab = 'full'}
-          >
-            Full Standings
-          </button>
-          {#if previewGames.length > 0}
-            <button
-              class={`py-2 px-4 font-medium text-sm ${selectedTab === 'root' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
-              on:click={() => selectedTab = 'root'}
-            >
-              Rooting Guide
-            </button>
-          {/if}
-        </div>
-      </div>
-    </div>
 
     {#if selectedTab === 'win'}
       <WinChancesTab {userWinCounts} />
@@ -247,3 +218,251 @@
     {/if}
   </div>
 </div>
+
+<style>
+  .generated-scenarios {
+    overflow: hidden;
+    background: rgba(10, 10, 11, 0.96);
+  }
+
+  .generated-scenarios-header {
+    padding: 1.5rem 1.5rem 1.15rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(14, 14, 15, 0.92);
+  }
+
+  .generated-scenarios-header-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .generated-scenarios-copy {
+    min-width: 0;
+    flex: 1 1 34rem;
+  }
+
+  .generated-scenarios-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid rgba(180, 83, 9, 0.45);
+    border-radius: 999px;
+    background: rgba(120, 53, 15, 0.18);
+    color: #f59e0b;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .generated-scenarios-title {
+    margin: 0.85rem 0 0;
+    color: var(--mm-text);
+    font-size: clamp(1.7rem, 3.2vw, 2.25rem);
+    font-weight: 700;
+    line-height: 1.04;
+  }
+
+  .generated-scenarios-subtitle {
+    margin: 0.5rem 0 0;
+    max-width: 44rem;
+    color: var(--mm-muted);
+    font-size: 0.94rem;
+  }
+
+  .generated-scenarios-summary {
+    min-width: 16rem;
+    padding: 0.95rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    background: rgba(9, 9, 10, 0.6);
+  }
+
+  .generated-scenarios-summary-label {
+    color: var(--mm-subtle);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .generated-scenarios-summary-value {
+    margin-top: 0.5rem;
+    color: var(--mm-text);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .generated-scenarios-body {
+    padding: 1.3rem 1.5rem 1.5rem;
+  }
+
+  .generated-scenarios-tabs {
+    display: flex;
+    gap: 0.55rem;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+  }
+
+  .generated-scenarios-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--mm-muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  }
+
+  .generated-scenarios-tab:hover {
+    color: var(--mm-text);
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .generated-scenarios-tab.is-active {
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.28);
+    background: rgba(245, 158, 11, 0.08);
+  }
+
+  .generated-scenarios-preview {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    background: rgba(12, 12, 13, 0.72);
+  }
+
+  .generated-scenarios-preview-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .generated-scenarios-preview-kicker {
+    flex: 0 0 auto;
+    color: var(--mm-subtle);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .generated-scenarios-select {
+    min-width: 18rem;
+    flex: 1 1 22rem;
+    min-height: 2.65rem;
+    padding: 0.62rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.9rem;
+    background: rgba(17, 17, 18, 0.92);
+    color: var(--mm-text);
+  }
+
+  .generated-scenarios-preview-actions {
+    display: flex;
+    flex: 1 1 24rem;
+    justify-content: flex-end;
+    min-width: 16rem;
+  }
+
+  .generated-scenarios-preview-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    justify-content: flex-end;
+  }
+
+  .generated-scenarios-preview-placeholder {
+    color: var(--mm-subtle);
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .generated-scenarios-preview-button {
+    min-height: 2.2rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--mm-text);
+    font-size: 0.84rem;
+    font-weight: 600;
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  }
+
+  .generated-scenarios-preview-button:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .generated-scenarios-preview-button.is-active {
+    border-color: rgba(245, 158, 11, 0.34);
+    background: rgba(245, 158, 11, 0.14);
+    color: #fbbf24;
+  }
+
+  .generated-scenarios-preview-button.is-reset {
+    color: var(--mm-muted);
+  }
+
+  @media (max-width: 767px) {
+    .generated-scenarios-header,
+    .generated-scenarios-body {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .generated-scenarios-summary {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .generated-scenarios-tabs {
+      flex-direction: column;
+      overflow: visible;
+    }
+
+    .generated-scenarios-tab {
+      width: 100%;
+    }
+
+    .generated-scenarios-preview {
+      padding: 0.9rem;
+    }
+
+    .generated-scenarios-preview-row {
+      align-items: stretch;
+    }
+
+    .generated-scenarios-select,
+    .generated-scenarios-preview-actions {
+      min-width: 0;
+      width: 100%;
+      flex-basis: 100%;
+    }
+
+    .generated-scenarios-preview-actions,
+    .generated-scenarios-preview-buttons {
+      justify-content: flex-start;
+    }
+
+    .generated-scenarios-preview-placeholder {
+      white-space: normal;
+    }
+  }
+</style>

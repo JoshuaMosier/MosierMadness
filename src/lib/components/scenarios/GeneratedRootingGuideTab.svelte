@@ -231,11 +231,11 @@
 
 {@html svgFilter}
 
-<div class="mb-6">
-  <div class="mb-4">
-    <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-      <div class="flex min-w-0 flex-1 flex-col gap-3 lg:flex-row lg:items-center">
-        <label for="generatedUserSelect" class="shrink-0 text-sm font-medium text-zinc-300">
+<div class="generated-rooting">
+  <div class="generated-rooting-toolbar">
+    <div class="generated-rooting-toolbar-row">
+      <div class="generated-rooting-select-row">
+        <label for="generatedUserSelect" class="generated-rooting-label">
           {#if currentUserId && selectedEntry?.userId === currentUserId}
             Your bracket:
           {:else}
@@ -244,7 +244,7 @@
         </label>
         <select
           id="generatedUserSelect"
-          class="bg-zinc-700 border border-zinc-600 rounded px-3 py-2 text-zinc-200 w-full lg:w-80"
+          class="generated-rooting-select"
           bind:value={selectedUserValue}
           on:change={() => selectedUser = selectedUserValue || null}
         >
@@ -258,70 +258,54 @@
       </div>
 
       {#if selectedEntry}
-        <div class="shrink-0 bg-zinc-800 border border-amber-600 rounded-lg px-3 py-2 flex flex-wrap items-center gap-2">
-          <span class="text-zinc-200 text-sm">Baseline 1st-place chance:</span>
-          <span class="bg-amber-600/20 text-amber-400 px-2 py-0.5 rounded text-sm font-semibold">
+        <div class="generated-rooting-baseline">
+          <span class="generated-rooting-baseline-label">Baseline 1st-place chance:</span>
+          <span class="generated-rooting-baseline-count">
             {selectedEntry.firstPlaceCount.toLocaleString()} scenarios
           </span>
-          <span class="text-base font-bold text-amber-500">{selectedEntry.firstPlacePct.toFixed(2)}%</span>
+          <span class="generated-rooting-baseline-pct">{selectedEntry.firstPlacePct.toFixed(2)}%</span>
         </div>
       {/if}
     </div>
   </div>
 
   {#if !selectedUser}
-    <div class="text-center py-8 text-zinc-500">
+    <div class="generated-rooting-state">
       Select a bracket to see which currently known games help the most.
     </div>
   {:else if previewGames.length === 0}
-    <div class="text-center py-8 text-zinc-500">
+    <div class="generated-rooting-state">
       No currently determined games are available for generated rooting guidance.
     </div>
   {:else}
-    <div class="bg-zinc-800/50 rounded-lg border border-zinc-700 p-4">
-      <div class="mb-4 flex flex-wrap gap-2">
+    <div class="generated-rooting-shell">
+      <div class="generated-rooting-summary">
         {#if counterIntuitiveCount > 0}
-          <span class="inline-flex items-center rounded-full bg-rose-900/30 px-3 py-1 text-xs font-medium text-rose-300">
+          <span class="generated-rooting-pill is-warning">
             {counterIntuitiveCount} current game{counterIntuitiveCount === 1 ? '' : 's'} help more if your pick loses
           </span>
         {:else}
-          <span class="inline-flex items-center rounded-full bg-zinc-700/70 px-3 py-1 text-xs font-medium text-zinc-300">
+          <span class="generated-rooting-pill">
             No current known games produce an against-your-bracket edge
           </span>
         {/if}
       </div>
 
-      <div class="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+      <div class="generated-rooting-grid">
         {#each gameSummaries as game}
-          <div
-            class={`bg-zinc-800 border rounded-lg overflow-hidden ${
-              game.counterIntuitive
-                ? 'border-rose-900/70'
-                : 'border-zinc-700'
-            }`}
-          >
-            <div
-              class={`px-3 py-2 text-sm font-medium flex items-center justify-between gap-3 ${
-                game.counterIntuitive
-                  ? 'bg-rose-950/40 text-rose-200'
-                  : 'bg-zinc-700 text-zinc-300'
-              }`}
-            >
+          <div class={`generated-rooting-card ${game.counterIntuitive ? 'is-counter' : ''}`}>
+            <div class={`generated-rooting-card-header ${game.counterIntuitive ? 'is-counter' : ''}`}>
               <span>{game.roundLabel}</span>
-              <span class={`text-xs whitespace-nowrap ${game.counterIntuitive ? 'text-rose-300/80' : 'text-zinc-400'}`}>
+              <span class={`generated-rooting-card-time ${game.counterIntuitive ? 'is-counter' : ''}`}>
                 {formatGameStartLabel(game.startTime)}
               </span>
             </div>
 
-            <div class="p-3 space-y-2.5">
+            <div class="generated-rooting-card-body">
               <div
-                class={`flex items-center gap-3 rounded-lg p-2.5 ${
-                  game.favoredTeam === 'A'
-                    ? 'bg-green-900/20 border border-green-900/70'
-                    : 'bg-zinc-700/30 border border-zinc-700'
-                }`}
+                class={`generated-rooting-team ${game.favoredTeam === 'A' ? 'is-favored' : 'is-neutral'}`}
               >
-                <div class="flex min-w-0 flex-1 items-center gap-3">
+                <div class="generated-rooting-team-main">
                   <div
                     class={teamLogoContainerClass}
                     style={getTeamLogoContainerStyle(game.teamA)}
@@ -334,25 +318,21 @@
                       on:error={handleImageError}
                     />
                   </div>
-                  <div class="min-w-0">
-                    <div class="text-zinc-100 font-medium truncate">{game.teamA.seed} {game.teamA.name}</div>
+                  <div class="generated-rooting-team-copy">
+                    <div class="generated-rooting-team-name">{game.teamA.seed} {game.teamA.name}</div>
                   </div>
                 </div>
                 {#if game.teamASummary}
-                  <div class={`ml-auto min-w-[60px] text-right text-sm font-semibold ${game.favoredTeam === 'A' ? 'text-green-400' : 'text-amber-400'}`}>
+                  <div class={`generated-rooting-team-value ${game.favoredTeam === 'A' ? 'is-favored' : 'is-neutral'}`}>
                     {formatBranchValue(game.teamASummary)}
                   </div>
                 {/if}
               </div>
 
               <div
-                class={`flex items-center gap-3 rounded-lg p-2.5 ${
-                  game.favoredTeam === 'B'
-                    ? 'bg-green-900/20 border border-green-900/70'
-                    : 'bg-zinc-700/30 border border-zinc-700'
-                }`}
+                class={`generated-rooting-team ${game.favoredTeam === 'B' ? 'is-favored' : 'is-neutral'}`}
               >
-                <div class="flex min-w-0 flex-1 items-center gap-3">
+                <div class="generated-rooting-team-main">
                   <div
                     class={teamLogoContainerClass}
                     style={getTeamLogoContainerStyle(game.teamB)}
@@ -365,12 +345,12 @@
                       on:error={handleImageError}
                     />
                   </div>
-                  <div class="min-w-0">
-                    <div class="text-zinc-100 font-medium truncate">{game.teamB.seed} {game.teamB.name}</div>
+                  <div class="generated-rooting-team-copy">
+                    <div class="generated-rooting-team-name">{game.teamB.seed} {game.teamB.name}</div>
                   </div>
                 </div>
                 {#if game.teamBSummary}
-                  <div class={`ml-auto min-w-[60px] text-right text-sm font-semibold ${game.favoredTeam === 'B' ? 'text-green-400' : 'text-amber-400'}`}>
+                  <div class={`generated-rooting-team-value ${game.favoredTeam === 'B' ? 'is-favored' : 'is-neutral'}`}>
                     {formatBranchValue(game.teamBSummary)}
                   </div>
                 {/if}
@@ -382,3 +362,240 @@
     </div>
   {/if}
 </div>
+
+<style>
+  .generated-rooting {
+    margin-bottom: 1.5rem;
+  }
+
+  .generated-rooting-toolbar {
+    margin-bottom: 1rem;
+  }
+
+  .generated-rooting-toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.9rem;
+  }
+
+  .generated-rooting-select-row {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 26rem;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .generated-rooting-label {
+    flex-shrink: 0;
+    color: var(--mm-text);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .generated-rooting-select {
+    min-width: 0;
+    width: min(100%, 24rem);
+    min-height: 2.65rem;
+    padding: 0.62rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.9rem;
+    background: rgba(15, 15, 16, 0.96);
+    color: var(--mm-text);
+  }
+
+  .generated-rooting-baseline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid rgba(180, 83, 9, 0.38);
+    border-radius: 0.95rem;
+    background: linear-gradient(135deg, rgba(41, 37, 36, 0.95), rgba(16, 16, 18, 0.94));
+  }
+
+  .generated-rooting-baseline-label {
+    color: var(--mm-muted);
+    font-size: 0.86rem;
+  }
+
+  .generated-rooting-baseline-count {
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.14);
+    color: #fbbf24;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .generated-rooting-baseline-pct {
+    color: #f59e0b;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .generated-rooting-state {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--mm-muted);
+  }
+
+  .generated-rooting-shell {
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    background: rgba(11, 11, 12, 0.74);
+  }
+
+  .generated-rooting-summary {
+    margin-bottom: 0.9rem;
+  }
+
+  .generated-rooting-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.45rem 0.8rem;
+    background: rgba(39, 39, 42, 0.7);
+    color: var(--mm-text);
+    font-size: 0.76rem;
+    font-weight: 600;
+  }
+
+  .generated-rooting-pill.is-warning {
+    background: rgba(127, 29, 29, 0.32);
+    color: #fca5a5;
+  }
+
+  .generated-rooting-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+
+  .generated-rooting-card {
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    background: linear-gradient(180deg, rgba(20, 20, 22, 0.96), rgba(10, 10, 11, 0.98));
+  }
+
+  .generated-rooting-card.is-counter {
+    border-color: rgba(127, 29, 29, 0.65);
+  }
+
+  .generated-rooting-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(34, 34, 36, 0.82);
+    color: var(--mm-text);
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+
+  .generated-rooting-card-header.is-counter {
+    background: rgba(69, 10, 10, 0.4);
+    color: #fecaca;
+  }
+
+  .generated-rooting-card-time {
+    color: var(--mm-subtle);
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .generated-rooting-card-time.is-counter {
+    color: rgba(252, 165, 165, 0.82);
+  }
+
+  .generated-rooting-card-body {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0.85rem;
+  }
+
+  .generated-rooting-team {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.9rem;
+  }
+
+  .generated-rooting-team.is-favored {
+    background: rgba(20, 83, 45, 0.2);
+    border-color: rgba(22, 101, 52, 0.62);
+  }
+
+  .generated-rooting-team.is-neutral {
+    background: rgba(39, 39, 42, 0.42);
+    border-color: rgba(63, 63, 70, 0.9);
+  }
+
+  .generated-rooting-team-main {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .generated-rooting-team-copy {
+    min-width: 0;
+  }
+
+  .generated-rooting-team-name {
+    overflow: hidden;
+    color: var(--mm-text);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .generated-rooting-team-value {
+    flex-shrink: 0;
+    min-width: 3.75rem;
+    text-align: right;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .generated-rooting-team-value.is-favored {
+    color: #86efac;
+  }
+
+  .generated-rooting-team-value.is-neutral {
+    color: #fbbf24;
+  }
+
+  @media (min-width: 768px) {
+    .generated-rooting-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .generated-rooting-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 767px) {
+    .generated-rooting-shell {
+      padding: 0.9rem;
+    }
+
+    .generated-rooting-team {
+      padding: 0.6rem 0.65rem;
+    }
+  }
+</style>
