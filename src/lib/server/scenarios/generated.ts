@@ -13,9 +13,36 @@ const GENERATED_SCENARIO_PATH = path.resolve(
 	'current.json',
 );
 
-export async function getGeneratedScenarioArtifact(): Promise<GeneratedScenarioArtifact | null> {
+type ArtifactFetcher = typeof fetch;
+
+async function readGeneratedScenarioArtifact(fetcher?: ArtifactFetcher): Promise<string | null> {
+	if (fetcher) {
+		try {
+			const response = await fetcher('/generated/scenarios/current.json');
+			if (!response.ok) {
+				return null;
+			}
+
+			return await response.text();
+		} catch {
+			return null;
+		}
+	}
+
 	try {
-		const raw = await fs.readFile(GENERATED_SCENARIO_PATH, 'utf8');
+		return await fs.readFile(GENERATED_SCENARIO_PATH, 'utf8');
+	} catch {
+		return null;
+	}
+}
+
+export async function getGeneratedScenarioArtifact(fetcher?: ArtifactFetcher): Promise<GeneratedScenarioArtifact | null> {
+	try {
+		const raw = await readGeneratedScenarioArtifact(fetcher);
+		if (!raw) {
+			return null;
+		}
+
 		const parsed = JSON.parse(raw) as GeneratedScenarioArtifact;
 		if (!parsed || !Array.isArray(parsed.entries)) {
 			return null;
@@ -54,7 +81,12 @@ export async function getGeneratedScenarioArtifact(): Promise<GeneratedScenarioA
 	}
 }
 
-export async function hasGeneratedScenarioArtifact(): Promise<boolean> {
+export async function hasGeneratedScenarioArtifact(fetcher?: ArtifactFetcher): Promise<boolean> {
+	if (fetcher) {
+		const raw = await readGeneratedScenarioArtifact(fetcher);
+		return raw !== null;
+	}
+
 	try {
 		await fs.access(GENERATED_SCENARIO_PATH);
 		return true;

@@ -6,7 +6,7 @@ import { getTodayEtDateString } from '$lib/server/tournament/settings';
 import { getTournamentSnapshot } from '$lib/server/tournament/snapshot';
 import { canViewScenarios } from '$lib/utils/stageUtils';
 
-export const load: PageServerLoad = async ({ depends, parent }) => {
+export const load: PageServerLoad = async ({ depends, parent, fetch }) => {
   depends('app:tournament');
   const { tournamentSettings, scenariosAvailable } = await parent();
 
@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ depends, parent }) => {
   const browserExactAvailable = canViewScenarios(tournamentSettings, getTodayEtDateString());
 
   if (!browserExactAvailable) {
-    const generatedScenario = await getGeneratedScenarioArtifact();
+    const generatedScenario = await getGeneratedScenarioArtifact(fetch);
 
     return {
       mode: generatedScenario ? 'generated-snapshot' : 'unavailable',

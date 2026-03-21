@@ -4,13 +4,13 @@ import { getTickerScores } from '$lib/server/tournament/scores';
 import { hasGeneratedScenarioArtifact } from '$lib/server/scenarios/generated';
 import { canViewScenarios } from '$lib/utils/stageUtils';
 
-export const load: LayoutServerLoad = async ({ depends, url, locals }) => {
+export const load: LayoutServerLoad = async ({ depends, url, locals, fetch }) => {
   depends('app:tournament');
   depends('supabase:auth');
 
   const [tournamentSettings, generatedScenarioAvailable, { data: { user } }] = await Promise.all([
     getTournamentSettings(),
-    hasGeneratedScenarioArtifact(),
+    hasGeneratedScenarioArtifact(fetch),
     locals.supabase.auth.getUser(),
   ]);
 
