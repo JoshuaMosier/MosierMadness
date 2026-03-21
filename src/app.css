@@ -63,7 +63,6 @@
     -webkit-backdrop-filter: blur(18px);
   }
 
-  .mm-shell::before,
   .mm-panel::before,
   .mm-table-shell::before,
   .mm-form-shell::before,

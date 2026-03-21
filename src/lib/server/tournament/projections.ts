@@ -269,6 +269,8 @@ interface OtherTeamPick {
   seed: number;
   name: string;
   seoName: string;
+  color: string;
+  secondaryColor: string;
 }
 
 export function getGameDetailProjection(game: ScoreboardGame | null, entries: Entry[], snapshot: TournamentSnapshot) {
@@ -319,13 +321,17 @@ export function getGameDetailProjection(game: ScoreboardGame | null, entries: En
   const other: OtherTeamPick[] = Array.from(otherMap.entries())
     .map(([team, users]): OtherTeamPick => {
       const teamName = getTeamNameFromSelection(team) || team;
+      const seoName = resolveTeamSeoName(teamName, teamSeoMap[teamName]);
+      const { primaryColor, secondaryColor } = getTeamColorSet(seoName);
       return {
         team,
         users,
         count: users.length,
         seed: Number.parseInt(team.split(' ')[0], 10),
         name: teamName,
-        seoName: resolveTeamSeoName(teamName, teamSeoMap[teamName]),
+        seoName,
+        color: primaryColor,
+        secondaryColor,
       };
     })
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));

@@ -2,342 +2,1001 @@
   import { supabase } from '$lib/supabase';
   import { onMount } from 'svelte';
   import { handleImageError } from '$lib/utils/imageUtils';
-  import type { ScoreboardTeam } from '$lib/types';
+  import { hexToRgb } from '$lib/utils/teamColorUtils';
 
   export let data: any;
 
+  type PickEntry = {
+    id: string;
+    name: string;
+    user_id: string | null;
+  };
+
+  type TeamSurface = {
+    name: string;
+    seed: number | null;
+    seoName: string;
+    color?: string;
+    secondaryColor?: string;
+    scoreText?: string;
+    winner?: boolean;
+  };
+
+  type OtherTeamPick = {
+    team: string;
+    users: PickEntry[];
+    count: number;
+    seed: number;
+    name: string;
+    seoName: string;
+    color: string;
+    secondaryColor: string;
+  };
+
+  type TeamSelectionState = {
+    home: PickEntry[];
+    away: PickEntry[];
+    other: OtherTeamPick[];
+  };
+
+  type PickGroup = {
+    key: string;
+    side: 'away' | 'home' | 'other';
+    label: string;
+    team: TeamSurface;
+    entries: PickEntry[];
+    count: number;
+  };
+
   let gameData: any = null;
   let pageError: string | null = null;
-  let entriesLoading = false;
-  let teamSelections: { home: any[]; away: any[]; other: any[] } = { home: [], away: [], other: [] };
+  let teamSelections: TeamSelectionState = { home: [], away: [], other: [] };
   let currentUserId: string | null = null;
-  let tournamentStage: string = 'archive';
-  let gamePageContext: string = 'Tournament game details';
+  let tournamentStage = 'archive';
+  let primaryGroups: PickGroup[] = [];
+  let otherGroups: PickGroup[] = [];
+  let pickGroups: PickGroup[] = [];
+  let totalPickCount = 0;
+  let directPickCount = 0;
+  let awayPickPercent = 50;
+  let homePickPercent = 50;
 
   $: gameData = data.gameDetail?.game || null;
   $: pageError = gameData ? null : 'No games available at this time';
   $: teamSelections = data.gameDetail?.teamSelections || { home: [], away: [], other: [] };
   $: tournamentStage = data.tournamentSettings?.stage || 'archive';
-  $: gamePageContext =
-    tournamentStage === 'tournament-live'
-      ? 'Live tournament game details'
-      : tournamentStage === 'bracket-open'
-        ? 'Tournament game details unlock after tipoff'
-        : 'Tournament game details';
+  $: primaryGroups = gameData
+    ? [
+        {
+          key: 'away',
+          side: 'away',
+          label: 'Away',
+          team: gameData.awayTeam,
+          entries: teamSelections.away || [],
+          count: teamSelections.away?.length || 0
+        },
+        {
+          key: 'home',
+          side: 'home',
+          label: 'Home',
+          team: gameData.homeTeam,
+          entries: teamSelections.home || [],
+          count: teamSelections.home?.length || 0
+        }
+      ]
+    : [];
+  $: otherGroups = (teamSelections.other || []).map((group, index) => ({
+    key: `other-${index}`,
+    side: 'other' as const,
+    label: 'Alternate',
+    team: {
+      name: group.name,
+      seed: group.seed,
+      seoName: group.seoName,
+      color: group.color,
+      secondaryColor: group.secondaryColor,
+      scoreText: '',
+      winner: false
+    },
+    entries: group.users,
+    count: group.count
+  }));
+  $: pickGroups = [...primaryGroups, ...otherGroups];
+  $: directPickCount = primaryGroups.reduce((total, group) => total + group.count, 0);
+  $: totalPickCount = pickGroups.reduce((total, group) => total + group.count, 0);
+  $: awayPickPercent = directPickCount > 0 ? (primaryGroups[0]?.count || 0) / directPickCount * 100 : 50;
+  $: homePickPercent = directPickCount > 0 ? 100 - awayPickPercent : 50;
 
-  // Get the current user's ID on mount
   onMount(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+
     if (user) {
       currentUserId = user.id;
     }
   });
 
-  // Helper function to check if an entry belongs to the current user
-  function isCurrentUser(entry: any): boolean {
+  function isCurrentUser(entry: PickEntry): boolean {
     return entry.user_id === currentUserId;
   }
 
-  // Helper function to determine if a team is a winner
-  function isWinner(team: any): boolean {
+  function isWinner(team: TeamSurface | any): boolean {
     return team?.winner === true;
   }
 
-  // Helper function to get game status color
-  function getStatusColor(status: string): string {
-    switch(status.toUpperCase()) {
-      case 'LIVE': return 'text-yellow-300';
-      case 'FINAL': return 'text-white';
-      case 'PRE': return 'text-gray-400';
-      default: return 'text-white';
+  function getStatusClass(status: string): string {
+    switch ((status || '').toUpperCase()) {
+      case 'LIVE':
+        return 'game-status-pill is-live';
+      case 'FINAL':
+        return 'game-status-pill is-final';
+      default:
+        return 'game-status-pill is-pre';
     }
+  }
+
+  function getPickCountLabel(count: number): string {
+    return `${count} ${count === 1 ? 'entry' : 'entries'}`;
+  }
+
+  function getEntryHref(name: string): string {
+    return `/entries?selected=${encodeURIComponent(name.replace(/\s+/g, '|'))}`;
+  }
+
+  function getTeamScoreText(team: TeamSurface | any): string {
+    return String(team?.scoreText || '').trim() || '--';
+  }
+
+  function getTeamStateClass(team: TeamSurface | any, opponent: TeamSurface | any = null): string {
+    if (isWinner(team)) {
+      return 'is-winner';
+    }
+
+    if (isWinner(opponent)) {
+      return 'is-eliminated';
+    }
+
+    return '';
+  }
+
+  function getPickGroupStateClass(group: PickGroup): string {
+    if (group.side === 'away') {
+      return getTeamStateClass(group.team, gameData?.homeTeam);
+    }
+
+    if (group.side === 'home') {
+      return getTeamStateClass(group.team, gameData?.awayTeam);
+    }
+
+    return '';
+  }
+
+  function getTeamColorVars(team: TeamSurface | any): string {
+    const primaryRgb = hexToRgb(team?.color || '');
+    const secondaryRgb = hexToRgb(team?.secondaryColor || '');
+    const primary = primaryRgb ? `${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}` : '161, 161, 170';
+    const secondary = secondaryRgb ? `${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}` : primary;
+    return `--team-rgb: ${primary}; --team-secondary-rgb: ${secondary};`;
+  }
+
+  function getPickGroupStyle(group: PickGroup): string {
+    return getTeamColorVars(group.team);
+  }
+
+  function getPickShareStyle(team: TeamSurface | any, width: number): string {
+    return `${getTeamColorVars(team)} --pick-share-width: ${width.toFixed(2)}%;`;
+  }
+
+  function getTeamAccentStyle(team: TeamSurface | any): string {
+    return getTeamColorVars(team);
   }
 </script>
 
-<div class="max-w-6xl mx-auto px-4 py-8">
-  <div class="p-4 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-  <div class="mb-4 text-center">
-    <h1 class="text-2xl font-semibold text-zinc-100">Game Detail</h1>
-    <p class="mt-2 text-sm text-zinc-400">{gamePageContext}</p>
-  </div>
-  {#if entriesLoading}
-    <div class="w-full py-12 text-center">
-      <div class="inline-block animate-pulse text-white">
-        Loading game details...
-      </div>
-    </div>
-  {:else if pageError}
-    <div class="bg-black bg-opacity-30 rounded-lg p-6 shadow-lg border border-white/10 max-w-2xl mx-auto">
-      <div class="text-center py-8">
-        <div class="text-red-500 mb-4">{pageError}</div>
-        <p class="text-white">
-          {tournamentStage === 'bracket-open'
-            ? 'Game details will populate once tournament games begin.'
-            : 'There are no games scheduled at this time. Check back once scoreboard data is available.'}
-        </p>
-        
-        <div class="mt-8">
-          <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
-            Return to Home
-          </a>
-        </div>
-      </div>
+<div class="mm-page game-detail-page">
+  {#if pageError}
+    <div class="mm-empty-state game-empty-state">
+      <p class="panel-kicker">Game Detail</p>
+      <h1 class="picks-panel-title">{pageError}</h1>
+      <p class="panel-copy">
+        {tournamentStage === 'bracket-open'
+          ? 'Game details will populate once tournament games begin.'
+          : 'There are no games scheduled at this time. Check back once scoreboard data is available.'}
+      </p>
+      <a href="/" class="mm-button-secondary">Return Home</a>
     </div>
   {:else if gameData}
-    <div class="game-container">
-      <!-- Game Info Section -->
-      <div class="bg-black bg-opacity-30 rounded-lg p-6 shadow-lg border border-white/10 mx-auto mb-6">
-        <div class="game-status mb-4 text-center">
-          {#if gameData.statusLabel === 'LIVE'}
-            <div class="text-yellow-300 font-bold text-xl">{gameData.statusLabel} - {gameData.displayClock}</div>
-          {:else if gameData.statusLabel === 'FINAL'}
-            <div class="text-white font-bold text-xl">FINAL</div>
-          {:else}
-            <div class="text-gray-300 text-xl">
-              {gameData.statusLabel} - {gameData.displayClock}
+    <div class="game-detail-shell mm-shell">
+      <div class="game-detail-layout">
+        <section class="game-matchup-panel">
+          <div class="pick-share-panel">
+            <div class="pick-share-panel-header">
+              <p class="panel-kicker">Pick Share</p>
+              <div class="pick-total-chip">{getPickCountLabel(totalPickCount)}</div>
             </div>
-          {/if}
-        </div>
-        
-        <div class="game-content flex flex-row justify-between items-center gap-4 py-4">
-          <!-- Away Team -->
-          <div class="team-block text-center flex-1">
-            <img 
-              class="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-2" 
-              src="/images/team-logos/{gameData.awayTeam.seoName}.svg" 
-              alt="{gameData.awayTeam.name} logo"
-              on:error={handleImageError}
+
+            <div class="pick-share-track">
+              <div class="pick-share-segment" style={getPickShareStyle(gameData.awayTeam, awayPickPercent)}></div>
+              <div class="pick-share-segment" style={getPickShareStyle(gameData.homeTeam, homePickPercent)}></div>
+            </div>
+
+            <div class="pick-share-legend">
+              <div class="pick-share-item">
+                <span class="pick-share-swatch" style={getTeamColorVars(gameData.awayTeam)}></span>
+                <span class="pick-share-name">{gameData.awayTeam.name}</span>
+                <strong class="pick-share-count">{teamSelections.away.length}</strong>
+              </div>
+
+              <div class="pick-share-item is-home">
+                <span class="pick-share-swatch" style={getTeamColorVars(gameData.homeTeam)}></span>
+                <span class="pick-share-name">{gameData.homeTeam.name}</span>
+                <strong class="pick-share-count">{teamSelections.home.length}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="matchup-board">
+            <div class="matchup-status-band">
+              <span class={getStatusClass(gameData.statusLabel)}>{gameData.statusLabel}</span>
+            </div>
+
+            <article
+              class={`matchup-side is-away ${getTeamStateClass(gameData.awayTeam, gameData.homeTeam)}`}
+              style={getTeamColorVars(gameData.awayTeam)}
             >
-            <div class="team-seed bg-gray-800 text-white inline-block px-2 py-1 rounded mb-1">
-              #{gameData.awayTeam.seed}
-            </div>
-            <div class="team-name text-lg sm:text-xl font-semibold mb-1 {isWinner(gameData.awayTeam) ? 'text-white' : isWinner(gameData.homeTeam) ? 'text-gray-400 line-through' : 'text-white'}">
-              {gameData.awayTeam.name}
-            </div>
-            <div class="team-score text-3xl sm:text-4xl font-bold {isWinner(gameData.awayTeam) ? 'text-yellow-300' : 'text-white'}">
-              {gameData.awayTeam.scoreText}
-            </div>
-            {#if isWinner(gameData.awayTeam)}
-              <div class="winner-badge mt-2 text-green-400 font-semibold">WINNER</div>
-            {/if}
-          </div>
-          
-          <!-- Home Team -->
-          <div class="team-block text-center flex-1">
-            <img 
-              class="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-2" 
-              src="/images/team-logos/{gameData.homeTeam.seoName}.svg" 
-              alt="{gameData.homeTeam.name} logo"
-              on:error={handleImageError}
-            >
-            <div class="team-seed bg-gray-800 text-white inline-block px-2 py-1 rounded mb-1">
-              #{gameData.homeTeam.seed}
-            </div>
-            <div class="team-name text-lg sm:text-xl font-semibold mb-1 {isWinner(gameData.homeTeam) ? 'text-white' : isWinner(gameData.awayTeam) ? 'text-gray-400 line-through' : 'text-white'}">
-              {gameData.homeTeam.name}
-            </div>
-            <div class="team-score text-3xl sm:text-4xl font-bold {isWinner(gameData.homeTeam) ? 'text-yellow-300' : 'text-white'}">
-              {gameData.homeTeam.scoreText}
-            </div>
-            {#if isWinner(gameData.homeTeam)}
-              <div class="winner-badge mt-2 text-green-400 font-semibold">WINNER</div>
-            {/if}
-          </div>
-        </div>
-        
-      </div>
-
-      <!-- Entries Comparison Section -->
-      <div class="bg-black bg-opacity-30 rounded-lg p-6 shadow-lg border border-white/10 overflow-hidden">
-        <h3 class="text-center text-2xl text-white font-semibold mb-6">Who Picked Each Team</h3>
-        
-        {#if entriesLoading}
-          <div class="flex justify-center py-8">
-            <div class="animate-pulse text-white">Loading entries...</div>
-          </div>
-        {:else}
-          <!-- Mobile Layout (Below md breakpoint) -->
-          <div class="md:hidden space-y-6">
-            <!-- Away Team Section -->
-            <div class="team-section">
-              <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-2">
-                <img 
-                  class="w-6 h-6 sm:w-8 sm:h-8" 
-                  src="/images/team-logos/{gameData.awayTeam.seoName}.svg" 
-                  alt="{gameData.awayTeam.name} logo"
-                  on:error={handleImageError}
-                >
-                <h4 class="text-base sm:text-lg font-semibold text-white">{gameData.awayTeam.name} ({teamSelections.away.length})</h4>
-              </div>
-              
-              <div class="bg-zinc-800/30 p-2 sm:p-4 rounded-b-lg overflow-hidden">
-                {#if teamSelections.away.length === 0}
-                  <div class="text-center text-gray-400 py-4">No entries picked this team.</div>
-                {:else}
-                  <div class="grid grid-cols-2 gap-2 sm:gap-3">
-                    {#each teamSelections.away as entry}
-                      <div class="min-w-0 px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
-                        <a
-                          href="/entries?selected={entry.name.replace(' ', '|')}"
-                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate text-sm sm:text-base"
-                          title={entry.name}
-                        >
-                          {entry.name}
-                        </a>
-                      </div>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
-            </div>
-
-            <!-- Home Team Section -->
-            <div class="team-section">
-              <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-2">
-                <img
-                  class="w-6 h-6 sm:w-8 sm:h-8"
-                  src="/images/team-logos/{gameData.homeTeam.seoName}.svg"
-                  alt="{gameData.homeTeam.name} logo"
-                  on:error={handleImageError}
-                >
-                <h4 class="text-base sm:text-lg font-semibold text-white">{gameData.homeTeam.name} ({teamSelections.home.length})</h4>
+              <div class="matchup-side-top">
+                <span class="matchup-seed-chip">#{gameData.awayTeam.seed}</span>
               </div>
 
-              <div class="bg-zinc-800/30 p-2 sm:p-4 rounded-b-lg overflow-hidden">
-                {#if teamSelections.home.length === 0}
-                  <div class="text-center text-gray-400 py-4">No entries picked this team.</div>
-                {:else}
-                  <div class="grid grid-cols-2 gap-2 sm:gap-3">
-                    {#each teamSelections.home as entry}
-                      <div class="min-w-0 px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
-                        <a
-                          href="/entries?selected={entry.name.replace(' ', '|')}"
-                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate text-sm sm:text-base"
-                          title={entry.name}
-                        >
-                          {entry.name}
-                        </a>
-                      </div>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
-            </div>
-          </div>
-
-          <!-- Desktop Layout (md breakpoint and above) -->
-          <div class="hidden md:flex md:flex-row justify-between gap-8">
-            <!-- Away Team Picks Column -->
-            <div class="flex-1 min-w-0 team-column">
-              <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-3">
-                <img
-                  class="w-8 h-8"
-                  src="/images/team-logos/{gameData.awayTeam.seoName}.svg"
-                  alt="{gameData.awayTeam.name} logo"
-                  on:error={handleImageError}
-                >
-                <h4 class="text-lg font-semibold text-white">{gameData.awayTeam.name} ({teamSelections.away.length})</h4>
-              </div>
-
-              <div class="bg-zinc-800/30 p-4 rounded-b-lg overflow-hidden">
-                {#if teamSelections.away.length === 0}
-                  <div class="text-center text-gray-400 py-6">No entries picked this team.</div>
-                {:else}
-                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                    {#each teamSelections.away as entry}
-                      <div class="min-w-0 px-3 py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
-                        <a 
-                          href="/entries?selected={entry.name.replace(' ', '|')}" 
-                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate"
-                          title={entry.name}
-                        >
-                          {entry.name}
-                        </a>
-                      </div>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
-            </div>
-            
-            <!-- Home Team Picks Column -->
-            <div class="flex-1 min-w-0 team-column">
-              <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-3">
-                <img
-                  class="w-8 h-8"
-                  src="/images/team-logos/{gameData.homeTeam.seoName}.svg"
-                  alt="{gameData.homeTeam.name} logo"
-                  on:error={handleImageError}
-                >
-                <h4 class="text-lg font-semibold text-white">{gameData.homeTeam.name} ({teamSelections.home.length})</h4>
-              </div>
-
-              <div class="bg-zinc-800/30 p-4 rounded-b-lg overflow-hidden">
-                {#if teamSelections.home.length === 0}
-                  <div class="text-center text-gray-400 py-6">No entries picked this team.</div>
-                {:else}
-                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                    {#each teamSelections.home as entry}
-                      <div class="min-w-0 px-3 py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
-                        <a 
-                          href="/entries?selected={entry.name.replace(' ', '|')}" 
-                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate"
-                          title={entry.name}
-                        >
-                          {entry.name}
-                        </a>
-                      </div>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
-            </div>
-          </div>
-        {/if}
-      </div>
-
-      <!-- Unexpected Team Picks Section with logos -->
-      {#if teamSelections.other && teamSelections.other.length > 0}
-        <div class="bg-black bg-opacity-30 rounded-lg p-4 shadow-lg border border-white/10 mt-6">
-          <h3 class="text-center text-xl text-white font-semibold mb-4">Alternate Predictions</h3>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-            {#each teamSelections.other as teamGroup}
-              <div class="bg-zinc-800/30 rounded-lg overflow-hidden">
-                <div class="team-header bg-zinc-800/70 rounded-t-lg p-3 flex items-center justify-center gap-2">
-                  <img 
-                    class="w-6 h-6 sm:w-8 sm:h-8" 
-                    src="/images/team-logos/{teamGroup.seoName}.svg" 
-                    alt="{teamGroup.name} logo"
+              <div class="matchup-side-main">
+                <div class="matchup-logo-wrap">
+                  <img
+                    class="matchup-logo"
+                    src="/images/team-logos/{gameData.awayTeam.seoName}.svg"
+                    alt="{gameData.awayTeam.name} logo"
                     on:error={handleImageError}
-                  >
-                  <div class="team-seed bg-gray-700 text-white inline-block px-1.5 py-0.5 rounded text-sm">
-                    #{teamGroup.seed}
-                  </div>
-                  <h4 class="text-base sm:text-lg font-semibold text-white">{teamGroup.name} ({teamGroup.count})</h4>
-                </div>
-                
-                <div class="bg-zinc-800/30 p-2 sm:p-4 rounded-b-lg">
-                  <div class="grid grid-cols-2 gap-1.5 text-sm">
-                    {#each teamGroup.users as entry}
-                      <div class="min-w-0 px-2 py-1 sm:px-3 sm:py-2 bg-zinc-800/30 rounded hover:bg-zinc-700/30 transition-colors {entry.user_id === currentUserId ? 'border border-amber-500' : ''}">
-                        <a
-                          href="/entries?selected={entry.name.replace(' ', '|')}"
-                          class="{entry.user_id === currentUserId ? 'text-amber-400 font-bold' : 'text-zinc-300'} hover:text-white transition-colors block truncate text-sm sm:text-base"
-                          title={entry.name}
-                        >
-                          {entry.name}
-                        </a>
-                      </div>
-                    {/each}
-                  </div>
+                  />
                 </div>
               </div>
+
+              <div class="matchup-score-wrap">
+                <span class="matchup-score-label">Score</span>
+                <span class="matchup-score">{getTeamScoreText(gameData.awayTeam)}</span>
+              </div>
+            </article>
+
+            <div class="matchup-center">
+              <div class="matchup-center-badge">VS</div>
+            </div>
+
+            <article
+              class={`matchup-side is-home ${getTeamStateClass(gameData.homeTeam, gameData.awayTeam)}`}
+              style={getTeamColorVars(gameData.homeTeam)}
+            >
+              <div class="matchup-side-top">
+                <span class="matchup-seed-chip">#{gameData.homeTeam.seed}</span>
+              </div>
+
+              <div class="matchup-side-main">
+                <div class="matchup-logo-wrap">
+                  <img
+                    class="matchup-logo"
+                    src="/images/team-logos/{gameData.homeTeam.seoName}.svg"
+                    alt="{gameData.homeTeam.name} logo"
+                    on:error={handleImageError}
+                  />
+                </div>
+              </div>
+
+              <div class="matchup-score-wrap">
+                <span class="matchup-score-label">Score</span>
+                <span class="matchup-score">{getTeamScoreText(gameData.homeTeam)}</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="game-picks-panel">
+          <div class="pick-group-stack">
+            {#each pickGroups as group}
+              <article
+                class={`pick-group ${group.side === 'other' ? 'is-other' : ''} ${getPickGroupStateClass(group)}`}
+                style={getPickGroupStyle(group)}
+              >
+                <div class="pick-group-header">
+                  <div class="pick-group-brand">
+                    <div class="pick-group-logo-wrap">
+                      <img
+                        class="pick-group-logo"
+                        src="/images/team-logos/{group.team.seoName}.svg"
+                        alt="{group.team.name} logo"
+                        on:error={handleImageError}
+                      />
+                    </div>
+
+                    <div class="pick-group-copy">
+                      <h3 class="pick-group-name">{group.team.name}</h3>
+                    </div>
+                  </div>
+
+                  <div class="pick-group-count">{getPickCountLabel(group.count)}</div>
+                </div>
+
+                <div class="pick-group-chip-cloud">
+                  {#if group.entries.length === 0}
+                    <div class="pick-empty-state">No entries picked this team.</div>
+                  {:else}
+                    {#each group.entries as entry}
+                      <a
+                        href={getEntryHref(entry.name)}
+                        class={`pick-chip ${isCurrentUser(entry) ? 'is-current-user' : ''}`}
+                        title={entry.name}
+                      >
+                        {entry.name}
+                      </a>
+                    {/each}
+                  {/if}
+                </div>
+              </article>
             {/each}
           </div>
-        </div>
-      {/if}
+        </section>
+      </div>
     </div>
   {/if}
 </div>
-</div>
+
+<style>
+  .game-detail-page {
+    max-width: 90rem;
+  }
+
+  .game-detail-shell {
+    overflow: hidden;
+    padding: 0.9rem;
+    background: rgba(10, 10, 11, 0.96);
+  }
+
+  .game-detail-layout {
+    display: grid;
+    gap: 0.9rem;
+    align-items: start;
+  }
+
+  .game-matchup-panel,
+  .game-picks-panel {
+    min-width: 0;
+    min-height: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.7rem;
+    background: rgba(14, 14, 15, 0.92);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+  }
+
+  .game-matchup-panel {
+    padding: 0.95rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.78rem;
+  }
+
+  .game-picks-panel {
+    padding: 0.95rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .panel-kicker {
+    margin: 0;
+    color: var(--mm-subtle);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .game-status-pill,
+  .pick-total-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.15rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--mm-text);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .game-status-pill.is-live {
+    color: #facc15;
+    border-color: rgba(250, 204, 21, 0.28);
+    background: rgba(250, 204, 21, 0.12);
+    animation: status-live-pulse 1.8s ease-in-out infinite;
+  }
+
+  .game-status-pill.is-final {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--mm-text);
+  }
+
+  .game-status-pill.is-pre,
+  .pick-total-chip {
+    color: var(--mm-muted);
+  }
+
+  .picks-panel-title {
+    margin: 0.28rem 0 0;
+    color: var(--mm-text);
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.05;
+  }
+
+  .pick-share-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.58rem;
+  }
+
+  .matchup-board {
+    position: relative;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 0.72rem;
+    align-items: stretch;
+    padding-top: 1.1rem;
+  }
+
+  .matchup-status-band {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    z-index: 2;
+    transform: translateX(-50%);
+  }
+
+  .matchup-status-band .game-status-pill {
+    min-height: 1.9rem;
+    padding-inline: 0.78rem;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  }
+
+  .matchup-side {
+    position: relative;
+    min-width: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    padding: 0.8rem;
+    border: 1px solid rgba(var(--team-rgb), 0.22);
+    border-radius: 1.45rem;
+    background: rgba(12, 12, 13, 0.82);
+    overflow: hidden;
+  }
+
+  .matchup-side::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: rgb(var(--team-rgb));
+    opacity: 0.9;
+  }
+
+  .matchup-side::after {
+    content: '';
+    position: absolute;
+    inset: auto 12% 28% 12%;
+    height: 48%;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(var(--team-rgb), 0.18) 0%, rgba(var(--team-rgb), 0.08) 32%, rgba(var(--team-rgb), 0) 72%);
+    filter: blur(10px);
+    opacity: 0.95;
+    pointer-events: none;
+  }
+
+  .matchup-side.is-home::before {
+    inset: 0 0 0 auto;
+  }
+
+  .matchup-side.is-winner {
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.12);
+  }
+
+  .matchup-side.is-eliminated {
+    opacity: 0.88;
+  }
+
+  .matchup-side-top {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .matchup-side.is-home .matchup-side-top {
+    justify-content: flex-end;
+  }
+
+  .matchup-seed-chip,
+  .pick-group-label,
+  .pick-group-seed {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.5rem;
+    padding: 0.14rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .pick-group-label {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--mm-muted);
+  }
+
+  .matchup-seed-chip,
+  .pick-group-seed {
+    background: rgba(var(--team-rgb), 0.16);
+    color: var(--mm-text);
+  }
+
+  .matchup-side-main {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: 0.3rem 0.5rem;
+    z-index: 1;
+  }
+
+  .matchup-side.is-home .matchup-side-main {
+    text-align: center;
+  }
+
+  .matchup-logo-wrap,
+  .pick-group-logo-wrap {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(var(--team-rgb), 0.24);
+    background: rgba(var(--team-rgb), 0.06);
+  }
+
+  .matchup-logo-wrap {
+    position: relative;
+    width: 6.8rem;
+    aspect-ratio: 1;
+    border-radius: 1.2rem;
+    box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
+  }
+
+  .matchup-logo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 12%;
+    border-radius: 1rem;
+    background: radial-gradient(circle, rgba(var(--team-rgb), 0.18) 0%, rgba(var(--team-rgb), 0) 72%);
+    filter: blur(8px);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  .pick-group-logo-wrap {
+    width: 3rem;
+    aspect-ratio: 1;
+    border-radius: 0.95rem;
+  }
+
+  .matchup-logo,
+  .pick-group-logo {
+    width: 78%;
+    height: 78%;
+    object-fit: contain;
+  }
+
+  .matchup-logo {
+    position: relative;
+    z-index: 1;
+  }
+
+  .pick-group-copy {
+    min-width: 0;
+  }
+
+  .matchup-score-wrap {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding-top: 0.58rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    z-index: 1;
+  }
+
+  .matchup-side.is-home .matchup-score-wrap {
+    flex-direction: row-reverse;
+  }
+
+  .matchup-score-label {
+    color: var(--mm-subtle);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .matchup-score {
+    color: var(--mm-text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(2.2rem, 3.2vw, 3rem);
+    font-weight: 700;
+    line-height: 0.9;
+  }
+
+  .matchup-center {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0.2rem;
+  }
+
+  .matchup-center::before,
+  .matchup-center::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 1.15rem;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.15));
+    transform: translateY(-50%);
+  }
+
+  .matchup-center::before {
+    right: calc(100% - 0.1rem);
+  }
+
+  .matchup-center::after {
+    left: calc(100% - 0.1rem);
+    transform: translateY(-50%) scaleX(-1);
+  }
+
+  .matchup-center-badge {
+    display: grid;
+    place-items: center;
+    width: 3.7rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    color: var(--mm-text);
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .pick-share-panel {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .pick-share-track {
+    display: flex;
+    width: 100%;
+    height: 0.72rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+  }
+
+  .pick-share-segment {
+    width: var(--pick-share-width);
+    background: rgb(var(--team-rgb));
+  }
+
+  .pick-share-legend {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-top: 0.7rem;
+  }
+
+  .pick-share-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    color: var(--mm-muted);
+    font-size: 0.92rem;
+  }
+
+  .pick-share-item.is-home {
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+
+  .pick-share-swatch {
+    width: 0.72rem;
+    height: 0.72rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+    background: rgb(var(--team-rgb));
+  }
+
+  .pick-share-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pick-share-count {
+    color: var(--mm-text);
+    font-weight: 700;
+  }
+
+  .pick-group-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .pick-group {
+    position: relative;
+    min-height: 0;
+    min-width: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 0.6rem;
+    padding: 0.78rem 0.88rem 0.88rem;
+    border: 1px solid rgba(var(--team-rgb), 0.24);
+    border-radius: 1.35rem;
+    background: rgba(12, 12, 13, 0.9);
+    overflow: hidden;
+  }
+
+  .pick-group::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: rgb(var(--team-rgb));
+    opacity: 0.88;
+  }
+
+  .pick-group.is-winner {
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.12);
+  }
+
+  .pick-group.is-eliminated {
+    opacity: 0.9;
+  }
+
+  .pick-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .pick-group-brand {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .pick-group-name {
+    margin: 0;
+    color: var(--mm-text);
+    font-size: 1.08rem;
+    font-weight: 700;
+    line-height: 1.05;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pick-group-count {
+    flex-shrink: 0;
+    color: var(--mm-text);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .pick-group-chip-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 0.42rem;
+    overflow: visible;
+  }
+
+  .pick-chip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    min-height: 1.9rem;
+    padding: 0.24rem 0.72rem;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--team-rgb), 0.24);
+    background: rgba(var(--team-rgb), 0.12);
+    color: var(--mm-text);
+    font-size: 0.87rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 160ms ease, border-color 160ms ease;
+  }
+
+  .pick-chip:hover {
+    background: rgba(var(--team-rgb), 0.2);
+    border-color: rgba(var(--team-rgb), 0.34);
+  }
+
+  .pick-chip.is-current-user {
+    border-color: rgba(245, 158, 11, 0.36);
+    background: rgba(245, 158, 11, 0.16);
+    color: #fde68a;
+  }
+
+  .pick-empty-state {
+    width: 100%;
+    min-height: 3.6rem;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 1rem;
+    color: var(--mm-subtle);
+    text-align: center;
+  }
+
+  .game-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .game-empty-state .panel-copy,
+  .game-empty-state .picks-panel-title {
+    text-align: center;
+  }
+
+  @keyframes status-live-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.14);
+    }
+
+    50% {
+      box-shadow: 0 0 0 7px rgba(250, 204, 21, 0);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .game-detail-page {
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .game-detail-layout {
+      grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .pick-share-panel-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .pick-group {
+      flex: none;
+      min-height: 0;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .game-detail-shell {
+      padding: 0.75rem;
+    }
+
+    .matchup-board {
+      grid-template-columns: 1fr;
+    }
+
+    .matchup-center {
+      order: 2;
+    }
+
+    .matchup-side.is-home .matchup-side-main,
+    .matchup-side.is-home .matchup-score-wrap,
+    .matchup-side.is-home .matchup-side-top {
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .matchup-side.is-home .matchup-side-main {
+      justify-content: center;
+    }
+
+    .matchup-side.is-home::before {
+      inset: 0 auto 0 0;
+    }
+
+    .pick-share-legend {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .pick-share-item.is-home {
+      margin-left: 0;
+      justify-content: flex-start;
+    }
+
+    .matchup-center::before,
+    .matchup-center::after {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .game-matchup-panel,
+    .game-picks-panel {
+      border-radius: 1.35rem;
+    }
+
+    .game-matchup-panel,
+    .game-picks-panel {
+      padding: 0.9rem;
+    }
+
+    .matchup-side {
+      padding: 0.85rem;
+    }
+
+    .matchup-logo-wrap {
+      width: 6rem;
+      border-radius: 1rem;
+    }
+
+    .pick-group {
+      padding: 0.76rem 0.82rem 0.82rem;
+    }
+
+    .pick-group-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .pick-group-count {
+      font-size: 0.74rem;
+    }
+  }
+</style>
