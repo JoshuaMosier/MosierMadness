@@ -49,6 +49,10 @@
     return value ? getRankLabel(value) : '--';
   }
 
+  function getTrophyText(count: number): string {
+    return '🏆'.repeat(Math.max(0, count));
+  }
+
   function buildPodiumDisplay(rows: any[]): Array<{ standing: any; slot: 'left' | 'center' | 'right' }> {
     if (rows.length === 0) return [];
 
@@ -183,12 +187,9 @@
                   <a class="history-name-pill" href={getPlayerHref(entry.slug)}>{entry.name}</a>
                 </div>
 
-                <div class="history-title-bar-shell">
-                  <div
-                    class="history-title-bar-fill"
-                    style={`width: ${Math.max((entry.count / summary.maxWins) * 100, 12)}%`}
-                  ></div>
-                  <span class="history-title-count">{entry.count} {entry.count === 1 ? 'title' : 'titles'}</span>
+                <div class="history-title-trophies" aria-label={`${entry.count} ${entry.count === 1 ? 'title' : 'titles'}`}>
+                  <span class="history-title-trophy-icons">{getTrophyText(entry.count)}</span>
+                  <span class="history-title-count">{entry.count}</span>
                 </div>
               </div>
             {/each}
@@ -589,8 +590,10 @@
   }
 
   .history-title-row {
-    display: grid;
-    gap: 0.72rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.9rem;
     padding: 0.9rem 0.95rem;
     border-radius: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.07);
@@ -606,6 +609,8 @@
     display: flex;
     align-items: center;
     gap: 0.7rem;
+    min-width: 0;
+    flex: 1 1 auto;
   }
 
   .history-rank-pill {
@@ -671,28 +676,37 @@
     justify-content: center;
   }
 
-  .history-title-bar-shell {
-    position: relative;
-    min-height: 2.5rem;
+  .history-title-trophies {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    padding: 0 0.8rem;
-    overflow: hidden;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
+    gap: 0.7rem;
+    flex: 0 0 auto;
   }
 
-  .history-title-bar-fill {
-    position: absolute;
-    inset: 0 auto 0 0;
-    border-radius: inherit;
-    background: linear-gradient(90deg, rgba(180, 83, 9, 0.76), rgba(245, 158, 11, 0.92));
+  .history-title-trophy-icons {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.18rem;
+    max-width: 14rem;
+    color: #fcd34d;
+    font-size: 1.02rem;
+    line-height: 1;
+    text-align: right;
   }
 
   .history-title-count {
-    position: relative;
-    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.15rem;
+    min-height: 2.15rem;
+    padding: 0 0.55rem;
+    border-radius: 999px;
+    border: 1px solid rgba(245, 158, 11, 0.18);
+    background: rgba(245, 158, 11, 0.1);
     color: var(--mm-text);
     font-size: 0.88rem;
     font-weight: 700;
@@ -1090,18 +1104,28 @@
       align-items: stretch;
     }
 
-    .history-title-main {
+    .history-title-row {
+      align-items: flex-start;
       flex-direction: column;
-      align-items: stretch;
+    }
+
+    .history-title-main {
+      width: 100%;
     }
 
     .history-rank-pill {
       width: fit-content;
     }
 
-    .history-title-bar-shell {
-      justify-content: center;
-      min-height: 2.35rem;
+    .history-title-trophies {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .history-title-trophy-icons {
+      max-width: none;
+      justify-content: flex-start;
+      text-align: left;
     }
 
     .history-title-count {
