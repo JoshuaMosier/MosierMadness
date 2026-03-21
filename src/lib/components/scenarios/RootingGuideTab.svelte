@@ -446,6 +446,11 @@
       align-items: stretch;
     }
 
+    .rooting-guide-kicker,
+    .rooting-guide-baseline-label {
+      display: none;
+    }
+
     .rooting-guide-select,
     .rooting-guide-baseline {
       min-width: 0;
@@ -455,6 +460,52 @@
 
     .rooting-guide-baseline {
       justify-content: flex-start;
+    }
+
+    .rooting-card-round {
+      padding: 0.55rem 0.75rem;
+      font-size: 0.68rem;
+    }
+
+    .rooting-card-body {
+      padding: 0.72rem;
+      gap: 0.45rem;
+    }
+
+    .rooting-team-row {
+      padding: 0.62rem 0.68rem;
+    }
+
+    .rooting-team-copy {
+      gap: 0.6rem;
+    }
+
+    .rooting-team-logo-wrap {
+      width: 2.2rem;
+      border-radius: 0.7rem;
+    }
+
+    .rooting-team-name {
+      font-size: 0.9rem;
+    }
+
+    .rooting-team-meta {
+      margin-top: 0.12rem;
+      font-size: 0.72rem;
+    }
+
+    .rooting-team-count {
+      display: none;
+    }
+
+    .rooting-card-summary {
+      padding-top: 0;
+      text-align: left;
+    }
+
+    .rooting-summary-text {
+      font-size: 0.76rem;
+      line-height: 1.35;
     }
   }
 </style>

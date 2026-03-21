@@ -746,16 +746,94 @@
   }
 
   @media (max-width: 767px) {
-    .scenario-standings-toolbar,
-    .scenario-standings-toolbar-controls,
+    .scenario-standings-toolbar {
+      align-items: stretch;
+      gap: 0.55rem;
+    }
+
+    .scenario-standings-toolbar-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+      align-items: stretch;
+      gap: 0.45rem;
+      width: 100%;
+    }
+
     .scenario-standings-toggle {
-      flex-direction: column;
-      align-items: flex-start;
+      width: 100%;
+      min-width: 0;
+      gap: 0.4rem;
+    }
+
+    .scenario-standings-copy,
+    .scenario-summary-legend,
+    .scenario-standings-legend {
+      display: none;
+    }
+
+    .scenario-standings-label {
+      display: none;
+    }
+
+    .scenario-standings-button {
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 1.8rem;
+      padding: 0.24rem 0.46rem;
+      font-size: 0.69rem;
     }
 
     .scenario-summary-wrap,
     .scenario-standings-table-wrap {
       max-height: none;
+      padding-bottom: 0;
+    }
+
+    .scenario-summary-table th,
+    .scenario-standings-table th {
+      padding: 0.5rem 0.58rem;
+      font-size: 0.62rem;
+    }
+
+    .scenario-summary-table th:nth-child(3),
+    .scenario-summary-table td:nth-child(3),
+    .scenario-summary-table th:nth-child(6),
+    .scenario-summary-table td:nth-child(6) {
+      display: none;
+    }
+
+    .scenario-summary-namecell,
+    .scenario-summary-metric,
+    .scenario-summary-expected {
+      padding: 0.28rem 0.45rem;
+    }
+
+    .scenario-summary-namepill {
+      width: min(100%, 9.5rem);
+      padding: 0.2rem 0.56rem;
+    }
+
+    .scenario-summary-name {
+      font-size: 0.8rem;
+    }
+
+    .scenario-summary-metric,
+    .scenario-summary-expected {
+      font-size: 0.72rem;
+    }
+
+    .scenario-standings-cell {
+      min-width: 2.2rem;
+      padding: 0.28rem 0;
+    }
+
+    .scenario-standings-namecell {
+      padding: 0.36rem 0.52rem;
+      font-size: 0.8rem;
+    }
+
+    .scenario-standings-value {
+      font-size: 0.69rem;
     }
   }
 </style>

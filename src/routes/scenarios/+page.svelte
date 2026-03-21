@@ -566,6 +566,16 @@
       padding: 1.2rem 1rem 1rem;
     }
 
+    .scenario-kicker,
+    .scenario-subtitle {
+      display: none;
+    }
+
+    .scenario-title {
+      margin-top: 0;
+      font-size: 1.55rem;
+    }
+
     .scenario-shell-body {
       padding: 1rem;
     }

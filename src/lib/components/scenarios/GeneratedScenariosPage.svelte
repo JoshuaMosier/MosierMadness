@@ -72,7 +72,6 @@
   $: effectivePreviewOutcome = previewModeActive ? selectedPreviewOutcome : null;
   $: totalScenarios = effectivePreviewOutcome?.totalScenarios ?? artifact?.totalScenarios ?? 0;
   $: activeEntries = effectivePreviewOutcome?.entries ?? entries;
-  $: activeSnapshotLabel = previewModeActive ? getPreviewLabel(selectedPreviewGame, selectedPreviewWinner) : null;
   $: ({ positionProbabilities } = getActiveEntries(activeEntries, totalScenarios));
 
   onMount(async () => {
@@ -98,7 +97,6 @@
   <div class="generated-scenarios-header">
     <div class="generated-scenarios-header-row">
       <div class="generated-scenarios-copy">
-        <div class="generated-scenarios-badge">Generated Snapshot</div>
         <h2 class="generated-scenarios-title">Tournament Outcome Probabilities</h2>
         <p class="generated-scenarios-subtitle">
           Use Standings for title odds, finish ranges, and the full matrix view, and Rooting Guide to see which currently known outcomes help a bracket most.
@@ -106,9 +104,7 @@
       </div>
 
       <div class="generated-scenarios-summary">
-        <div class="generated-scenarios-summary-label">
-          {activeSnapshotLabel ? 'Conditional Scenarios' : 'Exact Scenarios'}
-        </div>
+        <div class="generated-scenarios-summary-label">Scenarios</div>
         <div class="generated-scenarios-summary-value">{totalScenarios.toLocaleString()}</div>
       </div>
     </div>
@@ -227,22 +223,8 @@
     flex: 1 1 34rem;
   }
 
-  .generated-scenarios-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.35rem 0.7rem;
-    border: 1px solid rgba(180, 83, 9, 0.45);
-    border-radius: 999px;
-    background: rgba(120, 53, 15, 0.18);
-    color: #f59e0b;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-  }
-
   .generated-scenarios-title {
-    margin: 0.85rem 0 0;
+    margin: 0;
     color: var(--mm-text);
     font-size: clamp(1.7rem, 3.2vw, 2.25rem);
     font-weight: 700;
@@ -410,9 +392,23 @@
       padding-right: 1rem;
     }
 
+    .generated-scenarios-subtitle {
+      display: none;
+    }
+
+    .generated-scenarios-title {
+      font-size: 1.55rem;
+    }
+
     .generated-scenarios-summary {
       min-width: 0;
       width: 100%;
+      padding: 0.85rem 0.9rem;
+    }
+
+    .generated-scenarios-summary-value {
+      margin-top: 0.35rem;
+      font-size: 1.55rem;
     }
 
     .generated-scenarios-tabs {
@@ -426,6 +422,10 @@
 
     .generated-scenarios-preview {
       padding: 0.9rem;
+    }
+
+    .generated-scenarios-preview-kicker {
+      display: none;
     }
 
     .generated-scenarios-preview-row {
@@ -444,8 +444,22 @@
       justify-content: flex-start;
     }
 
+    .generated-scenarios-preview-buttons {
+      width: 100%;
+    }
+
+    .generated-scenarios-preview-button {
+      flex: 1 1 calc(50% - 0.3rem);
+      justify-content: center;
+      text-align: center;
+    }
+
+    .generated-scenarios-preview-button.is-reset {
+      flex-basis: 100%;
+    }
+
     .generated-scenarios-preview-placeholder {
-      white-space: normal;
+      display: none;
     }
   }
 </style>
