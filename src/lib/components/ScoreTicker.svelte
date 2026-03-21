@@ -602,16 +602,10 @@
   }
 
   .ticker-score {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.45rem;
-    min-width: 2.45rem;
-    height: 2rem;
+    display: inline-block;
     padding: 0;
-    border-radius: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.055);
+    border: none;
+    background: transparent;
     color: var(--mm-muted);
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 1.55rem;
@@ -619,20 +613,14 @@
     line-height: 1;
     letter-spacing: 0.02em;
     font-variant-numeric: tabular-nums;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   .ticker-score.is-winner {
-    border-color: rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
   }
 
   .ticker-score.is-empty {
-    background: transparent;
-    border-color: transparent;
     color: transparent;
-    box-shadow: none;
   }
   
   /* CSS mask replaces gradient overlay divs - reduces DOM and compositing */
