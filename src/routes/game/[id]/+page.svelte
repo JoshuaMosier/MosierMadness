@@ -70,6 +70,22 @@
   let awayPickPercent = 50;
   let homePickPercent = 50;
   let stakeCards: StakeCard[] = [];
+  let svgFilter = `
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <filter id="teamLogoOutline" x="-20%" y="-20%" width="140%" height="140%">
+        <feMorphology operator="dilate" radius="1" in="SourceAlpha" result="blackThicken" />
+        <feFlood flood-color="black" result="blackOutline" />
+        <feComposite in="blackOutline" in2="blackThicken" operator="in" result="blackOutline" />
+        <feMorphology operator="dilate" radius="0.5" in="SourceAlpha" result="whiteThicken" />
+        <feFlood flood-color="white" result="whiteOutline" />
+        <feComposite in="whiteOutline" in2="whiteThicken" operator="in" result="whiteOutline" />
+        <feComposite in="whiteOutline" in2="blackOutline" operator="over" result="outlines" />
+        <feComposite in="SourceGraphic" in2="outlines" operator="over" />
+      </filter>
+    </defs>
+  </svg>
+  `;
 
   $: gameData = data.gameDetail?.game || null;
   $: pageError = gameData ? null : 'No games available at this time';
@@ -209,6 +225,14 @@
     return getTeamColorVars(group.team);
   }
 
+  function getTeamLogoFilter(stateClass: string): string {
+    if (stateClass === 'is-eliminated') {
+      return 'filter: url(#teamLogoOutline) grayscale(0.28) saturate(0.15) brightness(0.92);';
+    }
+
+    return 'filter: url(#teamLogoOutline);';
+  }
+
   function getPickShareStyle(team: TeamSurface | any, width: number): string {
     return `${getTeamColorVars(team)} --pick-share-width: ${width.toFixed(2)}%;`;
   }
@@ -229,6 +253,8 @@
     return `${value.toFixed(Math.abs(value) >= 10 ? 1 : 2)}%`;
   }
 </script>
+
+{@html svgFilter}
 
 <div class="mm-page game-detail-page">
   {#if pageError}
@@ -288,6 +314,7 @@
                     class="matchup-logo"
                     src="/images/team-logos/{gameData.awayTeam.seoName}.svg"
                     alt="{gameData.awayTeam.name} logo"
+                    style={getTeamLogoFilter(getTeamStateClass(gameData.awayTeam, gameData.homeTeam))}
                     on:error={handleImageError}
                   />
                 </div>
@@ -319,6 +346,7 @@
                     class="matchup-logo"
                     src="/images/team-logos/{gameData.homeTeam.seoName}.svg"
                     alt="{gameData.homeTeam.name} logo"
+                    style={getTeamLogoFilter(getTeamStateClass(gameData.homeTeam, gameData.awayTeam))}
                     on:error={handleImageError}
                   />
                 </div>
@@ -437,6 +465,7 @@
                         class="pick-group-logo"
                         src="/images/team-logos/{group.team.seoName}.svg"
                         alt="{group.team.name} logo"
+                        style={getTeamLogoFilter(getPickGroupStateClass(group))}
                         on:error={handleImageError}
                       />
                     </div>
@@ -690,8 +719,10 @@
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    border: 1px solid rgba(var(--team-rgb), 0.24);
-    background: rgba(var(--team-rgb), 0.06);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgb(var(--team-rgb));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .matchup-logo-wrap {
@@ -700,17 +731,6 @@
     aspect-ratio: 1;
     border-radius: 1.2rem;
     box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
-  }
-
-  .matchup-logo-wrap::before {
-    content: '';
-    position: absolute;
-    inset: 12%;
-    border-radius: 1rem;
-    background: radial-gradient(circle, rgba(var(--team-rgb), 0.18) 0%, rgba(var(--team-rgb), 0) 72%);
-    filter: blur(8px);
-    opacity: 0.9;
-    pointer-events: none;
   }
 
   .pick-group-logo-wrap {
@@ -1345,11 +1365,6 @@
       width: 4.8rem;
       border-radius: 0.95rem;
       box-shadow: none;
-    }
-
-    .matchup-logo-wrap::before {
-      inset: 14%;
-      border-radius: 0.8rem;
     }
 
     .matchup-team-name {

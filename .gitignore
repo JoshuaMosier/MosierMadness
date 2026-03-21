@@ -29,3 +29,4 @@ test-results/
 playwright-report/
 playwright/.auth/
 CLAUDE.md
+AGENTS.md
