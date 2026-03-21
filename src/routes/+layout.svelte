@@ -4,11 +4,11 @@
   import Navbar from '$lib/components/Navbar.svelte';
   import ScoreTicker from '$lib/components/ScoreTicker.svelte';
   import { injectAnalytics } from '@vercel/analytics/sveltekit';
-  import { supabase } from '$lib/supabase'
-  import { invalidate, beforeNavigate, afterNavigate } from '$app/navigation'
-  import { onMount } from 'svelte'
-  import { page } from '$app/stores'
-  import { dataRefreshSignal, initRealtimeRefresh } from '$lib/stores/realtimeUpdates'
+  import { invalidate, beforeNavigate, afterNavigate } from '$app/navigation';
+  import { onMount } from 'svelte';
+  import { page } from '$app/stores';
+  import { dataRefreshSignal, initRealtimeRefresh } from '$lib/stores/realtimeUpdates';
+  import type { SupabaseClient } from '@supabase/supabase-js';
   import type { TournamentStage } from '$lib/types';
 
   export let data: any;
@@ -29,7 +29,9 @@
   let isNavigating = false;
   let pendingInvalidate = false;
   let mounted = false;
+  let browserSupabase: SupabaseClient | null = null;
   let cleanupRealtime: (() => void) | null = null;
+  let cleanupAuthSubscription: (() => void) | null = null;
   let currentRealtimeKey = '';
 
   const HOT_ROUTE_POLL_MS = 60_000;
@@ -63,12 +65,12 @@
   $: fallbackPollMs = getFallbackPollMs($page.url.pathname, tournamentStage);
 
   function syncRealtimeRefresh(nextKey: string): void {
-    if (!mounted || nextKey === currentRealtimeKey) {
+    if (!mounted || !browserSupabase || nextKey === currentRealtimeKey) {
       return;
     }
 
     cleanupRealtime?.();
-    cleanupRealtime = initRealtimeRefresh(supabase, { fallbackPollMs });
+    cleanupRealtime = initRealtimeRefresh(browserSupabase, { fallbackPollMs });
     currentRealtimeKey = nextKey;
   }
 
@@ -99,22 +101,44 @@
 
   onMount(() => {
     mounted = true;
-    syncRealtimeRefresh(`${tournamentStage}:${$page.url.pathname}:${fallbackPollMs}`);
+    let cancelled = false;
 
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange(() => {
-      invalidate('supabase:auth')
-    })
+    void (async () => {
+      try {
+        const { supabase } = await import('$lib/supabase');
+        if (cancelled) {
+          return;
+        }
+
+        browserSupabase = supabase;
+        syncRealtimeRefresh(`${tournamentStage}:${$page.url.pathname}:${fallbackPollMs}`);
+
+        const {
+          data: { subscription }
+        } = supabase.auth.onAuthStateChange(() => {
+          invalidate('supabase:auth');
+        });
+
+        cleanupAuthSubscription = () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Failed to initialize browser Supabase client', error);
+      }
+    })();
 
     return () => {
+      cancelled = true;
       mounted = false;
       currentRealtimeKey = '';
-      subscription.unsubscribe();
+      clearTimeout(invalidateTimeout);
+      cleanupAuthSubscription?.();
+      cleanupAuthSubscription = null;
       cleanupRealtime?.();
       cleanupRealtime = null;
-    }
-  })
+      browserSupabase = null;
+    };
+  });
 </script>
 
 <div class="flex flex-col min-h-screen">
@@ -122,6 +146,7 @@
     stage={data.tournamentSettings?.stage || 'archive'}
     scenariosAvailable={data.scenariosAvailable ?? false}
     serverUser={data.user}
+    viewerProfile={data.viewerProfile ?? null}
   />
   <div class="container mx-auto px-4">
     {#if showScoreTicker}

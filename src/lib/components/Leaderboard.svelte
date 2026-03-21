@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fade } from 'svelte/transition';
-  import { FADE_DELAYED, FADE_CONTENT, fadeStagger } from '$lib/constants/transitions';
+  import { FADE_DELAYED, FADE_CONTENT } from '$lib/constants/transitions';
   import { hexToRgb } from '$lib/utils/teamColorUtils';
   import { handleImageError } from '$lib/utils/imageUtils';
   import Alert from '$lib/components/Alert.svelte';
@@ -194,7 +194,7 @@
   <div class="leaderboard-shell mm-shell" in:fade={FADE_CONTENT}>
     <div class="leaderboard-mobile">
       {#each sortedScores as score, index}
-        <div class="leaderboard-mobile-row" class:leaderboard-row--current-user={isCurrentUserRow(score)} in:fade={fadeStagger(index)}>
+        <div class="leaderboard-mobile-row" class:leaderboard-row--current-user={isCurrentUserRow(score)}>
           <span class="leaderboard-rank leaderboard-rank--mobile">{getRankLabel(ranks[index])}</span>
           <a href={getEntryHref(score)} class={`${getNameButtonClass()} leaderboard-name-button--mobile`}>
             <span class="leaderboard-name leaderboard-name--mobile">{score.firstName} {score.lastName}</span>
@@ -227,7 +227,7 @@
           </thead>
           <tbody>
             {#each sortedScores as score, index}
-              <tr class="leaderboard-row" class:leaderboard-row--current-user={isCurrentUserRow(score)} in:fade={fadeStagger(index)}>
+              <tr class="leaderboard-row" class:leaderboard-row--current-user={isCurrentUserRow(score)}>
                 <td class="leaderboard-cell leaderboard-cell--rank">
                   <span class="leaderboard-rank">{getRankLabel(ranks[index])}</span>
                 </td>
@@ -264,6 +264,9 @@
                             alt={team}
                             class={teamLogoClass}
                             style={getTeamLogoFilter(overlayInfo.state)}
+                            loading="lazy"
+                            decoding="async"
+                            fetchpriority="low"
                             on:error={handleImageError}
                           >
                           <div class="absolute inset-0" style={`${overlayInfo.style}; border-radius: inherit;`}></div>
@@ -285,6 +288,9 @@
                             alt={team}
                             class={teamLogoClass}
                             style={getTeamLogoFilter(overlayInfo.state)}
+                            loading="lazy"
+                            decoding="async"
+                            fetchpriority="low"
                             on:error={handleImageError}
                           >
                           <div class="absolute inset-0" style={`${overlayInfo.style}; border-radius: inherit;`}></div>
@@ -306,6 +312,9 @@
                           alt={champTeam}
                           class={teamLogoClass}
                           style={getTeamLogoFilter(overlayInfo.state)}
+                          loading="lazy"
+                          decoding="async"
+                          fetchpriority="low"
                           on:error={handleImageError}
                         >
                         <div class="absolute inset-0" style={`${overlayInfo.style}; border-radius: inherit;`}></div>

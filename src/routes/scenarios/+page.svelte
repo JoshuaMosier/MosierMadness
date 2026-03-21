@@ -322,9 +322,9 @@
       <div class="scenario-shell mm-shell">
         <div class="scenario-shell-header">
           <div class="scenario-shell-copy">
-            <p class="scenario-kicker">Scenarios</p>
-            <h2 class="scenario-title">Tournament Outcome Probabilities</h2>
-            <p class="scenario-subtitle">
+            <p class="scenario-kicker mm-eyebrow">Scenarios</p>
+            <h2 class="scenario-title mm-page-title">Tournament Outcome Probabilities</h2>
+            <p class="scenario-subtitle mm-page-subtitle">
               Use Standings for title odds, finish ranges, and the full matrix view, and Rooting Guide to see which remaining outcomes help a bracket most. Use the game selector to preview specific paths.
             </p>
           </div>
@@ -339,15 +339,15 @@
           {/if}
 
           {#if scenariosCalculated}
-            <div class="scenario-tab-row">
+            <div class="scenario-tab-row mm-tab-row">
               <button
-                class={`scenario-tab ${selectedTab === 'standings' ? 'is-active' : ''}`}
+                class={`scenario-tab mm-tab ${selectedTab === 'standings' ? 'is-active' : ''}`}
                 on:click={() => selectedTab = 'standings'}
               >
                 Standings
               </button>
               <button
-                class={`scenario-tab ${selectedTab === 'root' ? 'is-active' : ''}`}
+                class={`scenario-tab mm-tab ${selectedTab === 'root' ? 'is-active' : ''}`}
                 on:click={() => selectedTab = 'root'}
               >
                 Rooting Guide
@@ -468,26 +468,14 @@
     background: rgba(14, 14, 15, 0.92);
   }
 
-  .scenario-kicker {
-    margin: 0;
-    color: var(--mm-subtle);
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-  }
-
   .scenario-title {
-    margin: 0.38rem 0 0;
-    color: var(--mm-text);
+    margin-top: 0.38rem;
     font-size: clamp(1.7rem, 3.3vw, 2.35rem);
-    font-weight: 700;
     line-height: 1.02;
   }
 
   .scenario-subtitle {
-    margin: 0.5rem 0 0;
-    color: var(--mm-muted);
+    margin-top: 0.5rem;
     font-size: 0.96rem;
   }
 
@@ -510,41 +498,8 @@
   }
 
   .scenario-tab-row {
-    display: flex;
-    gap: 0.55rem;
     margin-bottom: 1rem;
     padding-bottom: 0.15rem;
-    overflow-x: auto;
-  }
-
-  .scenario-tab {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.35rem;
-    padding: 0.45rem 0.95rem;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.03);
-    color: var(--mm-muted);
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
-  }
-
-  .scenario-tab:hover {
-    color: var(--mm-text);
-    border-color: rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .scenario-tab.is-active {
-    color: #f59e0b;
-    border-color: rgba(245, 158, 11, 0.28);
-    background: rgba(245, 158, 11, 0.08);
   }
 
   .scenario-panel {
@@ -584,13 +539,5 @@
       padding: 1.8rem 1rem;
     }
 
-    .scenario-tab-row {
-      flex-direction: column;
-      overflow: visible;
-    }
-
-    .scenario-tab {
-      width: 100%;
-    }
   }
 </style>

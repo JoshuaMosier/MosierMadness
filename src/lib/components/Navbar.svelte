@@ -1,23 +1,25 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { supabase } from '$lib/supabase';
   import { page } from '$app/stores';
   import { canSubmitBracket, canViewEntries } from '$lib/utils/stageUtils';
   import NavLink from '$lib/components/NavLink.svelte';
-  import type { TournamentStage } from '$lib/types';
+  import type { TournamentStage, ViewerProfile } from '$lib/types';
 
   export let stage: TournamentStage = 'archive';
   export let scenariosAvailable = false;
   export let serverUser: any = null;
+  export let viewerProfile: ViewerProfile | null = null;
 
   let isMenuOpen = false;
-  let userEntry: any = null;
-  let isAdmin = false;
   let isSpinning = false;
 
   // serverUser comes from the layout server load (cookie-based, updates on every navigation).
   // Logout does a full page reload so serverUser also handles sign-out.
   $: user = serverUser;
+  $: isAdmin = viewerProfile?.isAdmin === true;
+  $: entriesHref = viewerProfile
+    ? `/entries?selected=${encodeURIComponent(`${viewerProfile.firstName}|${viewerProfile.lastName}`)}`
+    : '/entries';
 
   // Get current path for active state
   $: currentPath = $page.url.pathname;
@@ -33,32 +35,7 @@
     '/entries': 'Available when brackets open',
     '/scenarios': 'Available starting Sweet Sixteen',
   };
-  async function loadProfile(authUser: any): Promise<void> {
-    if (!authUser) {
-      userEntry = null;
-      isAdmin = false;
-      return;
-    }
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('first_name, last_name, is_admin')
-      .eq('email', authUser.email)
-      .single();
 
-    if (profile) {
-      userEntry = profile;
-      isAdmin = profile.is_admin === true;
-    }
-  }
-
-  // Load profile whenever user changes. The layout's onAuthStateChange listener
-  // calls invalidate('supabase:auth') which re-runs the server load, updating
-  // serverUser → user → this reactive statement. No additional onAuthStateChange
-  // listener is needed here (and having one caused deadlocks because Supabase
-  // runs the callback inside an auth lock, and the loadProfile query internally
-  // calls getSession which tries to re-acquire the same lock).
-  $: loadProfile(user);
-  
   function toggleMenu() {
     isMenuOpen = !isMenuOpen;
   }
@@ -80,17 +57,6 @@
     // server Supabase client (no browser auth lock involved), clears the session
     // cookie, and redirects to /. Full page load ensures clean client state.
     window.location.href = '/logout';
-  }
-
-  // Function to handle entries navigation
-  function handleEntriesClick() {
-    if (user && userEntry) {
-      const nameIdentifier = `${userEntry.first_name}|${userEntry.last_name}`;
-      goto(`/entries?selected=${nameIdentifier}`);
-    } else {
-      goto('/entries');
-    }
-    closeMenu();
   }
 
   function handleEasterEggClick(event: Event): void {
@@ -122,11 +88,17 @@
     src="/images/ui/MM_Banner_left.png"
     alt="Left Banner"
     class="navbar-banner navbar-banner--left hidden 2xl:block"
+    loading="lazy"
+    decoding="async"
+    fetchpriority="low"
   />
   <img
     src="/images/ui/MM_Banner_right.png"
     alt="Right Banner"
     class="navbar-banner navbar-banner--right hidden 2xl:block"
+    loading="lazy"
+    decoding="async"
+    fetchpriority="low"
   />
 
   <div class="navbar-inner">
@@ -135,21 +107,23 @@
         <NavLink href="/" label="Leaderboard" active={isActive('/')} />
         <NavLink href="/bracket" label="Submit Entry" active={isActive('/bracket')}
           disabled={disabledLinks['/bracket']} disabledReason={disabledReasons['/bracket']} />
-        <NavLink href="/entries" label="Entries" active={isActive('/entries')}
-          disabled={disabledLinks['/entries']} disabledReason={disabledReasons['/entries']}
-          onClick={handleEntriesClick} />
+        <NavLink href={entriesHref} label="Entries" active={isActive('/entries')}
+          disabled={disabledLinks['/entries']} disabledReason={disabledReasons['/entries']} />
         <NavLink href="/live-bracket" label="Live Bracket" active={isActive('/live-bracket')} />
       </div>
 
       <div class="desktop-nav-logo-wrap">
         <a href="/" class="desktop-nav-logo">
-          <img src="/images/ui/MM_logo.png" alt="Mosier Madness Logo" class="desktop-nav-logo-image" />
+          <img src="/images/ui/MM_logo.png" alt="Mosier Madness Logo" class="desktop-nav-logo-image" decoding="async" />
         </a>
         <a href="/easter-egg" class="desktop-easter-egg hover-trigger" on:click={handleEasterEggClick}>
           <img
             src="/images/ui/easter-egg.png"
             alt=""
             class="desktop-easter-egg-image hover-glow {isSpinning ? 'spin' : ''}"
+            loading="lazy"
+            decoding="async"
+            fetchpriority="low"
           />
         </a>
       </div>
@@ -182,7 +156,7 @@
       </button>
 
       <a href="/" class="mobile-nav-logo">
-        <img src="/images/ui/MM_logo.png" alt="Mosier Madness Logo" class="mobile-nav-logo-image" />
+        <img src="/images/ui/MM_logo.png" alt="Mosier Madness Logo" class="mobile-nav-logo-image" decoding="async" />
       </a>
 
       <span class="mobile-nav-spacer" aria-hidden="true"></span>
@@ -204,9 +178,8 @@
               <NavLink mobile href="/" label="Leaderboard" active={isActive('/')} on:click={closeMenu} />
               <NavLink mobile href="/bracket" label="Submit Entry" active={isActive('/bracket')}
                 disabled={disabledLinks['/bracket']} disabledReason={disabledReasons['/bracket']} on:click={closeMenu} />
-              <NavLink mobile href="/entries" label="Entries" active={isActive('/entries')}
-                disabled={disabledLinks['/entries']} disabledReason={disabledReasons['/entries']}
-                onClick={handleEntriesClick} />
+              <NavLink mobile href={entriesHref} label="Entries" active={isActive('/entries')}
+                disabled={disabledLinks['/entries']} disabledReason={disabledReasons['/entries']} on:click={closeMenu} />
               <NavLink mobile href="/live-bracket" label="Live Bracket" active={isActive('/live-bracket')} on:click={closeMenu} />
             </div>
           </div>

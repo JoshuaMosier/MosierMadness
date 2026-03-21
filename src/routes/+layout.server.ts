@@ -3,6 +3,7 @@ import { getTodayEtDateString, getTournamentSettings } from '$lib/server/tournam
 import { getTickerScores } from '$lib/server/tournament/scores';
 import { hasGeneratedScenarioArtifact } from '$lib/server/scenarios/generated';
 import { canViewScenarios } from '$lib/utils/stageUtils';
+import type { ViewerProfile } from '$lib/types';
 
 export const load: LayoutServerLoad = async ({ depends, url, locals, fetch }) => {
   depends('app:tournament');
@@ -14,14 +15,38 @@ export const load: LayoutServerLoad = async ({ depends, url, locals, fetch }) =>
     locals.supabase.auth.getUser(),
   ]);
 
-  const tickerScores = url.pathname === '/scores' ? [] : await getTickerScores(tournamentSettings);
+  const profilePromise = user?.email
+    ? locals.supabase
+        .from('profiles')
+        .select('first_name, last_name, is_admin')
+        .eq('email', user.email)
+        .maybeSingle()
+    : Promise.resolve({ data: null, error: null });
+
+  const [tickerScores, profileResult] = await Promise.all([
+    url.pathname === '/scores' ? Promise.resolve([]) : getTickerScores(tournamentSettings),
+    profilePromise,
+  ]);
+
+  if (profileResult.error) {
+    console.warn(`Failed to load viewer profile: ${profileResult.error.message}`);
+  }
+
   const scenariosAvailable =
     canViewScenarios(tournamentSettings, getTodayEtDateString()) || generatedScenarioAvailable;
+  const viewerProfile: ViewerProfile | null = profileResult.data
+    ? {
+        firstName: profileResult.data.first_name,
+        lastName: profileResult.data.last_name,
+        isAdmin: profileResult.data.is_admin === true,
+      }
+    : null;
 
   return {
     tournamentSettings,
     scenariosAvailable,
     tickerScores,
     user,
+    viewerProfile,
   };
 };

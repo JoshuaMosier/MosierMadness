@@ -359,6 +359,12 @@ export interface Profile {
 	is_admin?: boolean;
 }
 
+export interface ViewerProfile {
+	firstName: string;
+	lastName: string;
+	isAdmin: boolean;
+}
+
 // ─── HTTP Cache ──────────────────────────────────────────────────────────────
 
 export class HttpError extends Error {

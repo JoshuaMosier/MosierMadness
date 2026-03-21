@@ -116,52 +116,52 @@
 </svelte:head>
 
 <div class="mm-page history-page">
-  <div class="history-shell mm-shell">
-    <section class="history-hero">
-      <div class="history-hero-copy">
-        <p class="history-kicker">Past Winners</p>
-        <h1 class="history-title">Hall of Champions</h1>
-        <p class="history-subtitle">
+  <div class="history-shell mm-shell mm-page-shell">
+    <section class="history-hero mm-page-hero">
+      <div class="history-hero-copy mm-page-hero-copy">
+        <p class="history-kicker mm-eyebrow">Past Winners</p>
+        <h1 class="history-title mm-page-title">Hall of Champions</h1>
+        <p class="history-subtitle mm-page-subtitle">
           Browse title history, revisit season standings, and search the Mosier Madness record book.
         </p>
       </div>
 
       <div class="history-summary-grid">
-        <div class="history-stat-card">
-          <span class="history-stat-label">Tournament Years</span>
-          <strong class="history-stat-value">{summary.totalSeasons}</strong>
+        <div class="history-stat-card mm-stat-card">
+          <span class="history-stat-label mm-stat-label">Tournament Years</span>
+          <strong class="history-stat-value mm-stat-value">{summary.totalSeasons}</strong>
           <span class="history-stat-detail">{summary.completedTournaments} completed</span>
         </div>
 
-        <div class="history-stat-card">
-          <span class="history-stat-label">Unique Champions</span>
-          <strong class="history-stat-value">{summary.uniqueChampions}</strong>
+        <div class="history-stat-card mm-stat-card">
+          <span class="history-stat-label mm-stat-label">Unique Champions</span>
+          <strong class="history-stat-value mm-stat-value">{summary.uniqueChampions}</strong>
           <span class="history-stat-detail">Different winners across the archive</span>
         </div>
 
-        <div class="history-stat-card">
-          <span class="history-stat-label">Most Titles</span>
-          <strong class="history-stat-value">{summary.maxWins}</strong>
+        <div class="history-stat-card mm-stat-card">
+          <span class="history-stat-label mm-stat-label">Most Titles</span>
+          <strong class="history-stat-value mm-stat-value">{summary.maxWins}</strong>
           <span class="history-stat-detail">{topWinnersText}</span>
         </div>
       </div>
     </section>
 
-    <div class="history-tab-row">
+    <div class="history-tab-row mm-tab-row">
       <button
-        class={`history-tab ${selectedTab === 'overview' ? 'is-active' : ''}`}
+        class={`history-tab mm-tab ${selectedTab === 'overview' ? 'is-active' : ''}`}
         on:click={() => (selectedTab = 'overview')}
       >
         Overview
       </button>
       <button
-        class={`history-tab ${selectedTab === 'seasons' ? 'is-active' : ''}`}
+        class={`history-tab mm-tab ${selectedTab === 'seasons' ? 'is-active' : ''}`}
         on:click={() => (selectedTab = 'seasons')}
       >
         Season Archive
       </button>
       <button
-        class={`history-tab ${selectedTab === 'players' ? 'is-active' : ''}`}
+        class={`history-tab mm-tab ${selectedTab === 'players' ? 'is-active' : ''}`}
         on:click={() => (selectedTab = 'players')}
       >
         Player Directory
@@ -170,21 +170,21 @@
 
     {#if selectedTab === 'overview'}
       <div class="history-overview-grid">
-        <section class="history-panel">
-          <div class="history-section-header">
+        <section class="history-panel mm-panel-surface">
+          <div class="history-section-header mm-panel-header-inline">
             <div>
-              <p class="history-section-kicker">Titles</p>
-              <h2 class="history-section-title">Championship Leaderboard</h2>
+              <p class="history-section-kicker mm-eyebrow">Titles</p>
+              <h2 class="history-section-title mm-panel-title">Championship Leaderboard</h2>
             </div>
-            <div class="history-section-tag">{leaderboard.length} champions</div>
+            <div class="history-section-tag mm-section-tag">{leaderboard.length} champions</div>
           </div>
 
           <div class="history-title-list">
             {#each leaderboard as entry}
               <div class="history-title-row" class:is-top={entry.count === summary.maxWins}>
                 <div class="history-title-main">
-                  <span class="history-rank-pill">{getRankLabel(entry.rank)}</span>
-                  <a class="history-name-pill" href={getPlayerHref(entry.slug)}>{entry.name}</a>
+                  <span class="history-rank-pill mm-rank-pill is-accent">{getRankLabel(entry.rank)}</span>
+                  <a class="history-name-pill mm-pill-link" href={getPlayerHref(entry.slug)}>{entry.name}</a>
                 </div>
 
                 <div class="history-title-trophies" aria-label={`${entry.count} ${entry.count === 1 ? 'title' : 'titles'}`}>
@@ -196,13 +196,13 @@
           </div>
         </section>
 
-        <section class="history-panel">
-          <div class="history-section-header">
+        <section class="history-panel mm-panel-surface">
+          <div class="history-section-header mm-panel-header-inline">
             <div>
-              <p class="history-section-kicker">Champions</p>
-              <h2 class="history-section-title">Season Archive</h2>
+              <p class="history-section-kicker mm-eyebrow">Champions</p>
+              <h2 class="history-section-title mm-panel-title">Season Archive</h2>
             </div>
-            <div class="history-section-tag">{completedWinners.length} completed seasons</div>
+            <div class="history-section-tag mm-section-tag">{completedWinners.length} completed seasons</div>
           </div>
 
           <div class="history-table-shell history-table-shell--archive">
@@ -226,11 +226,11 @@
                       </td>
                       <td class="history-table-name">
                         {#if winner.slug}
-                          <a class="history-name-pill history-name-pill--table" href={getPlayerHref(winner.slug)}>
+                          <a class="history-name-pill history-name-pill--table mm-pill-link" href={getPlayerHref(winner.slug)}>
                             {winner.name}
                           </a>
                         {:else}
-                          <span class="history-name-pill history-name-pill--table is-static">{winner.name || '--'}</span>
+                          <span class="history-name-pill history-name-pill--table mm-pill is-static">{winner.name || '--'}</span>
                         {/if}
                       </td>
                       <td class="history-table-value">{winner.winningScore ?? '--'}</td>
@@ -244,17 +244,17 @@
         </section>
       </div>
     {:else if selectedTab === 'seasons'}
-      <section class="history-panel">
-        <div class="history-section-header history-section-header--season">
+      <section class="history-panel mm-panel-surface">
+        <div class="history-section-header history-section-header--season mm-panel-header-inline">
           <div>
-            <p class="history-section-kicker">Season Archive</p>
-            <h2 class="history-section-title">Year-by-Year Standings</h2>
+            <p class="history-section-kicker mm-eyebrow">Season Archive</p>
+            <h2 class="history-section-title mm-panel-title">Year-by-Year Standings</h2>
           </div>
         </div>
 
         <div class="history-season-showcase">
           <div class="history-season-selector-panel">
-            <p class="history-section-kicker">Season Selector</p>
+            <p class="history-section-kicker mm-eyebrow">Season Selector</p>
             <div class="history-season-year">{selectedYear ?? '--'}</div>
             <p class="history-season-selector-copy">
               Choose a tournament year to update the podium and full standings table.
@@ -275,11 +275,11 @@
             {#each selectedSeasonPodiumDisplay as item}
               <div class={`history-podium-column history-podium-column--${item.slot}`}>
                 {#if item.standing.slug}
-                  <a class="history-name-pill history-name-pill--podium" href={getPlayerHref(item.standing.slug)}>
+                  <a class="history-name-pill history-name-pill--podium mm-pill-link" href={getPlayerHref(item.standing.slug)}>
                     {item.standing.name}
                   </a>
                 {:else}
-                  <span class="history-name-pill history-name-pill--podium is-static">{item.standing.name}</span>
+                  <span class="history-name-pill history-name-pill--podium mm-pill is-static">{item.standing.name}</span>
                 {/if}
 
                 <div class="history-podium-step">
@@ -309,15 +309,15 @@
                 {#each currentStandings as standing}
                   <tr class:champion-row={standing.rank === 1}>
                     <td>
-                      <span class="history-rank-pill history-rank-pill--compact">{getRankLabel(standing.rank)}</span>
+                      <span class="history-rank-pill history-rank-pill--compact mm-rank-pill is-accent">{getRankLabel(standing.rank)}</span>
                     </td>
                     <td class="history-table-name">
                       {#if standing.slug}
-                        <a class="history-name-pill history-name-pill--table" href={getPlayerHref(standing.slug)}>
+                        <a class="history-name-pill history-name-pill--table mm-pill-link" href={getPlayerHref(standing.slug)}>
                           {standing.name}
                         </a>
                       {:else}
-                        <span class="history-name-pill history-name-pill--table is-static">{standing.name}</span>
+                        <span class="history-name-pill history-name-pill--table mm-pill is-static">{standing.name}</span>
                       {/if}
                     </td>
                     <td class="history-table-value">{standing.totalPoints ?? '--'}</td>
@@ -336,11 +336,11 @@
         </div>
       </section>
     {:else}
-      <section class="history-panel">
-        <div class="history-section-header history-section-header--players">
+      <section class="history-panel mm-panel-surface">
+        <div class="history-section-header history-section-header--players mm-panel-header-inline">
           <div>
-            <p class="history-section-kicker">Players</p>
-            <h2 class="history-section-title">Directory and Record Book</h2>
+            <p class="history-section-kicker mm-eyebrow">Players</p>
+            <h2 class="history-section-title mm-panel-title">Directory and Record Book</h2>
           </div>
 
           <div class="history-player-toolbar">
@@ -354,7 +354,7 @@
                 class="history-search"
               />
             </label>
-            <div class="history-section-tag">{filteredPlayers.length} players</div>
+            <div class="history-section-tag mm-section-tag">{filteredPlayers.length} players</div>
           </div>
         </div>
 
@@ -376,7 +376,7 @@
                 {#each displayedPlayers as player}
                   <tr class:champion-row={player.titles > 0}>
                     <td class="history-table-name">
-                      <a class="history-name-pill history-name-pill--table" href={getPlayerHref(player.slug)}>
+                      <a class="history-name-pill history-name-pill--table mm-pill-link" href={getPlayerHref(player.slug)}>
                         {player.name}
                       </a>
                     </td>
@@ -416,49 +416,8 @@
     width: min(100%, 86rem);
   }
 
-  .history-shell {
-    display: grid;
-    gap: 1.15rem;
-    padding: 1.25rem;
-    overflow: hidden;
-    background: rgba(10, 10, 11, 0.96);
-  }
-
-  .history-hero {
-    display: grid;
-    gap: 1.4rem;
-    padding: 0.15rem 0 0.1rem;
-    overflow: hidden;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .history-hero-copy {
-    max-width: 42rem;
-  }
-
-  .history-kicker,
-  .history-section-kicker {
-    margin: 0;
-    color: var(--mm-subtle);
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-  }
-
   .history-title {
-    margin: 0.4rem 0 0;
-    color: var(--mm-text);
     font-size: clamp(1.9rem, 3.4vw, 2.9rem);
-    font-weight: 700;
-    line-height: 1;
-  }
-
-  .history-subtitle {
-    margin: 0.55rem 0 0;
-    color: var(--mm-muted);
-    font-size: 0.98rem;
-    line-height: 1.5;
   }
 
   .history-summary-grid {
@@ -467,8 +426,6 @@
     gap: 0.9rem;
   }
 
-  .history-stat-card,
-  .history-panel,
   .history-season-selector-panel,
   .history-podium-board {
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -477,67 +434,20 @@
   }
 
   .history-stat-card {
-    display: grid;
     gap: 0.25rem;
-    padding: 1rem 1.1rem;
-    border-radius: 1rem;
   }
 
   .history-stat-label {
     color: var(--mm-muted);
-    font-size: 0.82rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
   }
 
   .history-stat-value {
     color: var(--mm-text);
-    font-size: clamp(1.7rem, 4vw, 2.45rem);
-    font-weight: 700;
-    line-height: 1;
   }
 
   .history-stat-detail {
     color: var(--mm-subtle);
     font-size: 0.88rem;
-  }
-
-  .history-tab-row {
-    display: flex;
-    gap: 0.55rem;
-    padding: 0;
-    overflow-x: auto;
-  }
-
-  .history-tab {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.4rem;
-    padding: 0.45rem 0.95rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
-    color: var(--mm-muted);
-    font-size: 0.84rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
-  }
-
-  .history-tab:hover {
-    color: var(--mm-text);
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.16);
-  }
-
-  .history-tab.is-active {
-    color: #f59e0b;
-    border-color: rgba(245, 158, 11, 0.28);
-    background: rgba(245, 158, 11, 0.08);
   }
 
   .history-overview-grid {
@@ -546,42 +456,8 @@
     gap: 1rem;
   }
 
-  .history-panel {
-    padding: 1.15rem;
-    border-radius: 1.35rem;
-    overflow: hidden;
-  }
-
-  .history-section-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
   .history-section-title {
-    margin: 0.34rem 0 0;
-    color: var(--mm-text);
     font-size: clamp(1.35rem, 2.4vw, 1.8rem);
-    font-weight: 700;
-    line-height: 1.05;
-  }
-
-  .history-section-tag {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.42rem 0.78rem;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--mm-muted);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    white-space: nowrap;
   }
 
   .history-title-list {
@@ -613,51 +489,10 @@
     flex: 1 1 auto;
   }
 
-  .history-rank-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 4rem;
-    padding: 0.38rem 0.78rem;
-    border-radius: 999px;
-    border: 1px solid rgba(245, 158, 11, 0.22);
-    background: linear-gradient(180deg, rgba(245, 158, 11, 0.16), rgba(180, 83, 9, 0.08));
-    color: #fcd34d;
-    font-size: 0.92rem;
-    font-weight: 700;
-    line-height: 1;
-  }
-
   .history-rank-pill--compact {
     min-width: 3.45rem;
     padding: 0.32rem 0.58rem;
     font-size: 0.8rem;
-  }
-
-  .history-name-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: fit-content;
-    max-width: 100%;
-    padding: 0.38rem 0.9rem;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--mm-text);
-    font-size: 0.95rem;
-    font-weight: 600;
-    line-height: 1.2;
-    text-align: center;
-  }
-
-  .history-name-pill:hover {
-    border-color: rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .history-name-pill.is-static {
-    cursor: default;
   }
 
   .history-name-pill--wide,
@@ -1087,15 +922,8 @@
       font-size: 0.93rem;
     }
 
-    .history-summary-grid,
-    .history-tab-row {
-      flex-direction: column;
-      overflow: visible;
-      padding: 0;
-    }
-
-    .history-tab {
-      width: 100%;
+    .history-summary-grid {
+      grid-template-columns: 1fr;
     }
 
     .history-section-header,

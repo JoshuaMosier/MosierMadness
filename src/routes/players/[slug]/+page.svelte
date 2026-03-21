@@ -13,84 +13,84 @@
 </svelte:head>
 
 <div class="mm-page player-page">
-  <div class="player-shell mm-shell">
-    <section class="player-hero">
-      <div class="player-hero-copy">
+  <div class="player-shell mm-shell mm-page-shell">
+    <section class="player-hero mm-page-hero">
+      <div class="player-hero-copy mm-page-hero-copy">
         <a class="player-back-link" href="/past-winners">Back to Hall of Champions</a>
-        <h1 class="player-title">{person.displayName}</h1>
-        <p class="player-subtitle">
+        <h1 class="player-title mm-page-title">{person.displayName}</h1>
+        <p class="player-subtitle mm-page-subtitle">
           Historical profile pages focus on legacy tournament results, titles, aliases, and year-by-year finishes.
         </p>
       </div>
     </section>
 
     <section class="player-summary-grid">
-      <div class="player-stat-card">
-        <span class="player-stat-label">Titles</span>
-        <strong class="player-stat-value">{summary.titles}</strong>
+      <div class="player-stat-card mm-stat-card">
+        <span class="player-stat-label mm-stat-label">Titles</span>
+        <strong class="player-stat-value mm-stat-value">{summary.titles}</strong>
       </div>
-      <div class="player-stat-card">
-        <span class="player-stat-label">Appearances</span>
-        <strong class="player-stat-value">{summary.appearances}</strong>
+      <div class="player-stat-card mm-stat-card">
+        <span class="player-stat-label mm-stat-label">Appearances</span>
+        <strong class="player-stat-value mm-stat-value">{summary.appearances}</strong>
       </div>
-      <div class="player-stat-card">
-        <span class="player-stat-label">Avg Pctile</span>
-        <strong class="player-stat-value">{summary.averagePercentile ? `${summary.averagePercentile}%` : 'N/A'}</strong>
+      <div class="player-stat-card mm-stat-card">
+        <span class="player-stat-label mm-stat-label">Avg Pctile</span>
+        <strong class="player-stat-value mm-stat-value">{summary.averagePercentile ? `${summary.averagePercentile}%` : 'N/A'}</strong>
       </div>
-      <div class="player-stat-card">
-        <span class="player-stat-label">Avg Finish</span>
-        <strong class="player-stat-value">{summary.averageFinish || 'N/A'}</strong>
+      <div class="player-stat-card mm-stat-card">
+        <span class="player-stat-label mm-stat-label">Avg Finish</span>
+        <strong class="player-stat-value mm-stat-value">{summary.averageFinish || 'N/A'}</strong>
       </div>
-      <div class="player-stat-card">
-        <span class="player-stat-label">Best Finish</span>
-        <strong class="player-stat-value">{summary.bestFinish || 'N/A'}</strong>
+      <div class="player-stat-card mm-stat-card">
+        <span class="player-stat-label mm-stat-label">Best Finish</span>
+        <strong class="player-stat-value mm-stat-value">{summary.bestFinish || 'N/A'}</strong>
       </div>
-      <div class="player-stat-card">
-        <span class="player-stat-label">Avg Score</span>
-        <strong class="player-stat-value">{summary.averageScore || 'N/A'}</strong>
+      <div class="player-stat-card mm-stat-card">
+        <span class="player-stat-label mm-stat-label">Avg Score</span>
+        <strong class="player-stat-value mm-stat-value">{summary.averageScore || 'N/A'}</strong>
       </div>
-      <div class="player-stat-card">
-        <span class="player-stat-label">Best Score</span>
-        <strong class="player-stat-value">{summary.bestScore || 'N/A'}</strong>
+      <div class="player-stat-card mm-stat-card">
+        <span class="player-stat-label mm-stat-label">Best Score</span>
+        <strong class="player-stat-value mm-stat-value">{summary.bestScore || 'N/A'}</strong>
       </div>
     </section>
 
     <section class="player-meta-grid">
-      <div class="player-panel">
-        <div class="player-panel-header">
+      <div class="player-panel mm-panel-surface">
+        <div class="player-panel-header mm-panel-header-inline">
           <div>
-            <p class="player-section-kicker">Titles</p>
-            <h2 class="player-section-title">Championship Years</h2>
+            <p class="player-section-kicker mm-eyebrow">Titles</p>
+            <h2 class="player-section-title mm-panel-title">Championship Years</h2>
           </div>
         </div>
 
         {#if titleYears.length}
-          <div class="player-chip-row">
+          <div class="player-chip-row mm-chip-row">
             {#each titleYears as year}
-              <span class="player-chip player-chip--gold">{year}</span>
+              <span class="player-chip player-chip--gold mm-pill">{year}</span>
             {/each}
           </div>
         {:else}
-          <p class="player-empty-copy">No titles recorded.</p>
+          <p class="player-empty-copy mm-empty-copy">No titles recorded.</p>
         {/if}
       </div>
 
-      <div class="player-panel">
-        <div class="player-panel-header">
+      <div class="player-panel mm-panel-surface">
+        <div class="player-panel-header mm-panel-header-inline">
           <div>
-            <p class="player-section-kicker">Archive</p>
-            <h2 class="player-section-title">Known Aliases</h2>
+            <p class="player-section-kicker mm-eyebrow">Archive</p>
+            <h2 class="player-section-title mm-panel-title">Known Aliases</h2>
           </div>
         </div>
 
         {#if aliases.length}
-          <div class="player-chip-row">
+          <div class="player-chip-row mm-chip-row">
             {#each aliases as alias}
-              <span class="player-chip">{alias}</span>
+              <span class="player-chip mm-pill">{alias}</span>
             {/each}
           </div>
         {:else}
-          <p class="player-empty-copy">No alternate names recorded.</p>
+          <p class="player-empty-copy mm-empty-copy">No alternate names recorded.</p>
         {/if}
       </div>
     </section>
@@ -98,8 +98,8 @@
     <section class="player-results-shell mm-table-shell">
       <div class="player-results-header">
         <div>
-          <p class="player-section-kicker">Archive</p>
-          <h2 class="player-section-title">Year-by-Year Results</h2>
+          <p class="player-section-kicker mm-eyebrow">Archive</p>
+          <h2 class="player-section-title mm-panel-title">Year-by-Year Results</h2>
         </div>
       </div>
 
@@ -145,16 +145,11 @@
 
 <style>
   .player-shell {
-    display: grid;
-    gap: 1.15rem;
     padding: 1.35rem;
-    overflow: hidden;
-    background: rgba(10, 10, 11, 0.96);
   }
 
   .player-hero {
-    padding: 0.15rem 0 0.15rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 0.15rem;
   }
 
   .player-hero-copy {
@@ -177,19 +172,14 @@
   }
 
   .player-title {
-    margin: 0.55rem 0 0;
-    color: var(--mm-text);
+    margin-top: 0.55rem;
     font-size: clamp(2.1rem, 4vw, 3.25rem);
-    font-weight: 700;
     line-height: 0.98;
   }
 
   .player-subtitle {
-    margin: 0.75rem 0 0;
+    margin-top: 0.75rem;
     max-width: 42rem;
-    color: var(--mm-muted);
-    font-size: 0.98rem;
-    line-height: 1.55;
   }
 
   .player-summary-grid {
@@ -198,35 +188,17 @@
     gap: 0.9rem;
   }
 
-  .player-stat-card,
-  .player-panel {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(14, 14, 15, 0.9);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  }
-
   .player-stat-card {
-    display: grid;
     gap: 0.32rem;
-    padding: 1rem 1rem 0.95rem;
-    border-radius: 1rem;
   }
 
-  .player-stat-label,
-  .player-section-kicker {
-    margin: 0;
-    color: var(--mm-subtle);
-    font-size: 0.76rem;
-    font-weight: 700;
+  .player-stat-label {
     letter-spacing: 0.16em;
-    text-transform: uppercase;
   }
 
   .player-stat-value {
     color: #f8d27b;
     font-size: clamp(1.85rem, 3vw, 2.4rem);
-    font-weight: 700;
-    line-height: 1;
   }
 
   .player-meta-grid {
@@ -238,11 +210,8 @@
   .player-panel {
     display: grid;
     gap: 0.95rem;
-    padding: 1.2rem;
-    border-radius: 1.35rem;
   }
 
-  .player-panel-header,
   .player-results-header {
     display: flex;
     align-items: flex-start;
@@ -251,44 +220,17 @@
   }
 
   .player-section-title {
-    margin: 0.35rem 0 0;
-    color: var(--mm-text);
     font-size: clamp(1.35rem, 2.5vw, 1.9rem);
-    font-weight: 700;
-    line-height: 1.05;
-  }
-
-  .player-chip-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
   }
 
   .player-chip {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.15rem;
-    padding: 0.42rem 0.88rem;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--mm-text);
     font-size: 0.92rem;
-    font-weight: 600;
-    line-height: 1.2;
   }
 
   .player-chip--gold {
     border-color: rgba(245, 158, 11, 0.24);
     background: rgba(245, 158, 11, 0.1);
     color: #fcd34d;
-  }
-
-  .player-empty-copy {
-    margin: 0;
-    color: var(--mm-muted);
-    font-size: 0.96rem;
   }
 
   .player-results-shell {
