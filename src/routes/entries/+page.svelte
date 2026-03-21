@@ -31,6 +31,7 @@
 {:else if showBracketView}
   <EntrantBracketView
     entries={data.entries}
+    liveBracketData={data.liveBracketData}
     selectedEntrantId={data.selectedEntrantId}
     selectedBracketData={data.selectedBracketData}
   />

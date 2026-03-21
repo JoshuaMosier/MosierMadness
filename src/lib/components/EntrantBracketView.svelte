@@ -1,17 +1,35 @@
 <script lang="ts">
+  import { replaceState } from '$app/navigation';
   import { fade } from 'svelte/transition';
   import { FADE_CONTENT } from '$lib/constants/transitions';
+  import { buildEntrantBracketData } from '$lib/utils/entrantBracketProjection';
   import BracketFrame from './BracketFrame.svelte';
   import BracketView from './BracketView.svelte';
-  import { goto } from '$app/navigation';
 
   export let entries: any[] = [];
+  export let liveBracketData: any = null;
   export let selectedEntrantId: string = '';
   export let selectedBracketData: any = null;
+
+  let activeEntrantId = selectedEntrantId;
+  let activeBracketData = selectedBracketData;
+  let syncedEntrantId = selectedEntrantId;
+  let syncedBracketData = selectedBracketData;
+
+  $: if (selectedEntrantId !== syncedEntrantId || selectedBracketData !== syncedBracketData) {
+    activeEntrantId = selectedEntrantId;
+    activeBracketData = selectedBracketData;
+    syncedEntrantId = selectedEntrantId;
+    syncedBracketData = selectedBracketData;
+  }
 
   $: sortedEntries = entries
     .filter(entry => entry.brackets[0]?.is_submitted)
     .sort((a, b) => a.first_name.localeCompare(b.first_name));
+
+  function getSelectedParam(entry: any): string {
+    return `${entry.first_name}|${entry.last_name}`;
+  }
 
   function handleEntrantChange(event: Event): void {
     const nextEntryId = (event.currentTarget as HTMLSelectElement).value;
@@ -20,12 +38,17 @@
       return;
     }
 
-    goto(`/entries?selected=${entry.first_name}|${entry.last_name}`);
+    activeEntrantId = entry.id || entry.entryId;
+    activeBracketData = buildEntrantBracketData(entry.brackets?.[0], liveBracketData);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('selected', getSelectedParam(entry));
+    replaceState(url, {});
   }
 </script>
 
 <div class="mm-page">
-  {#if selectedEntrantId && selectedBracketData}
+  {#if activeEntrantId && activeBracketData}
     <div class="bracket-toolbar bracket-toolbar--mobile" in:fade={FADE_CONTENT}>
       <div class="bracket-toolbar__meta">
         <label for="entrant-select-mobile" class="bracket-toolbar__label">
@@ -36,7 +59,7 @@
 
       <select
         id="entrant-select-mobile"
-        value={selectedEntrantId}
+        value={activeEntrantId}
         class="mm-select bracket-toolbar__select"
         on:change={handleEntrantChange}
       >
@@ -52,7 +75,7 @@
     <BracketFrame>
       <BracketView
         mode="view"
-        bracketData={selectedBracketData}
+        bracketData={activeBracketData}
         isLocked={true}
         showScores={false}
       >
@@ -61,7 +84,7 @@
             <label for="entrant-select" class="entrant-select-overlay__label">Select an entrant</label>
             <select
               id="entrant-select"
-              value={selectedEntrantId}
+              value={activeEntrantId}
               class="mm-select entrant-select-overlay__control"
               on:change={handleEntrantChange}
             >
@@ -88,7 +111,7 @@
 
         <select
           id="entrant-select-empty"
-          value={selectedEntrantId}
+          value={activeEntrantId}
           class="mm-select bracket-toolbar__select"
           on:change={handleEntrantChange}
         >

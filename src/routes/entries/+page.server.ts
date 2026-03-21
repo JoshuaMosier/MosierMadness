@@ -1,8 +1,9 @@
 import type { PageServerLoad } from './$types';
 import { getEntriesWithProfiles } from '$lib/server/tournament/entries';
-import { buildEntrantBracketData } from '$lib/server/tournament/projections';
+import { getLiveBracketProjection } from '$lib/server/tournament/projections';
 import { getTournamentSnapshot } from '$lib/server/tournament/snapshot';
 import { getTournamentSettings } from '$lib/server/tournament/settings';
+import { buildEntrantBracketData } from '$lib/utils/entrantBracketProjection';
 
 function isSubmittedEntry(entry: any): boolean {
   return Boolean(entry?.brackets?.[0]?.is_submitted);
@@ -60,11 +61,13 @@ export const load: PageServerLoad = async ({ url, depends, locals }) => {
   const selectedEntry =
     findEntryBySelection(entries, url.searchParams.get('selected')) ||
     findDefaultEntry(entries, user?.email ?? null);
+  const liveBracketData = getLiveBracketProjection(snapshot);
 
   return {
     entries,
     selectedEntrantId: selectedEntry?.id || '',
-    selectedBracketData: buildEntrantBracketData(selectedEntry?.brackets?.[0], snapshot),
+    selectedBracketData: buildEntrantBracketData(selectedEntry?.brackets?.[0], liveBracketData),
+    liveBracketData,
     tournamentSettings: settings,
   };
 };
