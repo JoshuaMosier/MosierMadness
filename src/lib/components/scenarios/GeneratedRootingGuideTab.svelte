@@ -234,36 +234,35 @@
 <div class="generated-rooting">
   <div class="generated-rooting-toolbar">
     <div class="generated-rooting-toolbar-row">
-      <div class="generated-rooting-select-row">
-        <label for="generatedUserSelect" class="generated-rooting-label">
-          {#if currentUserId && selectedEntry?.userId === currentUserId}
-            Your bracket:
-          {:else}
-            Select a bracket:
-          {/if}
-        </label>
-        <select
-          id="generatedUserSelect"
-          class="generated-rooting-select"
-          bind:value={selectedUserValue}
-          on:change={() => selectedUser = selectedUserValue || null}
-        >
-          <option value="" disabled selected={!selectedUser}>Select a bracket...</option>
-          {#each sortedEntries as entry}
-            <option value={entry.entryId}>
-              {getDisplayName(entry)}{entry.userId === currentUserId ? ' (You)' : ''}
-            </option>
-          {/each}
-        </select>
-      </div>
+      <label for="generatedUserSelect" class="generated-rooting-kicker">
+        {#if currentUserId && selectedEntry?.userId === currentUserId}
+          Your Bracket
+        {:else}
+          Bracket Focus
+        {/if}
+      </label>
+
+      <select
+        id="generatedUserSelect"
+        class="generated-rooting-select"
+        bind:value={selectedUserValue}
+        on:change={() => selectedUser = selectedUserValue || null}
+      >
+        <option value="" disabled selected={!selectedUser}>Select a bracket...</option>
+        {#each sortedEntries as entry}
+          <option value={entry.entryId}>
+            {getDisplayName(entry)}{entry.userId === currentUserId ? ' (You)' : ''}
+          </option>
+        {/each}
+      </select>
 
       {#if selectedEntry}
         <div class="generated-rooting-baseline">
-          <span class="generated-rooting-baseline-label">Baseline 1st-place chance:</span>
-          <span class="generated-rooting-baseline-count">
+          <span class="generated-rooting-baseline-label">1st-place chance</span>
+          <span class="generated-rooting-baseline-pill">
             {selectedEntry.firstPlaceCount.toLocaleString()} scenarios
           </span>
-          <span class="generated-rooting-baseline-pct">{selectedEntry.firstPlacePct.toFixed(2)}%</span>
+          <span class="generated-rooting-baseline-value">{selectedEntry.firstPlacePct.toFixed(2)}%</span>
         </div>
       {/if}
     </div>
@@ -370,35 +369,31 @@
 
   .generated-rooting-toolbar {
     margin-bottom: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    background: rgba(12, 12, 13, 0.72);
   }
 
   .generated-rooting-toolbar-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.9rem;
+    gap: 0.8rem;
   }
 
-  .generated-rooting-select-row {
-    display: flex;
-    min-width: 0;
-    flex: 1 1 26rem;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-
-  .generated-rooting-label {
-    flex-shrink: 0;
-    color: var(--mm-text);
-    font-size: 0.9rem;
-    font-weight: 600;
+  .generated-rooting-kicker {
+    flex: 0 0 auto;
+    color: var(--mm-subtle);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
   }
 
   .generated-rooting-select {
-    min-width: 0;
-    width: min(100%, 24rem);
+    min-width: 18rem;
+    flex: 1 1 22rem;
     min-height: 2.65rem;
     padding: 0.62rem 0.8rem;
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -409,32 +404,44 @@
 
   .generated-rooting-baseline {
     display: flex;
+    flex: 1 1 21rem;
+    min-width: 15rem;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.55rem;
-    padding: 0.7rem 0.85rem;
-    border: 1px solid rgba(180, 83, 9, 0.38);
-    border-radius: 0.95rem;
-    background: linear-gradient(135deg, rgba(41, 37, 36, 0.95), rgba(16, 16, 18, 0.94));
   }
 
   .generated-rooting-baseline-label {
-    color: var(--mm-muted);
-    font-size: 0.86rem;
+    color: var(--mm-subtle);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
-  .generated-rooting-baseline-count {
-    padding: 0.18rem 0.5rem;
-    border-radius: 999px;
-    background: rgba(245, 158, 11, 0.14);
-    color: #fbbf24;
-    font-size: 0.8rem;
+  .generated-rooting-baseline-pill,
+  .generated-rooting-baseline-value {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.2rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--mm-text);
+    font-size: 0.84rem;
     font-weight: 600;
   }
 
-  .generated-rooting-baseline-pct {
-    color: #f59e0b;
-    font-size: 1rem;
+  .generated-rooting-baseline-pill {
+    color: #fbbf24;
+  }
+
+  .generated-rooting-baseline-value {
+    border-color: rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+    font-size: 0.84rem;
     font-weight: 700;
   }
 
@@ -590,6 +597,21 @@
   }
 
   @media (max-width: 767px) {
+    .generated-rooting-toolbar-row {
+      align-items: stretch;
+    }
+
+    .generated-rooting-select,
+    .generated-rooting-baseline {
+      min-width: 0;
+      width: 100%;
+      flex-basis: 100%;
+    }
+
+    .generated-rooting-baseline {
+      justify-content: flex-start;
+    }
+
     .generated-rooting-shell {
       padding: 0.9rem;
     }

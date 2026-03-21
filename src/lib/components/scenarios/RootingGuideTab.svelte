@@ -22,51 +22,53 @@
 </script>
 
 <div class="rooting-guide">
-  <div class="rooting-guide-header">
-    <div class="rooting-guide-header-row">
-      <div class="rooting-guide-selector-block">
-        <label for="userSelect" class="rooting-guide-label">
-          {#if currentUser && selectedUser && entries.find(entry => entry.entryId === selectedUser && entry.user_id === currentUser.id)}
-            Your bracket is automatically selected:
-          {:else}
-            Select a bracket:
-          {/if}
-        </label>
-        <div class="rooting-guide-selector-row">
-          <select
-            id="userSelect"
-            class="rooting-guide-select"
-            bind:value={selectedUser}
-            on:change={handleUserChange}
-          >
-            <option value={null} disabled selected={!selectedUser}>Select a user...</option>
-            {#each entries.slice().sort((a, b) => {
-              const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
-              const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
-              return nameA.localeCompare(nameB);
-            }) as entry}
-              <option value={entry.entryId}>{entry.firstName} {entry.lastName}{entry.user_id === currentUser?.id ? ' (You)' : ''}</option>
-            {/each}
-          </select>
+  <div class="rooting-guide-toolbar">
+    <div class="rooting-guide-toolbar-row">
+      <label for="userSelect" class="rooting-guide-kicker">
+        {#if currentUser && selectedUser && entries.find(entry => entry.entryId === selectedUser && entry.user_id === currentUser.id)}
+          Your Bracket
+        {:else}
+          Bracket Focus
+        {/if}
+      </label>
 
-          {#if selectedUser && scenariosCalculated}
-            {#if targetPosition === 1}
-              <div class="rooting-guide-summary is-first">
-                <span class="rooting-guide-summary-label">Chances for 1st:</span>
-                <span class="rooting-guide-summary-pill">
-                  {(userWinCounts.find(u => u.entryId === selectedUser)?.winCount || 0).toLocaleString()} of {totalScenarios.toLocaleString()}
-                </span>
-                <span class="rooting-guide-summary-value">{(positionProbabilities.find(p => p.entryId === selectedUser)?.positionProbabilities[1] || 0).toFixed(1)}%</span>
-              </div>
-            {:else}
-              <div class="rooting-guide-summary is-best-finish">
-                <span class="rooting-guide-summary-pill is-muted">No 1st place chance</span>
-                <span class="rooting-guide-summary-best">Best finish: <strong>{targetPosition}{getOrdinalSuffix(targetPosition)}</strong></span>
-              </div>
-            {/if}
-          {/if}
-        </div>
-      </div>
+      <select
+        id="userSelect"
+        class="rooting-guide-select"
+        bind:value={selectedUser}
+        on:change={handleUserChange}
+      >
+        <option value={null} disabled selected={!selectedUser}>Select a user...</option>
+        {#each entries.slice().sort((a, b) => {
+          const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+          const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+          return nameA.localeCompare(nameB);
+        }) as entry}
+          <option value={entry.entryId}>{entry.firstName} {entry.lastName}{entry.user_id === currentUser?.id ? ' (You)' : ''}</option>
+        {/each}
+      </select>
+
+      {#if selectedUser && scenariosCalculated}
+        {#if targetPosition === 1}
+          <div class="rooting-guide-baseline">
+            <span class="rooting-guide-baseline-label">1st-place chance</span>
+            <span class="rooting-guide-baseline-pill">
+              {(userWinCounts.find(u => u.entryId === selectedUser)?.winCount || 0).toLocaleString()} of {totalScenarios.toLocaleString()}
+            </span>
+            <span class="rooting-guide-baseline-value">
+              {(positionProbabilities.find(p => p.entryId === selectedUser)?.positionProbabilities[1] || 0).toFixed(1)}%
+            </span>
+          </div>
+        {:else}
+          <div class="rooting-guide-baseline is-muted">
+            <span class="rooting-guide-baseline-label">Best live path</span>
+            <span class="rooting-guide-baseline-pill is-muted">No 1st-place chance</span>
+            <span class="rooting-guide-baseline-value">
+              {targetPosition}{getOrdinalSuffix(targetPosition)}
+            </span>
+          </div>
+        {/if}
+      {/if}
     </div>
   </div>
 
@@ -195,98 +197,87 @@
     gap: 1rem;
   }
 
-  .rooting-guide-header {
+  .rooting-guide-toolbar {
     padding: 1rem 1.05rem;
-    border: 1px solid rgba(245, 158, 11, 0.12);
-    border-radius: 1.15rem;
-    background:
-      linear-gradient(180deg, rgba(53, 30, 8, 0.34), rgba(14, 14, 15, 0.96) 48%),
-      rgba(14, 14, 15, 0.96);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    background: rgba(12, 12, 13, 0.72);
   }
 
-  .rooting-guide-header-row {
+  .rooting-guide-toolbar-row {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 0.8rem;
   }
 
-  .rooting-guide-selector-block {
-    min-width: 0;
-  }
-
-  .rooting-guide-label {
-    display: block;
-    margin-bottom: 0.45rem;
-    color: var(--mm-text);
-    font-size: 0.82rem;
+  .rooting-guide-kicker {
+    flex: 0 0 auto;
+    color: var(--mm-subtle);
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
   }
 
-  .rooting-guide-selector-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
   .rooting-guide-select {
-    min-width: min(100%, 18rem);
+    min-width: 18rem;
+    flex: 1 1 22rem;
     min-height: 2.55rem;
-    padding: 0.55rem 0.9rem;
-    border: 1px solid rgba(245, 158, 11, 0.14);
-    border-radius: 0.95rem;
-    background: rgba(23, 18, 12, 0.78);
+    padding: 0.6rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.9rem;
+    background: rgba(17, 17, 18, 0.92);
     color: var(--mm-text);
   }
 
-  .rooting-guide-summary {
-    display: inline-flex;
+  .rooting-guide-baseline {
+    display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.55rem;
     flex-wrap: wrap;
-    min-height: 2.55rem;
-    padding: 0.45rem 0.7rem;
-    border-radius: 0.95rem;
-    border: 1px solid rgba(245, 158, 11, 0.24);
-    background: linear-gradient(180deg, rgba(120, 53, 15, 0.32), rgba(41, 24, 10, 0.9));
+    flex: 1 1 21rem;
+    min-width: 15rem;
   }
 
-  .rooting-guide-summary.is-best-finish {
-    border-color: rgba(180, 83, 9, 0.34);
-    background: linear-gradient(180deg, rgba(120, 53, 15, 0.26), rgba(28, 19, 12, 0.92));
+  .rooting-guide-baseline.is-muted {
+    color: var(--mm-muted);
   }
 
-  .rooting-guide-summary-label,
-  .rooting-guide-summary-best {
-    color: var(--mm-text);
-    font-size: 0.88rem;
+  .rooting-guide-baseline-label {
+    color: var(--mm-subtle);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
-  .rooting-guide-summary-pill {
+  .rooting-guide-baseline-pill,
+  .rooting-guide-baseline-value {
     display: inline-flex;
     align-items: center;
-    min-height: 1.75rem;
-    padding: 0.18rem 0.6rem;
-    border-radius: 999px;
-    background: rgba(245, 158, 11, 0.16);
-    color: #fcd34d;
-    font-size: 0.79rem;
+    min-height: 2.2rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--mm-text);
+    font-size: 0.84rem;
     font-weight: 700;
   }
 
-  .rooting-guide-summary-pill.is-muted {
-    background: rgba(120, 53, 15, 0.24);
+  .rooting-guide-baseline-pill {
     color: #fbbf24;
   }
 
-  .rooting-guide-summary-value,
-  .rooting-guide-summary-best strong {
-    color: #f59e0b;
-    font-size: 1.05rem;
-    font-weight: 700;
+  .rooting-guide-baseline-pill.is-muted {
+    color: var(--mm-muted);
+  }
+
+  .rooting-guide-baseline-value {
+    border-color: rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
   }
 
   .rooting-guide-grid {
@@ -447,6 +438,23 @@
   @media (min-width: 1280px) {
     .rooting-guide-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 767px) {
+    .rooting-guide-toolbar-row {
+      align-items: stretch;
+    }
+
+    .rooting-guide-select,
+    .rooting-guide-baseline {
+      min-width: 0;
+      width: 100%;
+      flex-basis: 100%;
+    }
+
+    .rooting-guide-baseline {
+      justify-content: flex-start;
     }
   }
 </style>

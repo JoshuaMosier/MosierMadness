@@ -3,14 +3,14 @@
   import { supabase } from '$lib/supabase';
   import FullStandingsTab from '$lib/components/scenarios/FullStandingsTab.svelte';
   import GeneratedRootingGuideTab from '$lib/components/scenarios/GeneratedRootingGuideTab.svelte';
-  import WinChancesTab from '$lib/components/scenarios/WinChancesTab.svelte';
   import type { GeneratedScenarioArtifact, GeneratedScenarioEntry, GeneratedScenarioGamePreview } from '$lib/types';
 
   export let artifact: GeneratedScenarioArtifact | null = null;
 
-  let selectedTab = 'win';
+  let selectedTab = 'standings';
   let displayMode = 'percent';
   let currentUserId: string | null = null;
+  let currentUserEntryId: string | null = null;
   let selectedUser: string | null = null;
   let selectedPreviewGameValue = '';
   let selectedPreviewWinner: 'A' | 'B' | null = null;
@@ -20,17 +20,6 @@
   }
 
   function getActiveEntries(sourceEntries: GeneratedScenarioEntry[], scenarioTotal: number) {
-    const userWinCounts = sourceEntries
-      .map((entry) => ({
-        entryId: entry.entryId,
-        displayName: getDisplayName(entry),
-        firstName: entry.firstName ?? '',
-        lastName: entry.lastName ?? '',
-        winCount: entry.firstPlaceCount,
-        winProbability: entry.firstPlacePct,
-      }))
-      .sort((left, right) => right.winProbability - left.winProbability);
-
     const positionProbabilities = sourceEntries.map((entry) => {
       const positions: Record<number, number> = {};
       const positionPercentages: Record<number, number> = {};
@@ -49,7 +38,7 @@
       };
     });
 
-    return { userWinCounts, positionProbabilities };
+    return { positionProbabilities };
   }
 
   function getPreviewLabel(game: GeneratedScenarioGamePreview | null, winner: 'A' | 'B' | null): string | null {
@@ -84,7 +73,7 @@
   $: totalScenarios = effectivePreviewOutcome?.totalScenarios ?? artifact?.totalScenarios ?? 0;
   $: activeEntries = effectivePreviewOutcome?.entries ?? entries;
   $: activeSnapshotLabel = previewModeActive ? getPreviewLabel(selectedPreviewGame, selectedPreviewWinner) : null;
-  $: ({ userWinCounts, positionProbabilities } = getActiveEntries(activeEntries, totalScenarios));
+  $: ({ positionProbabilities } = getActiveEntries(activeEntries, totalScenarios));
 
   onMount(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -96,6 +85,7 @@
 
     const ownEntry = entries.find((entry) => entry.userId === currentUserId);
     if (ownEntry) {
+      currentUserEntryId = ownEntry.entryId;
       selectedUser = ownEntry.entryId;
       if (previewGames.length > 0) {
         selectedTab = 'root';
@@ -111,7 +101,7 @@
         <div class="generated-scenarios-badge">Generated Snapshot</div>
         <h2 class="generated-scenarios-title">Tournament Outcome Probabilities</h2>
         <p class="generated-scenarios-subtitle">
-          Use Win Chances for title odds, Full Standings for every finishing position, and Rooting Guide to see which currently known outcomes help a bracket most.
+          Use Standings for title odds, finish ranges, and the full matrix view, and Rooting Guide to see which currently known outcomes help a bracket most.
         </p>
       </div>
 
@@ -127,16 +117,10 @@
   <div class="generated-scenarios-body">
     <div class="generated-scenarios-tabs">
       <button
-        class={`generated-scenarios-tab ${selectedTab === 'win' ? 'is-active' : ''}`}
-        on:click={() => selectedTab = 'win'}
+        class={`generated-scenarios-tab ${selectedTab === 'standings' ? 'is-active' : ''}`}
+        on:click={() => selectedTab = 'standings'}
       >
-        Win Chances
-      </button>
-      <button
-        class={`generated-scenarios-tab ${selectedTab === 'full' ? 'is-active' : ''}`}
-        on:click={() => selectedTab = 'full'}
-      >
-        Full Standings
+        Standings
       </button>
       {#if previewGames.length > 0}
         <button
@@ -199,14 +183,13 @@
       </div>
     {/if}
 
-    {#if selectedTab === 'win'}
-      <WinChancesTab {userWinCounts} />
-    {:else if selectedTab === 'full'}
+    {#if selectedTab === 'standings'}
       <FullStandingsTab
         {positionProbabilities}
         {totalScenarios}
         numEntries={activeEntries.length}
         bind:displayMode
+        {currentUserEntryId}
       />
     {:else}
       <GeneratedRootingGuideTab

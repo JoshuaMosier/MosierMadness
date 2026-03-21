@@ -8,7 +8,6 @@
   import { getTeamNameFromSelection } from '$lib/utils/bracketUtils';
   import { getTeamsForGame, runSimulation, aggregateRootFor } from '$lib/utils/scenarioEngine';
   import MatchSelector from '$lib/components/scenarios/MatchSelector.svelte';
-  import WinChancesTab from '$lib/components/scenarios/WinChancesTab.svelte';
   import FullStandingsTab from '$lib/components/scenarios/FullStandingsTab.svelte';
   import GeneratedScenariosPage from '$lib/components/scenarios/GeneratedScenariosPage.svelte';
   import RootingGuideTab from '$lib/components/scenarios/RootingGuideTab.svelte';
@@ -29,7 +28,7 @@
   let simulationInProgress = false;
   let scenariosCalculated = false;
   let totalScenarios = 0;
-  let selectedTab = 'win';
+  let selectedTab = 'standings';
   let displayMode = 'percent';
   let currentUser: any = null;
 
@@ -47,6 +46,7 @@
   let teamWinContributions: Record<number, any> = {};
   let targetPosition = 1;
   let bestPossibleFinish = 1;
+  let currentUserEntryId: string | null = null;
 
   // Engine state for Root For aggregation
   let storedScenarioPositions: Uint8Array | null = null;
@@ -73,6 +73,7 @@
       if (currentUser) {
         const userEntry = entries.find(entry => entry.user_id === currentUser.id);
         if (userEntry) {
+          currentUserEntryId = userEntry.entryId;
           selectedUser = userEntry.entryId;
           calculateTeamContributions(selectedUser);
           selectedTab = 'root';
@@ -324,7 +325,7 @@
             <p class="scenario-kicker">Scenarios</p>
             <h2 class="scenario-title">Tournament Outcome Probabilities</h2>
             <p class="scenario-subtitle">
-              Use Win Chances for title odds, Full Standings for every finishing position, and Rooting Guide to see which remaining outcomes help a bracket most. Use the game selector to preview specific paths.
+              Use Standings for title odds, finish ranges, and the full matrix view, and Rooting Guide to see which remaining outcomes help a bracket most. Use the game selector to preview specific paths.
             </p>
           </div>
         </div>
@@ -340,16 +341,10 @@
           {#if scenariosCalculated}
             <div class="scenario-tab-row">
               <button
-                class={`scenario-tab ${selectedTab === 'win' ? 'is-active' : ''}`}
-                on:click={() => selectedTab = 'win'}
+                class={`scenario-tab ${selectedTab === 'standings' ? 'is-active' : ''}`}
+                on:click={() => selectedTab = 'standings'}
               >
-                Win Chances
-              </button>
-              <button
-                class={`scenario-tab is-desktop ${selectedTab === 'full' ? 'is-active' : ''}`}
-                on:click={() => selectedTab = 'full'}
-              >
-                Full Standings
+                Standings
               </button>
               <button
                 class={`scenario-tab ${selectedTab === 'root' ? 'is-active' : ''}`}
@@ -360,16 +355,7 @@
             </div>
 
             <div class="scenario-panel">
-              {#if selectedTab === 'win'}
-                <div class="scenario-filter-block">
-                  <MatchSelector
-                    {matchSimulationDetails}
-                    onSelectWinner={handleSelectWinner}
-                    onReset={resetSelections}
-                  />
-                </div>
-                <WinChancesTab {userWinCounts} />
-              {:else if selectedTab === 'full'}
+              {#if selectedTab === 'standings'}
                 <div class="scenario-filter-block">
                   <MatchSelector
                     {matchSimulationDetails}
@@ -382,6 +368,7 @@
                   {totalScenarios}
                   numEntries={entries.length}
                   bind:displayMode
+                  {currentUserEntryId}
                 />
               {:else if selectedTab === 'root'}
                 <RootingGuideTab
@@ -594,10 +581,6 @@
 
     .scenario-tab {
       width: 100%;
-    }
-
-    .scenario-tab.is-desktop {
-      display: none;
     }
   }
 </style>
