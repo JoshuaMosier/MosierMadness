@@ -4,7 +4,7 @@
   import Navbar from '$lib/components/Navbar.svelte';
   import ScoreTicker from '$lib/components/ScoreTicker.svelte';
   import { injectAnalytics } from '@vercel/analytics/sveltekit';
-  import { invalidate, beforeNavigate, afterNavigate } from '$app/navigation';
+  import { invalidate, beforeNavigate, afterNavigate, disableScrollHandling } from '$app/navigation';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { dataRefreshSignal, initRealtimeRefresh } from '$lib/stores/realtimeUpdates';
@@ -99,7 +99,14 @@
     isNavigating = true;
   });
 
-  afterNavigate(() => {
+  afterNavigate((navigation) => {
+    const fromPath = navigation.from?.url.pathname;
+    const toPath = navigation.to?.url.pathname;
+
+    if (fromPath?.startsWith('/game/') && toPath?.startsWith('/game/')) {
+      disableScrollHandling();
+    }
+
     isNavigating = false;
     if (pendingInvalidate) {
       pendingInvalidate = false;
@@ -161,6 +168,23 @@
     };
   });
 </script>
+
+<div aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden;">
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <filter id="mmScoreLogoOutline" x="-20%" y="-20%" width="140%" height="140%">
+        <feMorphology operator="dilate" radius="1" in="SourceAlpha" result="blackThicken" />
+        <feFlood flood-color="black" result="blackOutline" />
+        <feComposite in="blackOutline" in2="blackThicken" operator="in" result="blackOutline" />
+        <feMorphology operator="dilate" radius="0.5" in="SourceAlpha" result="whiteThicken" />
+        <feFlood flood-color="#a1a1aa" result="whiteOutline" />
+        <feComposite in="whiteOutline" in2="whiteThicken" operator="in" result="whiteOutline" />
+        <feComposite in="whiteOutline" in2="blackOutline" operator="over" result="outlines" />
+        <feComposite in="SourceGraphic" in2="outlines" operator="over" />
+      </filter>
+    </defs>
+  </svg>
+</div>
 
 <div class="flex flex-col min-h-screen">
   <Navbar

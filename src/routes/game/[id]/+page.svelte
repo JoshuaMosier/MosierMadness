@@ -66,9 +66,7 @@
   let primaryGroups: PickGroup[] = [];
   let otherGroups: PickGroup[] = [];
   let pickGroups: PickGroup[] = [];
-  let totalPickCount = 0;
   let directPickCount = 0;
-  let otherPickCount = 0;
   let awayPickPercent = 50;
   let homePickPercent = 50;
   let stakeCards: StakeCard[] = [];
@@ -117,8 +115,6 @@
     }));
   $: pickGroups = [...primaryGroups, ...otherGroups];
   $: directPickCount = primaryGroups.reduce((total, group) => total + group.count, 0);
-  $: otherPickCount = otherGroups.reduce((total, group) => total + group.count, 0);
-  $: totalPickCount = pickGroups.reduce((total, group) => total + group.count, 0);
   $: awayPickPercent = directPickCount > 0 ? (primaryGroups[0]?.count || 0) / directPickCount * 100 : 50;
   $: homePickPercent = directPickCount > 0 ? 100 - awayPickPercent : 50;
   $: stakeCards = scenarioStakes && gameData
@@ -251,26 +247,18 @@
       <div class="game-detail-layout">
         <section class="game-matchup-panel">
           <div class="pick-share-panel">
-            <div class="pick-share-panel-header">
-              <p class="panel-kicker">Pick Share</p>
-              <div class="pick-share-chip-group">
-                <div class="pick-total-chip">{getPickCountLabel(totalPickCount)}</div>
-                {#if otherPickCount > 0}
-                  <div class="pick-other-chip">Other {otherPickCount}</div>
-                {/if}
-              </div>
-            </div>
+            <p class="panel-kicker pick-share-kicker">Pick Share</p>
 
-            <div class="pick-share-track">
-              <div class="pick-share-segment" style={getPickShareStyle(gameData.awayTeam, awayPickPercent)}></div>
-              <div class="pick-share-segment" style={getPickShareStyle(gameData.homeTeam, homePickPercent)}></div>
-            </div>
-
-            <div class="pick-share-legend">
+            <div class="pick-share-row">
               <div class="pick-share-item">
                 <span class="pick-share-swatch" style={getTeamColorVars(gameData.awayTeam)}></span>
                 <span class="pick-share-name">{gameData.awayTeam.name}</span>
                 <strong class="pick-share-count">{teamSelections.away.length}</strong>
+              </div>
+
+              <div class="pick-share-track">
+                <div class="pick-share-segment" style={getPickShareStyle(gameData.awayTeam, awayPickPercent)}></div>
+                <div class="pick-share-segment" style={getPickShareStyle(gameData.homeTeam, homePickPercent)}></div>
               </div>
 
               <div class="pick-share-item is-home">
@@ -539,9 +527,7 @@
     text-transform: uppercase;
   }
 
-  .game-status-pill,
-  .pick-total-chip,
-  .pick-other-chip {
+  .game-status-pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -570,9 +556,7 @@
     color: var(--mm-text);
   }
 
-  .game-status-pill.is-pre,
-  .pick-total-chip,
-  .pick-other-chip {
+  .game-status-pill.is-pre {
     color: var(--mm-muted);
   }
 
@@ -582,28 +566,6 @@
     font-size: 1.35rem;
     font-weight: 700;
     line-height: 1.05;
-  }
-
-  .pick-share-panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 0.58rem;
-  }
-
-  .pick-share-chip-group {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.55rem;
-    flex-wrap: wrap;
-  }
-
-  .pick-other-chip {
-    border-color: rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.02);
-    letter-spacing: 0.1em;
   }
 
   .matchup-board {
@@ -646,8 +608,8 @@
   .matchup-side::before {
     content: '';
     position: absolute;
-    inset: 0 auto 0 0;
-    width: 4px;
+    inset: 0 0 auto 0;
+    height: 4px;
     background: rgb(var(--team-rgb));
     opacity: 0.9;
   }
@@ -662,10 +624,6 @@
     filter: blur(10px);
     opacity: 0.95;
     pointer-events: none;
-  }
-
-  .matchup-side.is-home::before {
-    inset: 0 0 0 auto;
   }
 
   .matchup-side.is-winner {
@@ -869,8 +827,23 @@
 
   .pick-share-panel {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
     padding: 0;
+    min-width: 0;
+  }
+
+  .pick-share-kicker {
+    flex-shrink: 0;
+  }
+
+  .pick-share-row {
+    min-width: 0;
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(7.5rem, 1.25fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 0.8rem;
   }
 
   .stakes-panel {
@@ -918,8 +891,8 @@
   .stakes-card::before {
     content: '';
     position: absolute;
-    inset: 0 auto 0 0;
-    width: 3px;
+    inset: 0 0 auto 0;
+    height: 3px;
     background: rgb(var(--team-rgb));
     opacity: 0.92;
   }
@@ -1070,14 +1043,6 @@
     background: rgb(var(--team-rgb));
   }
 
-  .pick-share-legend {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.8rem;
-    margin-top: 0.7rem;
-  }
-
   .pick-share-item {
     display: flex;
     align-items: center;
@@ -1089,7 +1054,6 @@
 
   .pick-share-item.is-home {
     justify-content: flex-end;
-    margin-left: auto;
   }
 
   .pick-share-swatch {
@@ -1134,7 +1098,7 @@
   .pick-group::before {
     content: '';
     position: absolute;
-    inset: 0 0 auto;
+    inset: 0 0 auto 0;
     height: 3px;
     background: rgb(var(--team-rgb));
     opacity: 0.88;
@@ -1281,13 +1245,9 @@
   }
 
   @media (max-width: 1023px) {
-    .pick-share-panel-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .pick-share-chip-group {
-      justify-content: flex-start;
+    .pick-share-row {
+      grid-template-columns: minmax(0, 1fr) minmax(6.5rem, 1fr) minmax(0, 1fr);
+      gap: 0.65rem;
     }
 
     .pick-group {
@@ -1306,14 +1266,23 @@
       overflow: visible;
     }
 
-    .pick-share-panel-header {
-      flex-direction: row;
-      align-items: center;
+    .pick-share-panel {
+      gap: 0.6rem;
     }
 
-    .pick-share-chip-group {
-      justify-content: flex-end;
+    .pick-share-row {
+      grid-template-columns: minmax(0, 1fr) minmax(5rem, 0.9fr) minmax(0, 1fr);
       gap: 0.45rem;
+    }
+
+    .pick-share-item {
+      gap: 0.35rem;
+      font-size: 0.82rem;
+    }
+
+    .pick-share-swatch {
+      width: 0.62rem;
+      height: 0.62rem;
     }
 
     .stakes-panel {
@@ -1402,13 +1371,6 @@
 
     .matchup-score {
       font-size: clamp(1.9rem, 8vw, 2.35rem);
-    }
-
-    .pick-share-legend {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.7rem;
     }
 
     .pick-share-item {
