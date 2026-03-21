@@ -7,6 +7,8 @@ import {
   sortLeaderboardScores,
 } from '$lib/utils/scoringUtils';
 import {
+  areEquivalentSelections,
+  formatTeamSelection,
   getTeamNameFromSelection,
 } from '$lib/utils/bracketUtils';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
