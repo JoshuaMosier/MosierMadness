@@ -18,7 +18,6 @@
     let startPos = { x: 0, y: 0 };
     let containerWidth = 0;
     let containerHeight = 0;
-    let mouseConstraint: Matter.MouseConstraint;
     let runner: Matter.Runner;
     let lastBallPosY = 0;
     let hasPassedRimTop = false;
@@ -31,6 +30,8 @@
     let highScore = typeof localStorage !== 'undefined' ? parseInt(localStorage.getItem('easter-egg-high-score') ?? '0', 10) : 0;
     let ballPath: { x: number; y: number }[] = [];
     let currentMouse = { x: 0, y: 0 };
+    let pointerIsDown = false;
+    let interactionLockedUntilRelease = false;
     const GRAVITY = 0.99;
     const TRAIL_LENGTH = 14;
 
@@ -449,22 +450,25 @@
 
     function resetBall() {
         ballPath = [];
+        isDragging = false;
+        interactionLockedUntilRelease = pointerIsDown;
+
+        Matter.Body.setStatic(ball, false);
         Matter.Body.setPosition(ball, {
             x: ballStartX,
             y: containerHeight - DEFAULT_Y - BALL_RADIUS
         });
         Matter.Body.setVelocity(ball, { x: 0, y: 0 });
         Matter.Body.setAngularVelocity(ball, 0);
+        lastBallPosY = containerHeight - DEFAULT_Y - BALL_RADIUS;
+        hasPassedRimTop = false;
+        isScoring = false;
 
         // Streak tracking: reset on miss
         if (!scoredThisShot && shotTaken) {
             streak = 0;
         }
 
-        // Re-enable ball interaction after reset
-        if (shotTaken) {
-            Matter.World.add(world, mouseConstraint);
-        }
         shotTaken = false;
         hitRimOrBackboard = false;
         scoredThisShot = false;
@@ -603,6 +607,7 @@
     // Shared pointer logic for mouse and touch
     function handlePointerDown(clientX: number, clientY: number) {
         if (!gameActive || shotsRemaining <= 0) return;
+        if (interactionLockedUntilRelease) return;
 
         const ballPos = ball.position;
         const containerRect = gameContainer.getBoundingClientRect();
@@ -615,8 +620,6 @@
             isDragging = true;
             startPos = { x: ballPos.x, y: ballPos.y };
             shotTaken = false;
-
-            Matter.World.remove(world, mouseConstraint);
             Matter.Body.setStatic(ball, true);
         }
     }
@@ -667,6 +670,7 @@
 
     // Mouse event handlers
     function handleMouseDown(event: MouseEvent) {
+        pointerIsDown = true;
         handlePointerDown(event.clientX, event.clientY);
     }
 
@@ -675,12 +679,15 @@
     }
 
     function handleMouseUp(event: MouseEvent) {
+        pointerIsDown = false;
+        interactionLockedUntilRelease = false;
         handlePointerUp(event.clientX, event.clientY);
     }
 
     // Touch event handlers
     function handleTouchStart(event: TouchEvent) {
         event.preventDefault();
+        pointerIsDown = true;
         const touch = event.touches[0];
         handlePointerDown(touch.clientX, touch.clientY);
     }
@@ -693,6 +700,8 @@
 
     function handleTouchEnd(event: TouchEvent) {
         event.preventDefault();
+        pointerIsDown = false;
+        interactionLockedUntilRelease = false;
         const touch = event.changedTouches[0];
         handlePointerUp(touch.clientX, touch.clientY);
     }
@@ -849,20 +858,6 @@
             ...createWalls(),
             ...netObjects
         ]);
-
-        // Mouse control
-        const mouse = Matter.Mouse.create(render.canvas);
-        mouseConstraint = Matter.MouseConstraint.create(engine, {
-            mouse: mouse,
-            constraint: {
-                stiffness: 0.2,
-                render: {
-                    visible: false
-                }
-            }
-        });
-        Matter.World.add(world, mouseConstraint);
-        render.mouse = mouse;
 
         // Start engine and renderer
         runner = Matter.Runner.create({
