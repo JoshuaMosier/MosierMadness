@@ -7,7 +7,7 @@ import { getTournamentSnapshot } from '$lib/server/tournament/snapshot';
 import { getTournamentSettings } from '$lib/server/tournament/settings';
 import { canViewGameDetails } from '$lib/utils/stageUtils';
 
-export const load: PageServerLoad = async ({ params, depends }) => {
+export const load: PageServerLoad = async ({ params, depends, fetch }) => {
   depends('app:tournament');
   const settings = await getTournamentSettings();
   if (!canViewGameDetails(settings.stage)) {
@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ params, depends }) => {
   const [snapshot, entries, generatedScenarioArtifact] = await Promise.all([
     getTournamentSnapshot(settings),
     getSubmittedEntries(settings.displaySeasonYear),
-    getGeneratedScenarioArtifact(),
+    getGeneratedScenarioArtifact(fetch),
   ]);
 
   const game = resolveGame(snapshot, params.id);
