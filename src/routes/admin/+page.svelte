@@ -359,6 +359,79 @@
   let archiveError: string | null = null;
   let archiveSuccess: string | null = null;
   let archiveConfirm = false;
+  let scenarioExporting = false;
+  let scenarioExportError: string | null = null;
+  let scenarioExportSuccess: string | null = null;
+  let scenarioExportSummary: any = null;
+  let scenarioExportPath: string | null = null;
+  let scenarioImporting = false;
+  let scenarioImportError: string | null = null;
+  let scenarioImportSuccess: string | null = null;
+  let scenarioImportSummary: any = null;
+
+  function downloadScenarioExport(fileName: string, payload: unknown): void {
+    const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  async function handleScenarioExport(): Promise<void> {
+    scenarioExporting = true;
+    scenarioExportError = null;
+    scenarioExportSuccess = null;
+
+    try {
+      const response = await fetch('/api/admin/scenario-export', { method: 'POST' });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Scenario export failed');
+      }
+
+      downloadScenarioExport(result.fileName, result.payload);
+      scenarioExportSummary = result.payload?.source || null;
+      scenarioExportPath = result.writtenPath || null;
+      scenarioExportSuccess = result.writeError
+        ? `Downloaded ${result.fileName}. Disk write failed: ${result.writeError}`
+        : result.writtenPath
+          ? `Downloaded ${result.fileName} and wrote ${result.writtenPath}.`
+          : `Downloaded ${result.fileName}.`;
+    } catch (err) {
+      scenarioExportError = err.message;
+    } finally {
+      scenarioExporting = false;
+    }
+  }
+
+  async function handleScenarioImport(): Promise<void> {
+    scenarioImporting = true;
+    scenarioImportError = null;
+    scenarioImportSuccess = null;
+
+    try {
+      const response = await fetch('/api/admin/scenario-import', { method: 'POST' });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Scenario import failed');
+      }
+
+      scenarioImportSummary = result.summary || null;
+      scenarioImportSuccess = result.summary?.sourceOutputPath
+        ? `Imported latest scenario results from ${result.summary.sourceOutputPath}.`
+        : 'Imported latest scenario results.';
+    } catch (err) {
+      scenarioImportError = err.message;
+    } finally {
+      scenarioImporting = false;
+    }
+  }
 
   async function handleArchiveSeason() {
     if (!archiveConfirm) {
@@ -790,6 +863,99 @@
               {/if}
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+      <h2 class="text-xl font-semibold text-zinc-100 mb-2">Scenario Pipeline</h2>
+      <p class="text-zinc-400 text-sm mb-4">
+        Export the live tournament snapshot, run the standalone exact engine in `bracket-scenarios`, then import the latest results back into the site artifact.
+      </p>
+
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div class="rounded-lg border border-zinc-800 bg-zinc-800/30 p-4">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <div>
+              <h3 class="text-base font-semibold text-zinc-100">1. Export Scenario Input</h3>
+              <p class="text-sm text-zinc-400 mt-1">
+                Freeze the live bracket state and submitted entries into a standalone input JSON.
+              </p>
+            </div>
+          </div>
+
+          <Alert message={scenarioExportError} compact class="mb-4" />
+
+          {#if scenarioExportSuccess}
+            <div class="mb-4 bg-emerald-950/40 border border-emerald-900 text-emerald-400 rounded-lg p-3">
+              {scenarioExportSuccess}
+            </div>
+          {/if}
+
+          {#if scenarioExportSummary}
+            <div class="mb-4 rounded-lg border border-zinc-800 bg-zinc-900/60 p-4 text-sm text-zinc-300 space-y-1">
+              <div>Entries: {scenarioExportSummary.entryCount}</div>
+              <div>Remaining games: {scenarioExportSummary.remainingGameCount}</div>
+              <div>Total possible outcomes: {scenarioExportSummary.totalPossibleOutcomes}</div>
+              {#if scenarioExportPath}
+                <div class="break-all text-zinc-400">Saved path: {scenarioExportPath}</div>
+              {/if}
+            </div>
+          {/if}
+
+          <button
+            class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-emerald-700 to-emerald-600 text-white font-medium disabled:opacity-50"
+            on:click={handleScenarioExport}
+            disabled={scenarioExporting}
+          >
+            {scenarioExporting ? 'Exporting...' : 'Export Scenario Input'}
+          </button>
+        </div>
+
+        <div class="rounded-lg border border-zinc-800 bg-zinc-800/30 p-4">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <div>
+              <h3 class="text-base font-semibold text-zinc-100">2. Import Latest Scenario Results</h3>
+              <p class="text-sm text-zinc-400 mt-1">
+                Pull the newest exact output from the standalone repo and overwrite the site artifact at `static/generated/scenarios/current.json`.
+              </p>
+            </div>
+          </div>
+
+          <div class="mb-4 rounded-lg border border-zinc-800 bg-zinc-900/60 p-4 text-sm text-zinc-400">
+            Run the standalone generator between steps 1 and 2, usually with `.\run-latest-export.bat`.
+          </div>
+
+          <Alert message={scenarioImportError} compact class="mb-4" />
+
+          {#if scenarioImportSuccess}
+            <div class="mb-4 bg-emerald-950/40 border border-emerald-900 text-emerald-400 rounded-lg p-3">
+              {scenarioImportSuccess}
+            </div>
+          {/if}
+
+          {#if scenarioImportSummary}
+            <div class="mb-4 rounded-lg border border-zinc-800 bg-zinc-900/60 p-4 text-sm text-zinc-300 space-y-1">
+              <div>Entries: {scenarioImportSummary.entryCount}</div>
+              <div>Preview games: {scenarioImportSummary.previewGameCount}</div>
+              <div>Unresolved games: {scenarioImportSummary.unresolvedGameCount}</div>
+              <div>Total scenarios: {scenarioImportSummary.totalScenarios?.toLocaleString?.() ?? scenarioImportSummary.totalScenarios}</div>
+              <div>Assumptions: {scenarioImportSummary.assumptionSummary}</div>
+              <div class="break-all text-zinc-400">Source output: {scenarioImportSummary.sourceOutputPath}</div>
+              {#if scenarioImportSummary.sourceInputPath}
+                <div class="break-all text-zinc-400">Source input: {scenarioImportSummary.sourceInputPath}</div>
+              {/if}
+              <div class="break-all text-zinc-400">Site artifact: {scenarioImportSummary.targetPath}</div>
+            </div>
+          {/if}
+
+          <button
+            class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-blue-700 to-blue-600 text-white font-medium disabled:opacity-50"
+            on:click={handleScenarioImport}
+            disabled={scenarioImporting}
+          >
+            {scenarioImporting ? 'Importing...' : 'Import Latest Scenario Results'}
+          </button>
         </div>
       </div>
     </div>

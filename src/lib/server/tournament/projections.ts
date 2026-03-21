@@ -7,10 +7,7 @@ import {
   sortLeaderboardScores,
 } from '$lib/utils/scoringUtils';
 import {
-  areEquivalentSelections,
-  formatTeamSelection,
   getTeamNameFromSelection,
-  includesEquivalentSelection,
 } from '$lib/utils/bracketUtils';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { getTeamColorSet } from '$lib/server/tournament/teamColors';
@@ -20,14 +17,8 @@ import type {
   EntryScore,
   LiveBracketData,
   LeaderboardProjection,
-  BracketMatch,
-  TeamInfo,
   ScoreboardGame,
 } from '$lib/types';
-
-function cloneTeam(team: TeamInfo | null): TeamInfo | null {
-  return team ? { ...team } : null;
-}
 
 function buildTeamSeoMap(snapshot: TournamentSnapshot): Record<string, string> {
   const teamSeoMap: Record<string, string> = {};
@@ -118,120 +109,6 @@ export function getLeaderboardProjection(entries: Entry[], snapshot: TournamentS
   };
 }
 
-function styleProjectedTeam(team: TeamInfo | null, status: string): TeamInfo | null {
-  if (!team) {
-    return null;
-  }
-
-  if (status === 'correct') {
-    return {
-      ...team,
-      color: '#22c55e',
-      secondaryColor: '#16a34a',
-    };
-  }
-
-  if (status === 'eliminated') {
-    return {
-      ...team,
-      color: '#ef4444',
-      secondaryColor: '#dc2626',
-    };
-  }
-
-  return {
-    ...team,
-    color: '#666666',
-    secondaryColor: '#666666',
-  };
-}
-
-export function buildEntrantBracketData(selectedBracket: Entry | null, snapshot: TournamentSnapshot): LiveBracketData | null {
-  if (!selectedBracket) {
-    return null;
-  }
-
-  const selections = selectedBracket.selections || [];
-  const liveBracketData = getLiveBracketProjection(snapshot);
-  const eliminatedTeams = new Set(getEliminatedTeams(liveBracketData));
-  const matches: Record<number, BracketMatch> = {};
-
-  for (let i = 0; i < 32; i++) {
-    const liveMatch = snapshot.bracketMatches[i + 1];
-    matches[i + 1] = {
-      ...liveMatch,
-      teamA: cloneTeam(liveMatch?.teamA),
-      teamB: cloneTeam(liveMatch?.teamB),
-      winner: selections[i]
-        ? areEquivalentSelections(selections[i], formatTeamSelection(liveMatch?.teamA))
-          ? 'A'
-          : areEquivalentSelections(selections[i], formatTeamSelection(liveMatch?.teamB))
-            ? 'B'
-            : null
-        : null,
-    };
-  }
-
-  for (let i = 32; i < 63; i++) {
-    const prevRoundMatchA = Math.floor((i - 32) * 2) + 1;
-    const prevRoundMatchB = prevRoundMatchA + 1;
-    const prevMatchA = matches[prevRoundMatchA];
-    const prevMatchB = matches[prevRoundMatchB];
-    const projectedTeamA = prevMatchA?.winner === 'A' ? prevMatchA.teamA : prevMatchA?.winner === 'B' ? prevMatchA.teamB : null;
-    const projectedTeamB = prevMatchB?.winner === 'A' ? prevMatchB.teamA : prevMatchB?.winner === 'B' ? prevMatchB.teamB : null;
-    const liveMatch = snapshot.bracketMatches[i + 1];
-
-    const projectedSelectionA = formatTeamSelection(projectedTeamA);
-    const projectedSelectionB = formatTeamSelection(projectedTeamB);
-    const liveSelectionA = formatTeamSelection(liveMatch?.teamA);
-    const liveSelectionB = formatTeamSelection(liveMatch?.teamB);
-
-    const teamAStatus = !projectedSelectionA
-      ? 'pending'
-      : areEquivalentSelections(projectedSelectionA, liveSelectionA)
-        ? 'correct'
-        : includesEquivalentSelection(eliminatedTeams, projectedSelectionA)
-          ? 'eliminated'
-          : 'pending';
-    const teamBStatus = !projectedSelectionB
-      ? 'pending'
-      : areEquivalentSelections(projectedSelectionB, liveSelectionB)
-        ? 'correct'
-        : includesEquivalentSelection(eliminatedTeams, projectedSelectionB)
-          ? 'eliminated'
-          : 'pending';
-
-    matches[i + 1] = {
-      gameId: liveMatch?.gameId || null,
-      bracketIndex: liveMatch?.bracketIndex || null,
-      roundNumber: liveMatch?.roundNumber || null,
-      region: liveMatch?.region || null,
-      teamA: styleProjectedTeam(projectedTeamA, teamAStatus),
-      teamB: styleProjectedTeam(projectedTeamB, teamBStatus),
-      winner: selections[i]
-        ? areEquivalentSelections(selections[i], projectedSelectionA)
-          ? 'A'
-          : areEquivalentSelections(selections[i], projectedSelectionB)
-            ? 'B'
-            : null
-        : null,
-      gameState: liveMatch?.gameState || null,
-      period: liveMatch?.period || '',
-      clock: liveMatch?.clock || '',
-      startTime: liveMatch?.startTime || '',
-      displayClock: liveMatch?.displayClock || '',
-    };
-  }
-
-  const finalMatch = matches[63];
-  const champion = finalMatch?.winner === 'A' ? finalMatch.teamA : finalMatch?.winner === 'B' ? finalMatch.teamB : null;
-
-  return {
-    matches,
-    champion,
-  };
-}
-
 export function resolveGame(snapshot: TournamentSnapshot, requestedGameId: string | null | undefined): ScoreboardGame | null {
   if (!requestedGameId) {
     return snapshot.scoreboardGames[0] || null;
@@ -269,6 +146,8 @@ interface OtherTeamPick {
   seed: number;
   name: string;
   seoName: string;
+  color: string;
+  secondaryColor: string;
 }
 
 export function getGameDetailProjection(game: ScoreboardGame | null, entries: Entry[], snapshot: TournamentSnapshot) {
@@ -319,13 +198,17 @@ export function getGameDetailProjection(game: ScoreboardGame | null, entries: En
   const other: OtherTeamPick[] = Array.from(otherMap.entries())
     .map(([team, users]): OtherTeamPick => {
       const teamName = getTeamNameFromSelection(team) || team;
+      const seoName = resolveTeamSeoName(teamName, teamSeoMap[teamName]);
+      const { primaryColor, secondaryColor } = getTeamColorSet(seoName);
       return {
         team,
         users,
         count: users.length,
         seed: Number.parseInt(team.split(' ')[0], 10),
         name: teamName,
-        seoName: resolveTeamSeoName(teamName, teamSeoMap[teamName]),
+        seoName,
+        color: primaryColor,
+        secondaryColor,
       };
     })
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));

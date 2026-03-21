@@ -178,7 +178,7 @@
       {#if !data.leaderboard}
         <Alert center class="p-8 rounded-xl">Leaderboard data is unavailable right now.</Alert>
       {:else}
-        <Leaderboard leaderboard={data.leaderboard} />
+        <Leaderboard leaderboard={data.leaderboard} currentUserId={user?.id ?? null} />
       {/if}
     </div>
   {/if}

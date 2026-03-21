@@ -2,33 +2,31 @@
   export let userWinCounts: any[] = [];
 </script>
 
-<div class="overflow-x-auto rounded-lg border border-zinc-700 max-w-2xl mx-auto">
-  <table class="w-full divide-y divide-zinc-700">
-    <thead class="bg-zinc-800">
+<div class="scenario-win-shell">
+  <table class="scenario-win-table">
+    <thead>
       <tr>
-        <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
+        <th scope="col">
           Name
         </th>
-        <th scope="col" class="px-2 py-2 text-center text-xs font-medium text-zinc-300 uppercase tracking-wider">
+        <th scope="col" class="is-center">
           Win %
         </th>
-        <th scope="col" class="px-2 py-2 text-right text-xs font-medium text-zinc-300 uppercase tracking-wider">
+        <th scope="col" class="is-right">
           Wins
         </th>
       </tr>
     </thead>
-    <tbody class="bg-zinc-800/50 divide-y divide-zinc-700">
+    <tbody>
       {#each userWinCounts as user, i}
-        <tr class={i % 2 === 0 ? 'bg-zinc-800' : ''}>
-          <td class="px-2 py-2 whitespace-nowrap text-sm text-zinc-300">
-            {user.firstName} {user.lastName}
+        <tr class:is-even={i % 2 === 0}>
+          <td class="scenario-win-name">
+            {user.displayName || `${user.firstName} ${user.lastName}`.trim()}
           </td>
-          <td class="px-2 py-2 whitespace-nowrap text-sm text-zinc-300 text-center">
-            <div class="inline-flex items-center">
-              <span class="text-amber-500 font-medium text-sm">{user.winProbability.toFixed(1)}%</span>
-            </div>
+          <td class="scenario-win-percent">
+            <span>{user.winProbability.toFixed(1)}%</span>
           </td>
-          <td class="px-2 py-2 whitespace-nowrap text-xs text-zinc-400 text-right">
+          <td class="scenario-win-count">
             {user.winCount.toLocaleString(undefined, {maximumFractionDigits: 0})}
           </td>
         </tr>
@@ -36,3 +34,72 @@
     </tbody>
   </table>
 </div>
+
+<style>
+  .scenario-win-shell {
+    max-width: 42rem;
+    margin: 0 auto;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.1rem;
+    background: rgba(14, 14, 15, 0.92);
+  }
+
+  .scenario-win-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .scenario-win-table thead {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .scenario-win-table th {
+    padding: 0.78rem 0.9rem;
+    color: var(--mm-subtle);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-align: left;
+  }
+
+  .scenario-win-table th.is-center,
+  .scenario-win-percent {
+    text-align: center;
+  }
+
+  .scenario-win-table th.is-right,
+  .scenario-win-count {
+    text-align: right;
+  }
+
+  .scenario-win-table tbody tr {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .scenario-win-table tbody tr.is-even {
+    background: rgba(255, 255, 255, 0.018);
+  }
+
+  .scenario-win-table td {
+    padding: 0.72rem 0.9rem;
+  }
+
+  .scenario-win-name {
+    color: var(--mm-text);
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .scenario-win-percent span {
+    color: #f59e0b;
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .scenario-win-count {
+    color: var(--mm-muted);
+    font-size: 0.82rem;
+  }
+  </style>

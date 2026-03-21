@@ -76,6 +76,12 @@
   </div>
 
   <div class="mt-[15px] h-[1000px] relative mx-auto min-w-[950px] w-[950px]" id="bracket">
+    {#if $$slots.overlay}
+      <div class="bracket-overlay-slot">
+        <slot name="overlay" />
+      </div>
+    {/if}
+
     {#each regions as region}
       <RegionBracket
         regionId={region.id}
@@ -119,7 +125,16 @@
 </div>
 
 <style>
-  :global(.truncate) {
+  .bracket-overlay-slot {
+    position: absolute;
+    top: -0.65rem;
+    left: 50%;
+    z-index: 20;
+    width: min(15.25rem, calc(100% - 2rem));
+    transform: translateX(-50%);
+  }
+
+  .truncate {
     font-family: Inter, "Segoe UI", Roboto, -apple-system, sans-serif;
     font-feature-settings: "tnum" on, "lnum" on;
     letter-spacing: -0.01em;

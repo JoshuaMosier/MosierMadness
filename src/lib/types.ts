@@ -180,6 +180,59 @@ export interface LeaderboardProjection {
 
 // ─── Scenario Engine ─────────────────────────────────────────────────────────
 
+export type ScenarioPageMode = 'browser-exact' | 'generated-snapshot' | 'unavailable';
+
+export interface GeneratedScenarioEntry {
+	entryId: string;
+	userId?: string;
+	firstName?: string;
+	lastName?: string;
+	displayName: string;
+	lockedScore: number;
+	firstPlaceCount: number;
+	firstPlacePct: number;
+	placeCounts: number[];
+	picks?: (number | null)[];
+}
+
+export interface GeneratedScenarioTeam {
+	teamId: number;
+	seed: number;
+	name: string;
+	seoName: string;
+	primaryColor?: string;
+	secondaryColor?: string;
+}
+
+export interface GeneratedScenarioOutcome {
+	winnerTeamId: number;
+	totalScenarios: number;
+	entries: GeneratedScenarioEntry[];
+}
+
+export interface GeneratedScenarioGamePreview {
+	gameIndex: number;
+	round: number;
+	roundLabel: string;
+	startTime?: string;
+	teamA: GeneratedScenarioTeam;
+	teamB: GeneratedScenarioTeam;
+	outcomeA: GeneratedScenarioOutcome;
+	outcomeB: GeneratedScenarioOutcome;
+}
+
+export interface GeneratedScenarioArtifact {
+	schemaVersion: number;
+	importedAt: string;
+	sourceGeneratedAt: string;
+	totalScenarios: number;
+	unresolvedGameCount: number;
+	assumptionSummary: string;
+	reportUrl: string | null;
+	entries: GeneratedScenarioEntry[];
+	previewGames?: GeneratedScenarioGamePreview[];
+}
+
 export interface SimulationConfig {
 	masterBracket: string[];
 	entries: Entry[];

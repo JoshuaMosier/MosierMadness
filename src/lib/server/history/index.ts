@@ -323,6 +323,7 @@ interface PersonAggregate {
   appearances: number;
   titles: number;
   averageFinish: number | null;
+  averagePercentile: number | null;
   bestFinish: number | null;
   bestScore: number | null;
   bestGames: number | null;
@@ -339,6 +340,19 @@ function buildPersonAggregates(data: HistoryState): PersonAggregate[] {
     const averageFinish = completedRanks.length
       ? completedRanks.reduce((sum, rank) => sum + rank, 0) / completedRanks.length
       : null;
+    const percentiles = results
+      .map(result => {
+        const yearEntries = data.resultsByYear.get(result.year);
+        const fieldSize = yearEntries ? yearEntries.length : 0;
+        if (result.finalRank && fieldSize > 1) {
+          return ((fieldSize - result.finalRank) / (fieldSize - 1)) * 100;
+        }
+        return null;
+      })
+      .filter((value): value is number => value !== null);
+    const averagePercentile = percentiles.length
+      ? percentiles.reduce((sum, pct) => sum + pct, 0) / percentiles.length
+      : null;
     const bestFinish = completedRanks.length ? Math.min(...completedRanks) : null;
     const bestScore = results.length
       ? Math.max(...results.map(result => result.totalPoints || 0))
@@ -353,6 +367,7 @@ function buildPersonAggregates(data: HistoryState): PersonAggregate[] {
       appearances: results.length,
       titles: titleCounts.get(person.id) || 0,
       averageFinish,
+      averagePercentile,
       bestFinish,
       bestScore,
       bestGames,
@@ -428,15 +443,22 @@ interface AggregateCategoryInput {
   rows: AggregateRow[];
   statLabel: (row: AggregateRow) => string;
   limit?: number;
+  higherIsBetter?: boolean;
 }
 
-function buildAggregateCategory({ title, rows, statLabel, limit = 10 }: AggregateCategoryInput) {
+function buildAggregateCategory({
+  title,
+  rows,
+  statLabel,
+  limit = 10,
+  higherIsBetter = false,
+}: AggregateCategoryInput) {
   return {
     category: title,
     records: [...rows]
       .sort((a, b) => {
         if (a.numericValue !== b.numericValue) {
-          return a.numericValue - b.numericValue;
+          return higherIsBetter ? b.numericValue - a.numericValue : a.numericValue - b.numericValue;
         }
         if (b.appearances !== a.appearances) {
           return b.appearances - a.appearances;
@@ -459,7 +481,6 @@ function buildAggregateCategory({ title, rows, statLabel, limit = 10 }: Aggregat
 export async function getStatsPageData(): Promise<any> {
   const data = await getHistoricalData();
   const aggregates = buildPersonAggregates(data);
-  const titleCounts = buildTitleCounts(data.seasons);
   const completedSeasons = data.seasons.filter(season => season.status === 'completed' && season.winnerPersonId);
 
   const categories = [
@@ -519,26 +540,22 @@ export async function getStatsPageData(): Promise<any> {
       valueAccessor: result => result.totalPoints,
       statFormatter: (_result, value) => String(value),
     }),
-    {
-      category: 'Most Tournament Wins',
-      records: [...titleCounts.entries()]
-        .map(([personId, titles]) => {
-          const person = data.peopleById.get(personId);
-          return person
-            ? {
-                stat: String(titles),
-                numericValue: titles,
-                participant: person.displayName,
-                slug: person.slug,
-              }
-            : null;
-        })
-        .filter(Boolean)
-        .sort((a, b) => b!.numericValue - a!.numericValue || a!.participant.localeCompare(b!.participant))
-        .slice(0, 10),
-    },
     buildAggregateCategory({
-      title: 'Best Average Finish (3+ Years)',
+      title: 'Best Average Percentile (3+ Years)',
+      rows: aggregates
+        .filter(aggregate => aggregate.appearances >= 3 && aggregate.averagePercentile !== null)
+        .map(aggregate => ({
+          participant: aggregate.person.displayName,
+          slug: aggregate.person.slug,
+          numericValue: aggregate.averagePercentile!,
+          appearances: aggregate.appearances,
+          titles: aggregate.titles,
+        })),
+      statLabel: row => `${formatStatNumber(row.numericValue, 1)}%`,
+      higherIsBetter: true,
+    }),
+    buildAggregateCategory({
+      title: 'Best Average Placement (3+ Years)',
       rows: aggregates
         .filter(aggregate => aggregate.appearances >= 3 && aggregate.averageFinish !== null)
         .map(aggregate => ({
@@ -554,20 +571,12 @@ export async function getStatsPageData(): Promise<any> {
 
   const mostGamesCorrect = categories[0]?.records[0] || null;
   const highestScore = categories[7]?.records[0] || null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const topWinCount = (categories[8]?.records[0] as any)?.numericValue || 0;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const topWinners = categories[8]?.records?.filter((record: any) => record.numericValue === topWinCount) || [];
 
   return {
     categories,
     summary: {
       mostGamesCorrect,
       highestScore,
-      mostTournamentWins: {
-        value: topWinCount,
-        leaders: topWinners,
-      },
       completedTournamentCount: completedSeasons.length,
     },
   };
@@ -634,11 +643,10 @@ export async function getPastWinnersPageData(): Promise<any> {
       continue;
     }
 
-    seasonStandings[season.year] = [...yearResults]
-      .sort((a, b) => a.finalRank - b.finalRank)
-      .map(result => {
+    const rows = [...yearResults].map(result => {
         const person = data.peopleById.get(result.personId);
         return {
+          personId: result.personId,
           rank: result.finalRank,
           name: person?.displayName || result.sourceDisplayName || 'Unknown',
           slug: person?.slug || null,
@@ -646,6 +654,29 @@ export async function getPastWinnersPageData(): Promise<any> {
           correctGames: result.correctGames,
         };
       });
+
+    if (season.status === 'completed' && season.winnerPersonId) {
+      const winner = data.peopleById.get(season.winnerPersonId);
+      const existingWinnerRow = rows.find(row => row.personId === season.winnerPersonId || row.rank === 1);
+
+      if (existingWinnerRow) {
+        existingWinnerRow.rank = 1;
+        existingWinnerRow.totalPoints ??= season.winningScore;
+      } else if (winner) {
+        rows.push({
+          personId: season.winnerPersonId,
+          rank: 1,
+          name: winner.displayName,
+          slug: winner.slug,
+          totalPoints: season.winningScore,
+          correctGames: null,
+        });
+      }
+    }
+
+    seasonStandings[season.year] = rows
+      .sort((a, b) => a.rank - b.rank)
+      .map(({ personId, ...row }) => row);
   }
 
   // Build player directory with aggregates
@@ -672,6 +703,8 @@ export async function getPastWinnersPageData(): Promise<any> {
         name: agg.person.displayName,
         slug: agg.person.slug,
         appearances: agg.appearances,
+        firstYear: agg.results[0]?.year ?? null,
+        mostRecentYear: agg.results[agg.results.length - 1]?.year ?? null,
         titles: agg.titles,
         averagePercentile,
         bestFinish: agg.bestFinish,

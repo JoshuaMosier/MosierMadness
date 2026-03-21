@@ -8,13 +8,15 @@
   import { getTeamNameFromSelection } from '$lib/utils/bracketUtils';
   import { getTeamsForGame, runSimulation, aggregateRootFor } from '$lib/utils/scenarioEngine';
   import MatchSelector from '$lib/components/scenarios/MatchSelector.svelte';
-  import WinChancesTab from '$lib/components/scenarios/WinChancesTab.svelte';
   import FullStandingsTab from '$lib/components/scenarios/FullStandingsTab.svelte';
+  import GeneratedScenariosPage from '$lib/components/scenarios/GeneratedScenariosPage.svelte';
   import RootingGuideTab from '$lib/components/scenarios/RootingGuideTab.svelte';
   import type { LiveBracketData, Entry, SimulationResult } from '$lib/types';
 
   export let data: any;
 
+  const scenarioMode = data.mode ?? 'browser-exact';
+  const browserExactMode = scenarioMode === 'browser-exact';
   let entries: Entry[] = data.scenario?.entries || [];
   let loading = true;
   let error: string | null = null;
@@ -26,7 +28,7 @@
   let simulationInProgress = false;
   let scenariosCalculated = false;
   let totalScenarios = 0;
-  let selectedTab = 'win';
+  let selectedTab = 'standings';
   let displayMode = 'percent';
   let currentUser: any = null;
 
@@ -44,6 +46,7 @@
   let teamWinContributions: Record<number, any> = {};
   let targetPosition = 1;
   let bestPossibleFinish = 1;
+  let currentUserEntryId: string | null = null;
 
   // Engine state for Root For aggregation
   let storedScenarioPositions: Uint8Array | null = null;
@@ -52,7 +55,7 @@
 
   onMount(async () => {
     try {
-      if (!scenariosAvailable) return;
+      if (!browserExactMode || !scenariosAvailable) return;
 
       for (let i = 0; i < entries.length; i++) {
         entryIdToIndex.set(entries[i].entryId, i);
@@ -70,6 +73,7 @@
       if (currentUser) {
         const userEntry = entries.find(entry => entry.user_id === currentUser.id);
         if (userEntry) {
+          currentUserEntryId = userEntry.entryId;
           selectedUser = userEntry.entryId;
           calculateTeamContributions(selectedUser);
           selectedTab = 'root';
@@ -294,121 +298,299 @@
   }
 </script>
 
-<div class="max-w-7xl mx-auto px-4 py-8">
+<div class="mm-page scenario-page">
   {#if loading}
-    <div class="flex justify-center items-center min-h-[400px]" in:fade={FADE_QUICK}>
-      <div class="flex flex-col items-center gap-3">
-        <div class="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
-        <div class="text-amber-600 font-medium">Loading bracket data...</div>
-      </div>
+    <div class="scenario-state scenario-loading" in:fade={FADE_QUICK}>
+      <div class="scenario-spinner"></div>
+      <div class="scenario-loading-copy">Loading bracket data...</div>
     </div>
   {:else if !scenariosAvailable}
-    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center">
-      <h2 class="text-2xl font-semibold text-zinc-100">Scenarios are not active yet</h2>
-      <p class="mt-3 text-zinc-400">
+    <div class="scenario-state scenario-empty mm-shell">
+      <h2 class="scenario-empty-title">Scenarios are not active yet</h2>
+      <p class="scenario-empty-copy">
         Scenario analysis becomes available once the live tournament reaches the Sweet Sixteen.
       </p>
     </div>
   {:else if error}
-    <div in:fade={FADE_DELAYED}>
+    <div class="scenario-alert" in:fade={FADE_DELAYED}>
       <Alert message={error} center class="mb-4" />
     </div>
   {:else}
-    <div class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-      <div class="border-b border-zinc-800 bg-zinc-900/50">
-        <div class="p-6">
-          <div class="flex flex-col md:flex-row justify-between items-center">
-            <div>
-              <h2 class="text-2xl font-semibold text-zinc-100">Tournament Outcome Probabilities</h2>
-              <p class="text-sm text-zinc-400 mt-1">
-                {#if hasSelections}
-                  Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'filtered'} tournament outcomes
-                  <span class="text-amber-500">(filtered by {Object.keys(selectedWinners).length} selections)</span>
-                {:else}
-                  Based on {scenariosCalculated ? totalScenarios.toLocaleString() : 'all possible'} tournament outcomes
-                {/if}
-              </p>
-            </div>
+    {#if scenarioMode === 'generated-snapshot'}
+      <GeneratedScenariosPage artifact={data.generatedScenario} />
+    {:else}
+      <div class="scenario-shell mm-shell">
+        <div class="scenario-shell-header">
+          <div class="scenario-shell-copy">
+            <p class="scenario-kicker">Scenarios</p>
+            <h2 class="scenario-title">Tournament Outcome Probabilities</h2>
+            <p class="scenario-subtitle">
+              Use Standings for title odds, finish ranges, and the full matrix view, and Rooting Guide to see which remaining outcomes help a bracket most. Use the game selector to preview specific paths.
+            </p>
           </div>
         </div>
-      </div>
 
-      <div class="p-6">
-        {#if remainingGames.length > 12}
-          <div class="bg-amber-800/20 border border-amber-800/30 text-amber-400 p-3 rounded mb-4 text-sm">
-            Warning: There are {remainingGames.length} games remaining, which means {Math.pow(2, remainingGames.length).toLocaleString()} possible scenarios.
-            Calculation may take a long time or crash your browser.
-          </div>
-        {/if}
-
-        {#if scenariosCalculated}
-          <MatchSelector
-            {matchSimulationDetails}
-            onSelectWinner={handleSelectWinner}
-            onReset={resetSelections}
-          />
-
-          <!-- Tab Buttons -->
-          <div class="mb-6">
-            <div class="border-b border-zinc-700">
-              <div class="flex">
-                <button
-                  class={`py-2 px-4 font-medium text-sm ${selectedTab === 'win' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
-                  on:click={() => selectedTab = 'win'}
-                >
-                  Win Chances
-                </button>
-                <button
-                  class={`py-2 px-4 font-medium text-sm hidden md:block ${selectedTab === 'full' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
-                  on:click={() => selectedTab = 'full'}
-                >
-                  Full Standings
-                </button>
-                <button
-                  class={`py-2 px-4 font-medium text-sm ${selectedTab === 'root' ? 'text-amber-500 border-b-2 border-amber-500' : 'text-zinc-400 hover:text-zinc-200'}`}
-                  on:click={() => selectedTab = 'root'}
-                >
-                  Rooting Guide
-                </button>
-              </div>
+        <div class="scenario-shell-body">
+          {#if remainingGames.length > 12}
+            <div class="scenario-warning">
+              Warning: There are {remainingGames.length} games remaining, which means {Math.pow(2, remainingGames.length).toLocaleString()} possible scenarios.
+              Calculation may take a long time or crash your browser.
             </div>
-          </div>
-
-          <!-- Tab Content -->
-          {#if selectedTab === 'win'}
-            <WinChancesTab {userWinCounts} />
-          {:else if selectedTab === 'full'}
-            <FullStandingsTab
-              {positionProbabilities}
-              {totalScenarios}
-              numEntries={entries.length}
-              bind:displayMode
-            />
-          {:else if selectedTab === 'root'}
-            <RootingGuideTab
-              {entries}
-              {currentUser}
-              bind:selectedUser
-              {selectedWinners}
-              {matchSimulationDetails}
-              {teamWinContributions}
-              {positionProbabilities}
-              {userWinCounts}
-              {totalScenarios}
-              {targetPosition}
-              {scenariosCalculated}
-              onUserChange={handleUserChange}
-            />
           {/if}
-        {:else}
-          <div class="text-center py-12 text-zinc-500">
-            <div class="animate-pulse flex flex-col items-center">
-              <div class="w-10 h-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-3"></div>
-              <p>Calculating tournament scenarios automatically...</p>
+
+          {#if scenariosCalculated}
+            <div class="scenario-tab-row">
+              <button
+                class={`scenario-tab ${selectedTab === 'standings' ? 'is-active' : ''}`}
+                on:click={() => selectedTab = 'standings'}
+              >
+                Standings
+              </button>
+              <button
+                class={`scenario-tab ${selectedTab === 'root' ? 'is-active' : ''}`}
+                on:click={() => selectedTab = 'root'}
+              >
+                Rooting Guide
+              </button>
             </div>
-          </div>
-        {/if}
+
+            <div class="scenario-panel">
+              {#if selectedTab === 'standings'}
+                <div class="scenario-filter-block">
+                  <MatchSelector
+                    {matchSimulationDetails}
+                    onSelectWinner={handleSelectWinner}
+                    onReset={resetSelections}
+                  />
+                </div>
+                <FullStandingsTab
+                  {positionProbabilities}
+                  {totalScenarios}
+                  numEntries={entries.length}
+                  bind:displayMode
+                  {currentUserEntryId}
+                />
+              {:else if selectedTab === 'root'}
+                <RootingGuideTab
+                  {entries}
+                  {currentUser}
+                  bind:selectedUser
+                  {selectedWinners}
+                  {matchSimulationDetails}
+                  {teamWinContributions}
+                  {positionProbabilities}
+                  {userWinCounts}
+                  {totalScenarios}
+                  {targetPosition}
+                  {scenariosCalculated}
+                  onUserChange={handleUserChange}
+                />
+              {/if}
+            </div>
+          {:else}
+            <div class="scenario-state scenario-calculating">
+              <div class="scenario-spinner"></div>
+              <p class="scenario-calculating-copy">Calculating tournament scenarios automatically...</p>
+            </div>
+          {/if}
+        </div>
       </div>
-    </div>
+    {/if}
   {/if}
 </div>
+
+<style>
+  .scenario-page {
+    max-width: 88rem;
+  }
+
+  .scenario-state,
+  .scenario-shell {
+    width: min(100%, 84rem);
+    margin: 0 auto;
+  }
+
+  .scenario-loading,
+  .scenario-calculating {
+    min-height: 24rem;
+    display: grid;
+    place-items: center;
+    gap: 0.85rem;
+    text-align: center;
+  }
+
+  .scenario-empty {
+    padding: 2.2rem 1.5rem;
+    text-align: center;
+  }
+
+  .scenario-spinner {
+    width: 2.8rem;
+    height: 2.8rem;
+    border: 4px solid rgba(245, 158, 11, 0.3);
+    border-top-color: #d97706;
+    border-radius: 999px;
+    animation: scenario-spin 0.8s linear infinite;
+  }
+
+  .scenario-loading-copy,
+  .scenario-calculating-copy {
+    color: #d97706;
+    font-weight: 600;
+  }
+
+  .scenario-empty-title {
+    margin: 0;
+    color: var(--mm-text);
+    font-size: clamp(1.55rem, 3vw, 2rem);
+    font-weight: 700;
+  }
+
+  .scenario-empty-copy {
+    margin: 0.75rem auto 0;
+    max-width: 34rem;
+    color: var(--mm-muted);
+  }
+
+  .scenario-alert {
+    width: min(100%, 84rem);
+    margin: 0 auto;
+  }
+
+  .scenario-shell {
+    overflow: hidden;
+    background: rgba(10, 10, 11, 0.96);
+  }
+
+  .scenario-shell-header {
+    padding: 1.5rem 1.5rem 1.15rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(14, 14, 15, 0.92);
+  }
+
+  .scenario-kicker {
+    margin: 0;
+    color: var(--mm-subtle);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .scenario-title {
+    margin: 0.38rem 0 0;
+    color: var(--mm-text);
+    font-size: clamp(1.7rem, 3.3vw, 2.35rem);
+    font-weight: 700;
+    line-height: 1.02;
+  }
+
+  .scenario-subtitle {
+    margin: 0.5rem 0 0;
+    color: var(--mm-muted);
+    font-size: 0.96rem;
+  }
+
+  .scenario-shell-body {
+    padding: 1.3rem 1.5rem 1.5rem;
+  }
+
+  .scenario-warning {
+    margin-bottom: 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(180, 83, 9, 0.4);
+    border-radius: 1rem;
+    background: rgba(120, 53, 15, 0.16);
+    color: #fbbf24;
+    font-size: 0.92rem;
+  }
+
+  .scenario-filter-block {
+    margin-bottom: 1.15rem;
+  }
+
+  .scenario-tab-row {
+    display: flex;
+    gap: 0.55rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.15rem;
+    overflow-x: auto;
+  }
+
+  .scenario-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--mm-muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  }
+
+  .scenario-tab:hover {
+    color: var(--mm-text);
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .scenario-tab.is-active {
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.28);
+    background: rgba(245, 158, 11, 0.08);
+  }
+
+  .scenario-panel {
+    min-width: 0;
+  }
+
+  @keyframes scenario-spin {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .scenario-shell-header {
+      padding: 1.2rem 1rem 1rem;
+    }
+
+    .scenario-kicker,
+    .scenario-subtitle {
+      display: none;
+    }
+
+    .scenario-title {
+      margin-top: 0;
+      font-size: 1.55rem;
+    }
+
+    .scenario-shell-body {
+      padding: 1rem;
+    }
+
+    .scenario-empty {
+      padding: 1.8rem 1rem;
+    }
+
+    .scenario-tab-row {
+      flex-direction: column;
+      overflow: visible;
+    }
+
+    .scenario-tab {
+      width: 100%;
+    }
+  }
+</style>
