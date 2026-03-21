@@ -2,8 +2,8 @@
   export let userWinCounts: any[] = [];
 </script>
 
-<div class="scenario-win-shell">
-  <table class="scenario-win-table">
+<div class="scenario-win-shell mm-table-shell">
+  <table class="scenario-win-table mm-table">
     <thead>
       <tr>
         <th scope="col">
@@ -18,8 +18,8 @@
       </tr>
     </thead>
     <tbody>
-      {#each userWinCounts as user, i}
-        <tr class:is-even={i % 2 === 0}>
+      {#each userWinCounts as user}
+        <tr>
           <td class="scenario-win-name">
             {user.displayName || `${user.firstName} ${user.lastName}`.trim()}
           </td>
@@ -39,29 +39,10 @@
   .scenario-win-shell {
     max-width: 42rem;
     margin: 0 auto;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1.1rem;
-    background: rgba(14, 14, 15, 0.92);
   }
 
   .scenario-win-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .scenario-win-table thead {
-    background: rgba(255, 255, 255, 0.03);
-  }
-
-  .scenario-win-table th {
-    padding: 0.78rem 0.9rem;
-    color: var(--mm-subtle);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    text-align: left;
+    min-width: 0;
   }
 
   .scenario-win-table th.is-center,
@@ -72,18 +53,6 @@
   .scenario-win-table th.is-right,
   .scenario-win-count {
     text-align: right;
-  }
-
-  .scenario-win-table tbody tr {
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .scenario-win-table tbody tr.is-even {
-    background: rgba(255, 255, 255, 0.018);
-  }
-
-  .scenario-win-table td {
-    padding: 0.72rem 0.9rem;
   }
 
   .scenario-win-name {

@@ -97,30 +97,30 @@
   <div class="generated-scenarios-header">
     <div class="generated-scenarios-header-row">
       <div class="generated-scenarios-copy">
-        <h2 class="generated-scenarios-title">Tournament Outcome Probabilities</h2>
-        <p class="generated-scenarios-subtitle">
+        <h2 class="generated-scenarios-title mm-page-title">Tournament Outcome Probabilities</h2>
+        <p class="generated-scenarios-subtitle mm-page-subtitle">
           Use Standings for title odds, finish ranges, and the full matrix view, and Rooting Guide to see which currently known outcomes help a bracket most.
         </p>
       </div>
 
-      <div class="generated-scenarios-summary">
-        <div class="generated-scenarios-summary-label">Scenarios</div>
+      <div class="generated-scenarios-summary mm-control-shell">
+        <div class="generated-scenarios-summary-label mm-compact-eyebrow">Scenarios</div>
         <div class="generated-scenarios-summary-value">{totalScenarios.toLocaleString()}</div>
       </div>
     </div>
   </div>
 
   <div class="generated-scenarios-body">
-    <div class="generated-scenarios-tabs">
+    <div class="generated-scenarios-tabs mm-tab-row">
       <button
-        class={`generated-scenarios-tab ${selectedTab === 'standings' ? 'is-active' : ''}`}
+        class={`generated-scenarios-tab mm-tab ${selectedTab === 'standings' ? 'is-active' : ''}`}
         on:click={() => selectedTab = 'standings'}
       >
         Standings
       </button>
       {#if previewGames.length > 0}
         <button
-          class={`generated-scenarios-tab ${selectedTab === 'root' ? 'is-active' : ''}`}
+          class={`generated-scenarios-tab mm-tab ${selectedTab === 'root' ? 'is-active' : ''}`}
           on:click={() => selectedTab = 'root'}
         >
           Rooting Guide
@@ -129,12 +129,12 @@
     </div>
 
     {#if previewGames.length > 0 && selectedTab !== 'root'}
-      <div class="generated-scenarios-preview">
-        <div class="generated-scenarios-preview-row">
-          <div class="generated-scenarios-preview-kicker">Single-Game Preview</div>
+      <div class="generated-scenarios-preview mm-control-shell">
+        <div class="generated-scenarios-preview-row mm-control-row">
+          <div class="generated-scenarios-preview-kicker mm-compact-eyebrow">Single-Game Preview</div>
 
           <select
-            class="generated-scenarios-select"
+            class="generated-scenarios-select mm-select"
             bind:value={selectedPreviewGameValue}
             on:change={() => selectedPreviewWinner = null}
           >
@@ -150,19 +150,19 @@
             {#if selectedPreviewGame}
               <div class="generated-scenarios-preview-buttons">
                 <button
-                  class={`generated-scenarios-preview-button ${selectedPreviewWinner === 'A' ? 'is-active' : ''}`}
+                  class={`generated-scenarios-preview-button mm-chip-button ${selectedPreviewWinner === 'A' ? 'is-active' : ''}`}
                   on:click={() => selectPreviewWinner('A')}
                 >
                   {selectedPreviewGame.teamA.seed} {selectedPreviewGame.teamA.name}
                 </button>
                 <button
-                  class={`generated-scenarios-preview-button ${selectedPreviewWinner === 'B' ? 'is-active' : ''}`}
+                  class={`generated-scenarios-preview-button mm-chip-button ${selectedPreviewWinner === 'B' ? 'is-active' : ''}`}
                   on:click={() => selectPreviewWinner('B')}
                 >
                   {selectedPreviewGame.teamB.seed} {selectedPreviewGame.teamB.name}
                 </button>
                 <button
-                  class="generated-scenarios-preview-button is-reset"
+                  class="generated-scenarios-preview-button mm-chip-button is-reset"
                   on:click={resetPreview}
                 >
                   Reset
@@ -224,34 +224,21 @@
   }
 
   .generated-scenarios-title {
-    margin: 0;
-    color: var(--mm-text);
     font-size: clamp(1.7rem, 3.2vw, 2.25rem);
-    font-weight: 700;
     line-height: 1.04;
   }
 
   .generated-scenarios-subtitle {
-    margin: 0.5rem 0 0;
     max-width: 44rem;
-    color: var(--mm-muted);
     font-size: 0.94rem;
   }
 
   .generated-scenarios-summary {
     min-width: 16rem;
-    padding: 0.95rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1rem;
-    background: rgba(9, 9, 10, 0.6);
   }
 
   .generated-scenarios-summary-label {
-    color: var(--mm-subtle);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+    display: block;
   }
 
   .generated-scenarios-summary-value {
@@ -267,75 +254,20 @@
   }
 
   .generated-scenarios-tabs {
-    display: flex;
-    gap: 0.55rem;
     margin-bottom: 1rem;
-    overflow-x: auto;
-  }
-
-  .generated-scenarios-tab {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.35rem;
-    padding: 0.45rem 0.95rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
-    color: var(--mm-muted);
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
-  }
-
-  .generated-scenarios-tab:hover {
-    color: var(--mm-text);
-    border-color: rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .generated-scenarios-tab.is-active {
-    color: #f59e0b;
-    border-color: rgba(245, 158, 11, 0.28);
-    background: rgba(245, 158, 11, 0.08);
   }
 
   .generated-scenarios-preview {
     margin-bottom: 1rem;
-    padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1rem;
-    background: rgba(12, 12, 13, 0.72);
   }
 
   .generated-scenarios-preview-row {
-    display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 0.8rem;
-  }
-
-  .generated-scenarios-preview-kicker {
-    flex: 0 0 auto;
-    color: var(--mm-subtle);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
   }
 
   .generated-scenarios-select {
     min-width: 18rem;
     flex: 1 1 22rem;
-    min-height: 2.65rem;
-    padding: 0.62rem 0.8rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 0.9rem;
-    background: rgba(17, 17, 18, 0.92);
-    color: var(--mm-text);
   }
 
   .generated-scenarios-preview-actions {
@@ -359,26 +291,7 @@
   }
 
   .generated-scenarios-preview-button {
-    min-height: 2.2rem;
-    padding: 0.45rem 0.8rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.9rem;
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--mm-text);
-    font-size: 0.84rem;
-    font-weight: 600;
-    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
-  }
-
-  .generated-scenarios-preview-button:hover {
-    border-color: rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  .generated-scenarios-preview-button.is-active {
-    border-color: rgba(245, 158, 11, 0.34);
-    background: rgba(245, 158, 11, 0.14);
-    color: #fbbf24;
+    text-align: center;
   }
 
   .generated-scenarios-preview-button.is-reset {
@@ -409,15 +322,6 @@
     .generated-scenarios-summary-value {
       margin-top: 0.35rem;
       font-size: 1.55rem;
-    }
-
-    .generated-scenarios-tabs {
-      flex-direction: column;
-      overflow: visible;
-    }
-
-    .generated-scenarios-tab {
-      width: 100%;
     }
 
     .generated-scenarios-preview {

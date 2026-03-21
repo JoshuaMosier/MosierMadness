@@ -333,6 +333,13 @@
     background: rgba(255, 255, 255, 0.05);
   }
 
+  .mm-pill-link:focus-visible {
+    outline: none;
+    border-color: rgba(245, 158, 11, 0.28);
+    background: rgba(245, 158, 11, 0.06);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+  }
+
   .mm-pill.is-static {
     cursor: default;
   }
@@ -348,6 +355,128 @@
     color: var(--mm-muted);
     font-size: 0.95rem;
     line-height: 1.45;
+  }
+
+  .mm-control-shell {
+    padding: 1rem 1.05rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    background: rgba(12, 12, 13, 0.72);
+  }
+
+  .mm-control-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .mm-compact-eyebrow {
+    flex: 0 0 auto;
+    color: var(--mm-subtle);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .mm-inline-stats {
+    display: flex;
+    flex: 1 1 21rem;
+    min-width: 15rem;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.55rem;
+  }
+
+  .mm-inline-stat-label {
+    color: var(--mm-subtle);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .mm-inline-stat-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.2rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--mm-text);
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+
+  .mm-inline-stat-pill.is-muted {
+    color: var(--mm-muted);
+  }
+
+  .mm-inline-stat-pill.is-accent {
+    border-color: rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+  }
+
+  .mm-toggle-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.95rem;
+    padding: 0.28rem 0.72rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--mm-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .mm-toggle-button:hover {
+    color: var(--mm-text);
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .mm-toggle-button.is-active {
+    color: white;
+    background: rgba(217, 119, 6, 0.9);
+    border-color: rgba(217, 119, 6, 0.9);
+  }
+
+  .mm-chip-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.2rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--mm-text);
+    font-size: 0.84rem;
+    font-weight: 600;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .mm-chip-button:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .mm-chip-button.is-active {
+    border-color: rgba(245, 158, 11, 0.34);
+    background: rgba(245, 158, 11, 0.14);
+    color: #fbbf24;
   }
 
   .mm-body-copy {
@@ -495,14 +624,12 @@
 }
 
 @media (max-width: 767px) {
-  @layer components {
-    .mm-tab-row {
-      flex-direction: column;
-      overflow: visible;
-    }
+  .mm-tab-row {
+    flex-direction: column;
+    overflow: visible;
+  }
 
-    .mm-tab {
-      width: 100%;
-    }
+  .mm-tab {
+    width: 100%;
   }
 }

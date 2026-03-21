@@ -10,7 +10,7 @@
   <div class="scenario-selector-header">
     <h3 class="scenario-selector-title">Select Match Winners to Filter Scenarios</h3>
     <button
-      class="scenario-selector-reset"
+      class="scenario-selector-reset mm-toggle-button"
       on:click={onReset}
     >
       Reset Selections
@@ -108,17 +108,7 @@
   }
 
   .scenario-selector-reset {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 1.9rem;
-    padding: 0.28rem 0.72rem;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--mm-muted);
-    font-size: 0.75rem;
-    font-weight: 700;
+    flex-shrink: 0;
   }
 
   .scenario-selector-grid {

@@ -22,9 +22,9 @@
 </script>
 
 <div class="rooting-guide">
-  <div class="rooting-guide-toolbar">
-    <div class="rooting-guide-toolbar-row">
-      <label for="userSelect" class="rooting-guide-kicker">
+  <div class="rooting-guide-toolbar mm-control-shell">
+    <div class="rooting-guide-toolbar-row mm-control-row">
+      <label for="userSelect" class="rooting-guide-kicker mm-compact-eyebrow">
         {#if currentUser && selectedUser && entries.find(entry => entry.entryId === selectedUser && entry.user_id === currentUser.id)}
           Your Bracket
         {:else}
@@ -34,7 +34,7 @@
 
       <select
         id="userSelect"
-        class="rooting-guide-select"
+        class="rooting-guide-select mm-select"
         bind:value={selectedUser}
         on:change={handleUserChange}
       >
@@ -50,20 +50,20 @@
 
       {#if selectedUser && scenariosCalculated}
         {#if targetPosition === 1}
-          <div class="rooting-guide-baseline">
-            <span class="rooting-guide-baseline-label">1st-place chance</span>
-            <span class="rooting-guide-baseline-pill">
+          <div class="rooting-guide-baseline mm-inline-stats">
+            <span class="rooting-guide-baseline-label mm-inline-stat-label">1st-place chance</span>
+            <span class="rooting-guide-baseline-pill mm-inline-stat-pill">
               {(userWinCounts.find(u => u.entryId === selectedUser)?.winCount || 0).toLocaleString()} of {totalScenarios.toLocaleString()}
             </span>
-            <span class="rooting-guide-baseline-value">
+            <span class="rooting-guide-baseline-value mm-inline-stat-pill is-accent">
               {(positionProbabilities.find(p => p.entryId === selectedUser)?.positionProbabilities[1] || 0).toFixed(1)}%
             </span>
           </div>
         {:else}
-          <div class="rooting-guide-baseline is-muted">
-            <span class="rooting-guide-baseline-label">Best live path</span>
-            <span class="rooting-guide-baseline-pill is-muted">No 1st-place chance</span>
-            <span class="rooting-guide-baseline-value">
+          <div class="rooting-guide-baseline mm-inline-stats is-muted">
+            <span class="rooting-guide-baseline-label mm-inline-stat-label">Best live path</span>
+            <span class="rooting-guide-baseline-pill mm-inline-stat-pill is-muted">No 1st-place chance</span>
+            <span class="rooting-guide-baseline-value mm-inline-stat-pill is-accent">
               {targetPosition}{getOrdinalSuffix(targetPosition)}
             </span>
           </div>
@@ -197,87 +197,25 @@
     gap: 1rem;
   }
 
-  .rooting-guide-toolbar {
-    padding: 1rem 1.05rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1rem;
-    background: rgba(12, 12, 13, 0.72);
-  }
-
   .rooting-guide-toolbar-row {
-    display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 0.8rem;
-  }
-
-  .rooting-guide-kicker {
-    flex: 0 0 auto;
-    color: var(--mm-subtle);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
   }
 
   .rooting-guide-select {
     min-width: 18rem;
     flex: 1 1 22rem;
-    min-height: 2.55rem;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 0.9rem;
-    background: rgba(17, 17, 18, 0.92);
-    color: var(--mm-text);
   }
 
   .rooting-guide-baseline {
-    display: flex;
-    align-items: center;
     justify-content: flex-end;
-    gap: 0.55rem;
-    flex-wrap: wrap;
-    flex: 1 1 21rem;
-    min-width: 15rem;
   }
 
   .rooting-guide-baseline.is-muted {
     color: var(--mm-muted);
   }
 
-  .rooting-guide-baseline-label {
-    color: var(--mm-subtle);
-    font-size: 0.8rem;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  .rooting-guide-baseline-pill,
-  .rooting-guide-baseline-value {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.2rem;
-    padding: 0.45rem 0.8rem;
-    border-radius: 0.9rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--mm-text);
-    font-size: 0.84rem;
-    font-weight: 700;
-  }
-
-  .rooting-guide-baseline-pill {
-    color: #fbbf24;
-  }
-
   .rooting-guide-baseline-pill.is-muted {
     color: var(--mm-muted);
-  }
-
-  .rooting-guide-baseline-value {
-    border-color: rgba(245, 158, 11, 0.2);
-    background: rgba(245, 158, 11, 0.12);
-    color: #fbbf24;
   }
 
   .rooting-guide-grid {

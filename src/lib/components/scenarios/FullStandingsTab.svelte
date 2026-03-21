@@ -215,13 +215,13 @@
     <div class="scenario-standings-toggle">
       <span class="scenario-standings-label">View:</span>
       <button
-        class={`scenario-standings-button ${standingsView === 'summary' ? 'is-active' : ''}`}
+        class={`scenario-standings-button mm-toggle-button ${standingsView === 'summary' ? 'is-active' : ''}`}
         on:click={() => standingsView = 'summary'}
       >
         Summary
       </button>
       <button
-        class={`scenario-standings-button ${standingsView === 'matrix' ? 'is-active' : ''}`}
+        class={`scenario-standings-button mm-toggle-button ${standingsView === 'matrix' ? 'is-active' : ''}`}
         on:click={() => standingsView = 'matrix'}
       >
         Exact Matrix
@@ -231,13 +231,13 @@
     <div class="scenario-standings-toggle">
       <span class="scenario-standings-label">Display:</span>
       <button
-        class={`scenario-standings-button ${displayMode === 'count' ? 'is-active' : ''}`}
+        class={`scenario-standings-button mm-toggle-button ${displayMode === 'count' ? 'is-active' : ''}`}
         on:click={() => displayMode = 'count'}
       >
         Counts
       </button>
       <button
-        class={`scenario-standings-button ${displayMode === 'percent' ? 'is-active' : ''}`}
+        class={`scenario-standings-button mm-toggle-button ${displayMode === 'percent' ? 'is-active' : ''}`}
         on:click={() => displayMode = 'percent'}
       >
         Percentages
@@ -263,7 +263,7 @@
         {#each summaryRows as user, i}
           <tr class={getSummaryRowClass(i)} class:is-current-user={isCurrentUserEntry(user)}>
             <td class={getSummaryNameCellClass(i)}>
-              <a href={getEntryHref(user)} class="scenario-summary-namepill">
+              <a href={getEntryHref(user)} class="scenario-summary-namepill mm-pill-link">
                 <span class="scenario-summary-name">
                   {user.displayName || `${user.firstName} ${user.lastName}`.trim()}
                 </span>
@@ -437,20 +437,7 @@
   }
 
   .scenario-standings-button {
-    min-height: 1.95rem;
-    padding: 0.28rem 0.72rem;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--mm-muted);
-    font-size: 0.75rem;
-    font-weight: 700;
-  }
-
-  .scenario-standings-button.is-active {
-    color: white;
-    background: rgba(217, 119, 6, 0.9);
-    border-color: rgba(217, 119, 6, 0.9);
+    flex-shrink: 0;
   }
 
   .scenario-summary-wrap,
@@ -563,15 +550,9 @@
   }
 
   .scenario-summary-namepill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     width: min(100%, 13.5rem);
     max-width: 100%;
     padding: 0.22rem 0.72rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
     text-decoration: none;
   }
 
@@ -585,18 +566,6 @@
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .scenario-summary-namepill:hover {
-    border-color: rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .scenario-summary-namepill:focus-visible {
-    outline: none;
-    border-color: rgba(245, 158, 11, 0.28);
-    background: rgba(245, 158, 11, 0.06);
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
   }
 
   .scenario-summary-row.is-current-user .scenario-summary-namepill {

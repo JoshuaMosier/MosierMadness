@@ -232,9 +232,9 @@
 {@html svgFilter}
 
 <div class="generated-rooting">
-  <div class="generated-rooting-toolbar">
-    <div class="generated-rooting-toolbar-row">
-      <label for="generatedUserSelect" class="generated-rooting-kicker">
+  <div class="generated-rooting-toolbar mm-control-shell">
+    <div class="generated-rooting-toolbar-row mm-control-row">
+      <label for="generatedUserSelect" class="generated-rooting-kicker mm-compact-eyebrow">
         {#if currentUserId && selectedEntry?.userId === currentUserId}
           Your Bracket
         {:else}
@@ -244,7 +244,7 @@
 
       <select
         id="generatedUserSelect"
-        class="generated-rooting-select"
+        class="generated-rooting-select mm-select"
         bind:value={selectedUserValue}
         on:change={() => selectedUser = selectedUserValue || null}
       >
@@ -257,12 +257,12 @@
       </select>
 
       {#if selectedEntry}
-        <div class="generated-rooting-baseline">
-          <span class="generated-rooting-baseline-label">1st-place chance</span>
-          <span class="generated-rooting-baseline-pill">
+        <div class="generated-rooting-baseline mm-inline-stats">
+          <span class="generated-rooting-baseline-label mm-inline-stat-label">1st-place chance</span>
+          <span class="generated-rooting-baseline-pill mm-inline-stat-pill">
             {selectedEntry.firstPlaceCount.toLocaleString()} scenarios
           </span>
-          <span class="generated-rooting-baseline-value">{selectedEntry.firstPlacePct.toFixed(2)}%</span>
+          <span class="generated-rooting-baseline-value mm-inline-stat-pill is-accent">{selectedEntry.firstPlacePct.toFixed(2)}%</span>
         </div>
       {/if}
     </div>
@@ -277,7 +277,7 @@
       No currently determined games are available for generated rooting guidance.
     </div>
   {:else}
-    <div class="generated-rooting-shell">
+    <div class="generated-rooting-shell mm-control-shell">
       <div class="generated-rooting-summary">
         {#if counterIntuitiveCount > 0}
           <span class="generated-rooting-pill is-warning">
@@ -369,80 +369,19 @@
 
   .generated-rooting-toolbar {
     margin-bottom: 1rem;
-    padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1rem;
-    background: rgba(12, 12, 13, 0.72);
   }
 
   .generated-rooting-toolbar-row {
-    display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 0.8rem;
-  }
-
-  .generated-rooting-kicker {
-    flex: 0 0 auto;
-    color: var(--mm-subtle);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
   }
 
   .generated-rooting-select {
     min-width: 18rem;
     flex: 1 1 22rem;
-    min-height: 2.65rem;
-    padding: 0.62rem 0.8rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 0.9rem;
-    background: rgba(15, 15, 16, 0.96);
-    color: var(--mm-text);
   }
 
   .generated-rooting-baseline {
-    display: flex;
-    flex: 1 1 21rem;
-    min-width: 15rem;
-    flex-wrap: wrap;
-    align-items: center;
     justify-content: flex-end;
-    gap: 0.55rem;
-  }
-
-  .generated-rooting-baseline-label {
-    color: var(--mm-subtle);
-    font-size: 0.8rem;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  .generated-rooting-baseline-pill,
-  .generated-rooting-baseline-value {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.2rem;
-    padding: 0.45rem 0.8rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.9rem;
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--mm-text);
-    font-size: 0.84rem;
-    font-weight: 600;
-  }
-
-  .generated-rooting-baseline-pill {
-    color: #fbbf24;
-  }
-
-  .generated-rooting-baseline-value {
-    border-color: rgba(245, 158, 11, 0.2);
-    background: rgba(245, 158, 11, 0.12);
-    color: #fbbf24;
-    font-size: 0.84rem;
-    font-weight: 700;
   }
 
   .generated-rooting-state {
@@ -452,9 +391,6 @@
   }
 
   .generated-rooting-shell {
-    padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1rem;
     background: rgba(11, 11, 12, 0.74);
   }
 
