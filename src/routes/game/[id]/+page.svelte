@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { GameScenarioStakeBranch } from '$lib/types';
   import { supabase } from '$lib/supabase';
   import { onMount } from 'svelte';
   import { handleImageError } from '$lib/utils/imageUtils';
@@ -20,6 +21,7 @@
     secondaryColor?: string;
     scoreText?: string;
     winner?: boolean;
+    eliminated?: boolean;
   };
 
   type OtherTeamPick = {
@@ -31,6 +33,7 @@
     seoName: string;
     color: string;
     secondaryColor: string;
+    eliminated: boolean;
   };
 
   type TeamSelectionState = {
@@ -48,9 +51,16 @@
     count: number;
   };
 
+  type StakeCard = {
+    key: 'away' | 'home';
+    team: TeamSurface;
+    branch: GameScenarioStakeBranch;
+  };
+
   let gameData: any = null;
   let pageError: string | null = null;
   let teamSelections: TeamSelectionState = { home: [], away: [], other: [] };
+  let scenarioStakes: { away: GameScenarioStakeBranch; home: GameScenarioStakeBranch; assumptionSummary: string } | null = null;
   let currentUserId: string | null = null;
   let tournamentStage = 'archive';
   let primaryGroups: PickGroup[] = [];
@@ -58,12 +68,15 @@
   let pickGroups: PickGroup[] = [];
   let totalPickCount = 0;
   let directPickCount = 0;
+  let otherPickCount = 0;
   let awayPickPercent = 50;
   let homePickPercent = 50;
+  let stakeCards: StakeCard[] = [];
 
   $: gameData = data.gameDetail?.game || null;
   $: pageError = gameData ? null : 'No games available at this time';
   $: teamSelections = data.gameDetail?.teamSelections || { home: [], away: [], other: [] };
+  $: scenarioStakes = data.gameDetail?.scenarioStakes || null;
   $: tournamentStage = data.tournamentSettings?.stage || 'archive';
   $: primaryGroups = gameData
     ? [
@@ -89,23 +102,31 @@
     key: `other-${index}`,
     side: 'other' as const,
     label: 'Alternate',
-    team: {
-      name: group.name,
-      seed: group.seed,
-      seoName: group.seoName,
-      color: group.color,
-      secondaryColor: group.secondaryColor,
-      scoreText: '',
-      winner: false
-    },
-    entries: group.users,
-    count: group.count
-  }));
+      team: {
+        name: group.name,
+        seed: group.seed,
+        seoName: group.seoName,
+        color: group.color,
+        secondaryColor: group.secondaryColor,
+        scoreText: '',
+        winner: false,
+        eliminated: group.eliminated
+      },
+      entries: group.users,
+      count: group.count
+    }));
   $: pickGroups = [...primaryGroups, ...otherGroups];
   $: directPickCount = primaryGroups.reduce((total, group) => total + group.count, 0);
+  $: otherPickCount = otherGroups.reduce((total, group) => total + group.count, 0);
   $: totalPickCount = pickGroups.reduce((total, group) => total + group.count, 0);
   $: awayPickPercent = directPickCount > 0 ? (primaryGroups[0]?.count || 0) / directPickCount * 100 : 50;
   $: homePickPercent = directPickCount > 0 ? 100 - awayPickPercent : 50;
+  $: stakeCards = scenarioStakes && gameData
+    ? [
+        { key: 'away', team: gameData.awayTeam, branch: scenarioStakes.away },
+        { key: 'home', team: gameData.homeTeam, branch: scenarioStakes.home }
+      ]
+    : [];
 
   onMount(async () => {
     const {
@@ -118,7 +139,11 @@
   });
 
   function isCurrentUser(entry: PickEntry): boolean {
-    return entry.user_id === currentUserId;
+    return isCurrentUserId(entry.user_id);
+  }
+
+  function isCurrentUserId(userId: string | null | undefined): boolean {
+    return Boolean(userId && userId === currentUserId);
   }
 
   function isWinner(team: TeamSurface | any): boolean {
@@ -169,7 +194,11 @@
       return getTeamStateClass(group.team, gameData?.awayTeam);
     }
 
-    return '';
+    return group.team.eliminated ? 'is-eliminated' : '';
+  }
+
+  function isPickGroupEliminated(group: PickGroup): boolean {
+    return getPickGroupStateClass(group) === 'is-eliminated';
   }
 
   function getTeamColorVars(team: TeamSurface | any): string {
@@ -190,6 +219,18 @@
 
   function getTeamAccentStyle(team: TeamSurface | any): string {
     return getTeamColorVars(team);
+  }
+
+  function formatStakePercent(value: number): string {
+    return `${value.toFixed(value >= 10 ? 1 : 2)}%`;
+  }
+
+  function formatSwingPercent(value: number): string {
+    return `+${value.toFixed(value >= 10 ? 1 : 2)}%`;
+  }
+
+  function formatDropPercent(value: number): string {
+    return `${value.toFixed(Math.abs(value) >= 10 ? 1 : 2)}%`;
   }
 </script>
 
@@ -212,7 +253,12 @@
           <div class="pick-share-panel">
             <div class="pick-share-panel-header">
               <p class="panel-kicker">Pick Share</p>
-              <div class="pick-total-chip">{getPickCountLabel(totalPickCount)}</div>
+              <div class="pick-share-chip-group">
+                <div class="pick-total-chip">{getPickCountLabel(totalPickCount)}</div>
+                {#if otherPickCount > 0}
+                  <div class="pick-other-chip">Other {otherPickCount}</div>
+                {/if}
+              </div>
             </div>
 
             <div class="pick-share-track">
@@ -298,6 +344,95 @@
               </div>
             </article>
           </div>
+
+          {#if scenarioStakes && stakeCards.length > 0}
+            <div class="stakes-panel">
+              <div class="stakes-panel-header">
+                <p class="stakes-panel-title">What's At Stake</p>
+              </div>
+
+              <div class="stakes-grid">
+                {#each stakeCards as card}
+                  <article class="stakes-card" style={getTeamAccentStyle(card.team)}>
+                    <div class="stakes-card-header">
+                      <div class="stakes-card-main">
+                        <div class="stakes-card-team">If {card.team.name} wins</div>
+
+                        {#if card.branch.favoriteEntry}
+                          <div class="stakes-card-favorite-row">
+                            <span class="stakes-card-favorite-label">Top Title Odds</span>
+                            <div class="stakes-card-favorite-summary">
+                              <strong class="stakes-card-favorite-name">{card.branch.favoriteEntry.displayName}</strong>
+                              <span class="stakes-card-favorite-value">{formatStakePercent(card.branch.favoriteEntry.firstPlacePct)}</span>
+                            </div>
+                          </div>
+                        {/if}
+                      </div>
+                    </div>
+
+                    <div class="stakes-list-stack">
+                      <div class="stakes-list-block">
+                        <div class="stakes-list-heading">Chance for 1st at Stake</div>
+
+                        {#if card.branch.mustHaveEntries.length > 0}
+                          <div class="stakes-entry-list">
+                            {#each card.branch.mustHaveEntries as entry}
+                              <div class={`stakes-entry-row ${isCurrentUserId(entry.userId) ? 'is-current-user' : ''}`}>
+                                <div class="stakes-entry-copy">
+                                  <span class="stakes-entry-name">{entry.displayName}</span>
+                                </div>
+                                <strong class="stakes-entry-value">{formatStakePercent(entry.firstPlacePct)}</strong>
+                              </div>
+                            {/each}
+                          </div>
+                        {:else}
+                          <div class="stakes-empty">No first-place paths are exclusive to this result.</div>
+                        {/if}
+                      </div>
+
+                      <div class="stakes-list-block">
+                        <div class="stakes-list-heading">Biggest Lifts</div>
+
+                        {#if card.branch.biggestSwingEntries.length > 0}
+                          <div class="stakes-entry-list">
+                            {#each card.branch.biggestSwingEntries as entry}
+                              <div class={`stakes-entry-row ${isCurrentUserId(entry.userId) ? 'is-current-user' : ''}`}>
+                                <div class="stakes-entry-copy">
+                                  <span class="stakes-entry-name">{entry.displayName}</span>
+                                </div>
+                                <strong class="stakes-entry-value is-lift">{formatSwingPercent(entry.swingPct)}</strong>
+                              </div>
+                            {/each}
+                          </div>
+                        {:else}
+                          <div class="stakes-empty">No meaningful first-place lift in this result.</div>
+                        {/if}
+                      </div>
+
+                      <div class="stakes-list-block">
+                        <div class="stakes-list-heading">Biggest Drops</div>
+
+                        {#if card.branch.biggestDropEntries.length > 0}
+                          <div class="stakes-entry-list">
+                            {#each card.branch.biggestDropEntries as entry}
+                              <div class={`stakes-entry-row ${isCurrentUserId(entry.userId) ? 'is-current-user' : ''}`}>
+                                <div class="stakes-entry-copy">
+                                  <span class="stakes-entry-name">{entry.displayName}</span>
+                                </div>
+                                <strong class="stakes-entry-value is-drop">{formatDropPercent(entry.swingPct)}</strong>
+                              </div>
+                            {/each}
+                          </div>
+                        {:else}
+                          <div class="stakes-empty">No meaningful first-place drop in this result.</div>
+                        {/if}
+                      </div>
+                    </div>
+                  </article>
+                {/each}
+              </div>
+            </div>
+          {/if}
         </section>
 
         <section class="game-picks-panel">
@@ -319,6 +454,9 @@
                     </div>
 
                     <div class="pick-group-copy">
+                      {#if isPickGroupEliminated(group)}
+                        <span class="pick-group-status">Already Eliminated</span>
+                      {/if}
                       <h3 class="pick-group-name">{group.team.name}</h3>
                     </div>
                   </div>
@@ -402,7 +540,8 @@
   }
 
   .game-status-pill,
-  .pick-total-chip {
+  .pick-total-chip,
+  .pick-other-chip {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -432,7 +571,8 @@
   }
 
   .game-status-pill.is-pre,
-  .pick-total-chip {
+  .pick-total-chip,
+  .pick-other-chip {
     color: var(--mm-muted);
   }
 
@@ -452,6 +592,20 @@
     margin-bottom: 0.58rem;
   }
 
+  .pick-share-chip-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
+
+  .pick-other-chip {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    letter-spacing: 0.1em;
+  }
+
   .matchup-board {
     position: relative;
     min-height: 0;
@@ -459,12 +613,12 @@
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     gap: 0.72rem;
     align-items: stretch;
-    padding-top: 1.1rem;
+    padding-top: 1.35rem;
   }
 
   .matchup-status-band {
     position: absolute;
-    top: 0;
+    top: 0.32rem;
     left: 50%;
     z-index: 2;
     transform: translateX(-50%);
@@ -719,6 +873,189 @@
     padding: 0;
   }
 
+  .stakes-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 0.2rem;
+  }
+
+  .stakes-panel-header {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .stakes-panel-title {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .stakes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .stakes-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.85rem;
+    border: 1px solid rgba(var(--team-rgb), 0.26);
+    border-radius: 1.22rem;
+    background:
+      linear-gradient(180deg, rgba(var(--team-rgb), 0.12), rgba(11, 11, 12, 0.96) 34%),
+      rgba(11, 11, 12, 0.94);
+    overflow: hidden;
+  }
+
+  .stakes-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: rgb(var(--team-rgb));
+    opacity: 0.92;
+  }
+
+  .stakes-card-header {
+    display: block;
+  }
+
+  .stakes-card-main {
+    min-width: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .stakes-card-team {
+    color: var(--mm-text);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.05;
+  }
+
+  .stakes-card-favorite-row {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .stakes-card-favorite-label,
+  .stakes-list-heading {
+    color: var(--mm-subtle);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .stakes-card-favorite-summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.55rem;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .stakes-card-favorite-name {
+    max-width: 11rem;
+    overflow: hidden;
+    color: var(--mm-text);
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .stakes-card-favorite-value {
+    color: var(--mm-text);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .stakes-list-stack {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .stakes-list-block {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.7rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .stakes-entry-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.48rem;
+  }
+
+  .stakes-entry-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.7rem;
+  }
+
+  .stakes-entry-row.is-current-user .stakes-entry-name,
+  .stakes-entry-row.is-current-user .stakes-entry-value {
+    color: #fde68a;
+  }
+
+  .stakes-entry-copy {
+    min-width: 0;
+    display: grid;
+    gap: 0.12rem;
+  }
+
+  .stakes-entry-name {
+    overflow: hidden;
+    color: var(--mm-text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .stakes-entry-meta {
+    color: var(--mm-muted);
+    font-size: 0.74rem;
+    line-height: 1.25;
+  }
+
+  .stakes-entry-value {
+    flex-shrink: 0;
+    color: var(--mm-text);
+    font-size: 0.82rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .stakes-entry-value.is-lift {
+    color: #86efac;
+  }
+
+  .stakes-entry-value.is-drop {
+    color: #fca5a5;
+  }
+
+  .stakes-empty {
+    color: var(--mm-muted);
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
   .pick-share-track {
     display: flex;
     width: 100%;
@@ -808,7 +1145,9 @@
   }
 
   .pick-group.is-eliminated {
-    opacity: 0.9;
+    border-color: rgba(248, 113, 113, 0.26);
+    background: linear-gradient(180deg, rgba(42, 16, 16, 0.44) 0%, rgba(12, 12, 13, 0.94) 58%);
+    box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.08);
   }
 
   .pick-group-header {
@@ -834,6 +1173,16 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .pick-group-status {
+    display: block;
+    margin-bottom: 0.22rem;
+    color: #fca5a5;
+    font-size: 0.67rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 
   .pick-group-count {
@@ -937,6 +1286,10 @@
       align-items: flex-start;
     }
 
+    .pick-share-chip-group {
+      justify-content: flex-start;
+    }
+
     .pick-group {
       flex: none;
       min-height: 0;
@@ -958,10 +1311,40 @@
       align-items: center;
     }
 
+    .pick-share-chip-group {
+      justify-content: flex-end;
+      gap: 0.45rem;
+    }
+
+    .stakes-panel {
+      gap: 0.9rem;
+      padding-top: 0.1rem;
+    }
+
+    .stakes-panel-header {
+      display: block;
+    }
+
+    .stakes-panel-title {
+      font-size: 0.94rem;
+    }
+
+    .stakes-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stakes-card {
+      padding: 0.78rem;
+    }
+
+    .stakes-card-favorite-summary {
+      justify-content: space-between;
+    }
+
     .matchup-board {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.6rem;
-      padding-top: 2.15rem;
+      padding-top: 2.35rem;
     }
 
     .matchup-center {
@@ -969,7 +1352,7 @@
     }
 
     .matchup-status-band {
-      top: 0.2rem;
+      top: 0.55rem;
     }
 
     .matchup-side {

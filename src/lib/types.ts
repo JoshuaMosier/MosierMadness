@@ -233,6 +233,32 @@ export interface GeneratedScenarioArtifact {
 	previewGames?: GeneratedScenarioGamePreview[];
 }
 
+export interface GameScenarioStakeEntry {
+	entryId: string;
+	userId?: string;
+	displayName: string;
+	firstPlacePct: number;
+	swingPct: number;
+}
+
+export interface GameScenarioStakeBranch {
+	totalScenarios: number;
+	titleAliveCount: number;
+	mustHaveCount: number;
+	mustHaveEntries: GameScenarioStakeEntry[];
+	biggestSwingEntries: GameScenarioStakeEntry[];
+	biggestDropEntries: GameScenarioStakeEntry[];
+	favoriteEntry: GameScenarioStakeEntry | null;
+	maxSwingPct: number;
+}
+
+export interface GameScenarioStakes {
+	totalScenarios: number;
+	assumptionSummary: string;
+	away: GameScenarioStakeBranch;
+	home: GameScenarioStakeBranch;
+}
+
 export interface SimulationConfig {
 	masterBracket: string[];
 	entries: Entry[];

@@ -37,11 +37,7 @@
   <div class="stats-shell mm-shell mm-page-shell">
     <section class="stats-hero mm-page-hero">
       <div class="stats-hero-copy mm-page-hero-copy">
-        <p class="stats-kicker mm-eyebrow">Statistics</p>
         <h1 class="stats-title mm-page-title">Tournament Record Book</h1>
-        <p class="stats-subtitle mm-page-subtitle">
-          Browse round-by-round records and percentile-based finish leaders from every Mosier Madness archive season.
-        </p>
       </div>
 
       <div class="stats-summary-grid">
@@ -161,7 +157,6 @@
           <section class="stats-panel mm-panel-surface">
             <div class="stats-section-header mm-panel-header-inline">
               <div>
-                <p class="stats-section-kicker mm-eyebrow">Round Record</p>
                 <h2 class="stats-section-title stats-section-title--compact mm-panel-title">{category.category}</h2>
               </div>
               <span class="stats-section-tag mm-section-tag">{category.records.length} entries</span>

@@ -208,9 +208,9 @@
     </div>
 
     <div class="leaderboard-table-shell">
-      <div class="leaderboard-table-scroll">
-        <table class="leaderboard-table">
-          <thead>
+      <div class="leaderboard-table-scroll mm-data-table-scroll">
+        <table class="leaderboard-table mm-data-table mm-data-table--centered">
+          <thead class="mm-data-table-head-sticky">
             <tr>
               <th>Rank</th>
               <th>Name</th>
@@ -227,7 +227,11 @@
           </thead>
           <tbody>
             {#each sortedScores as score, index}
-              <tr class="leaderboard-row" class:leaderboard-row--current-user={isCurrentUserRow(score)}>
+              <tr
+                class="leaderboard-row"
+                class:leaderboard-row--current-user={isCurrentUserRow(score)}
+                class:mm-data-table-row-highlight={isCurrentUserRow(score)}
+              >
                 <td class="leaderboard-cell leaderboard-cell--rank">
                   <span class="leaderboard-rank">{getRankLabel(ranks[index])}</span>
                 </td>
@@ -387,37 +391,8 @@
     padding: 0;
   }
 
-  .leaderboard-table-scroll {
-    overflow-x: auto;
-    background: transparent;
-  }
-
   .leaderboard-table {
-    width: 100%;
     min-width: 1100px;
-    border-collapse: separate;
-    border-spacing: 0;
-  }
-
-  .leaderboard-table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    padding: 1rem 0.75rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(14, 14, 15, 0.96);
-    color: var(--mm-muted);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-align: center;
-    text-transform: uppercase;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-  }
-
-  .leaderboard-table thead th:nth-child(2) {
-    text-align: center;
   }
 
   .leaderboard-table thead th:first-child,
@@ -432,21 +407,6 @@
 
   .leaderboard-row {
     transition: background-color 180ms ease;
-  }
-
-  .leaderboard-row:nth-child(odd) {
-    background: rgba(255, 255, 255, 0.018);
-  }
-
-  .leaderboard-row:hover {
-    background: rgba(255, 255, 255, 0.042);
-  }
-
-  .leaderboard-row.leaderboard-row--current-user,
-  .leaderboard-row.leaderboard-row--current-user:nth-child(odd),
-  .leaderboard-row.leaderboard-row--current-user:hover {
-    background:
-      linear-gradient(90deg, rgba(180, 83, 9, 0.24), rgba(245, 158, 11, 0.08) 40%, rgba(255, 255, 255, 0.018));
   }
 
   .leaderboard-row--current-user .leaderboard-name-button {
@@ -466,7 +426,6 @@
 
   .leaderboard-row td {
     padding: 0.48rem 0.7rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
     vertical-align: middle;
   }
 

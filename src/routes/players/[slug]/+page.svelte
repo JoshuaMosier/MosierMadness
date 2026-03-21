@@ -103,8 +103,8 @@
         </div>
       </div>
 
-      <div class="player-results-table-wrap">
-        <table class="player-results-table">
+      <div class="player-results-table-wrap mm-data-table-scroll">
+        <table class="player-results-table mm-data-table">
           <thead>
             <tr>
               <th>Year</th>
@@ -117,8 +117,8 @@
             </tr>
           </thead>
           <tbody>
-            {#each yearlyResults as result, index}
-              <tr class:index-even={index % 2 === 0}>
+            {#each yearlyResults as result}
+              <tr>
                 <td class="player-results-year">{result.year}</td>
                 <td>
                   <span class="player-result-pill" class:player-result-pill--champion={result.champion}>
@@ -250,42 +250,12 @@
     background: rgba(255, 255, 255, 0.025);
   }
 
-  .player-results-table-wrap {
-    overflow-x: auto;
-  }
-
   .player-results-table {
-    width: 100%;
     min-width: 820px;
-    border-collapse: collapse;
     table-layout: fixed;
   }
 
-  .player-results-table thead {
-    background: rgba(255, 255, 255, 0.03);
-  }
-
-  .player-results-table th {
-    padding: 0.82rem 1rem;
-    color: var(--mm-muted);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    text-align: left;
-  }
-
-  .player-results-table tbody tr {
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgba(11, 11, 12, 0.94);
-  }
-
-  .player-results-table tbody tr.index-even {
-    background: rgba(255, 255, 255, 0.02);
-  }
-
   .player-results-table td {
-    padding: 0.96rem 1rem;
     color: var(--mm-muted);
     font-size: 0.95rem;
     line-height: 1.4;

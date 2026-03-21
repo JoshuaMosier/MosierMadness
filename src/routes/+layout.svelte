@@ -42,6 +42,26 @@
 
   $: tournamentStage = (data.tournamentSettings?.stage || 'archive') as TournamentStage;
 
+  function getRefreshScope(pathname: string): string {
+    if (pathname.startsWith('/game/')) {
+      return 'game';
+    }
+
+    if (pathname === '/scores') {
+      return 'scores';
+    }
+
+    if (pathname === '/live-bracket') {
+      return 'live-bracket';
+    }
+
+    if (pathname === '/') {
+      return 'home';
+    }
+
+    return 'default';
+  }
+
   function getFallbackPollMs(pathname: string, stage: TournamentStage): number {
     if (stage === 'tournament-live') {
       if (pathname === '/scores' || pathname === '/live-bracket' || pathname.startsWith('/game/')) {
@@ -62,6 +82,7 @@
     return pathname === '/scores' ? BRACKET_OPEN_POLL_MS : IDLE_POLL_MS;
   }
 
+  $: refreshScope = getRefreshScope($page.url.pathname);
   $: fallbackPollMs = getFallbackPollMs($page.url.pathname, tournamentStage);
 
   function syncRealtimeRefresh(nextKey: string): void {
@@ -97,7 +118,7 @@
     }, INVALIDATE_DEBOUNCE_MS);
   }
 
-  $: syncRealtimeRefresh(`${tournamentStage}:${$page.url.pathname}:${fallbackPollMs}`);
+  $: syncRealtimeRefresh(`${tournamentStage}:${refreshScope}:${fallbackPollMs}`);
 
   onMount(() => {
     mounted = true;
@@ -111,7 +132,7 @@
         }
 
         browserSupabase = supabase;
-        syncRealtimeRefresh(`${tournamentStage}:${$page.url.pathname}:${fallbackPollMs}`);
+        syncRealtimeRefresh(`${tournamentStage}:${refreshScope}:${fallbackPollMs}`);
 
         const {
           data: { subscription }

@@ -119,11 +119,7 @@
   <div class="history-shell mm-shell mm-page-shell">
     <section class="history-hero mm-page-hero">
       <div class="history-hero-copy mm-page-hero-copy">
-        <p class="history-kicker mm-eyebrow">Past Winners</p>
         <h1 class="history-title mm-page-title">Hall of Champions</h1>
-        <p class="history-subtitle mm-page-subtitle">
-          Browse title history, revisit season standings, and search the Mosier Madness record book.
-        </p>
       </div>
 
       <div class="history-summary-grid">
@@ -174,9 +170,7 @@
           <div class="history-section-header mm-panel-header-inline">
             <div>
               <p class="history-section-kicker mm-eyebrow">Titles</p>
-              <h2 class="history-section-title mm-panel-title">Championship Leaderboard</h2>
             </div>
-            <div class="history-section-tag mm-section-tag">{leaderboard.length} champions</div>
           </div>
 
           <div class="history-title-list">
@@ -200,14 +194,12 @@
           <div class="history-section-header mm-panel-header-inline">
             <div>
               <p class="history-section-kicker mm-eyebrow">Champions</p>
-              <h2 class="history-section-title mm-panel-title">Season Archive</h2>
             </div>
-            <div class="history-section-tag mm-section-tag">{completedWinners.length} completed seasons</div>
           </div>
 
-          <div class="history-table-shell history-table-shell--archive">
-            <div class="history-table-scroll">
-              <table class="history-table history-table--archive">
+          <div class="history-table-shell history-table-shell--archive mm-data-table-frame">
+            <div class="history-table-scroll mm-data-table-scroll">
+              <table class="history-table history-table--archive mm-data-table mm-data-table--centered">
                 <thead>
                   <tr>
                     <th>Year</th>
@@ -247,7 +239,6 @@
       <section class="history-panel mm-panel-surface">
         <div class="history-section-header history-section-header--season mm-panel-header-inline">
           <div>
-            <p class="history-section-kicker mm-eyebrow">Season Archive</p>
             <h2 class="history-section-title mm-panel-title">Year-by-Year Standings</h2>
           </div>
         </div>
@@ -294,9 +285,9 @@
           </div>
         </div>
 
-        <div class="history-table-shell">
-          <div class="history-table-scroll">
-            <table class="history-table">
+        <div class="history-table-shell mm-data-table-frame">
+          <div class="history-table-scroll mm-data-table-scroll">
+            <table class="history-table mm-data-table mm-data-table--centered">
               <thead>
                 <tr>
                   <th>Rank</th>
@@ -307,7 +298,7 @@
               </thead>
               <tbody>
                 {#each currentStandings as standing}
-                  <tr class:champion-row={standing.rank === 1}>
+                  <tr class:mm-data-table-row-highlight={standing.rank === 1}>
                     <td>
                       <span class="history-rank-pill history-rank-pill--compact mm-rank-pill is-accent">{getRankLabel(standing.rank)}</span>
                     </td>
@@ -327,7 +318,7 @@
 
                 {#if currentStandings.length === 0}
                   <tr>
-                    <td class="history-table-empty" colspan="4">No archived standings for this season.</td>
+                    <td class="history-table-empty mm-data-table-empty" colspan="4">No archived standings for this season.</td>
                   </tr>
                 {/if}
               </tbody>
@@ -339,7 +330,6 @@
       <section class="history-panel mm-panel-surface">
         <div class="history-section-header history-section-header--players mm-panel-header-inline">
           <div>
-            <p class="history-section-kicker mm-eyebrow">Players</p>
             <h2 class="history-section-title mm-panel-title">Directory and Record Book</h2>
           </div>
 
@@ -358,9 +348,9 @@
           </div>
         </div>
 
-        <div class="history-table-shell history-table-shell--players">
-          <div class="history-table-scroll">
-            <table class="history-table history-table--players">
+        <div class="history-table-shell history-table-shell--players mm-data-table-frame">
+          <div class="history-table-scroll mm-data-table-scroll">
+            <table class="history-table history-table--players mm-data-table mm-data-table--centered">
               <thead>
                 <tr>
                   <th>Name</th>
@@ -374,7 +364,7 @@
               </thead>
               <tbody>
                 {#each displayedPlayers as player}
-                  <tr class:champion-row={player.titles > 0}>
+                  <tr class:mm-data-table-row-highlight={player.titles > 0}>
                     <td class="history-table-name">
                       <a class="history-name-pill history-name-pill--table mm-pill-link" href={getPlayerHref(player.slug)}>
                         {player.name}
@@ -391,7 +381,7 @@
 
                 {#if displayedPlayers.length === 0}
                   <tr>
-                    <td class="history-table-empty" colspan="7">No players match that search.</td>
+                    <td class="history-table-empty mm-data-table-empty" colspan="7">No players match that search.</td>
                   </tr>
                 {/if}
               </tbody>
@@ -755,59 +745,8 @@
     min-width: 48rem;
   }
 
-  .history-table-shell {
-    border-radius: 1rem;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(12, 12, 13, 0.9);
-  }
-
-  .history-table-scroll {
-    overflow-x: auto;
-  }
-
   .history-table {
-    width: 100%;
     min-width: 40rem;
-    border-collapse: separate;
-    border-spacing: 0;
-  }
-
-  .history-table thead th {
-    padding: 0.9rem 0.8rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(20, 20, 21, 0.94);
-    color: var(--mm-muted);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-align: center;
-    text-transform: uppercase;
-  }
-
-  .history-table tbody tr:nth-child(odd) {
-    background: rgba(255, 255, 255, 0.018);
-  }
-
-  .history-table tbody tr.champion-row,
-  .history-table tbody tr.champion-row:nth-child(odd) {
-    background: linear-gradient(90deg, rgba(180, 83, 9, 0.24), rgba(245, 158, 11, 0.08) 40%, rgba(255, 255, 255, 0.018));
-  }
-
-  .history-table td {
-    padding: 0.52rem 0.8rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    vertical-align: middle;
-  }
-
-  .history-table td:first-child,
-  .history-table th:first-child {
-    padding-left: 1rem;
-  }
-
-  .history-table td:last-child,
-  .history-table th:last-child {
-    padding-right: 1rem;
   }
 
   .history-table-name {
@@ -844,12 +783,6 @@
     color: var(--mm-text);
     font-size: 1rem;
     font-weight: 700;
-    text-align: center;
-  }
-
-  .history-table-empty {
-    padding: 1.2rem;
-    color: var(--mm-subtle);
     text-align: center;
   }
 

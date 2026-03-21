@@ -5,7 +5,7 @@ import { hasGeneratedScenarioArtifact } from '$lib/server/scenarios/generated';
 import { canViewScenarios } from '$lib/utils/stageUtils';
 import type { ViewerProfile } from '$lib/types';
 
-export const load: LayoutServerLoad = async ({ depends, url, locals, fetch }) => {
+export const load: LayoutServerLoad = async ({ depends, locals, fetch }) => {
   depends('app:tournament');
   depends('supabase:auth');
 
@@ -24,7 +24,7 @@ export const load: LayoutServerLoad = async ({ depends, url, locals, fetch }) =>
     : Promise.resolve({ data: null, error: null });
 
   const [tickerScores, profileResult] = await Promise.all([
-    url.pathname === '/scores' ? Promise.resolve([]) : getTickerScores(tournamentSettings),
+    getTickerScores(tournamentSettings),
     profilePromise,
   ]);
 

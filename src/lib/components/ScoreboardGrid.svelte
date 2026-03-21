@@ -67,6 +67,7 @@
           <svelte:element
             this={getGameHref(game) ? 'a' : 'div'}
             href={getGameHref(game)}
+            data-sveltekit-preload-data={getGameHref(game) ? 'tap' : undefined}
             class="game-box bg-gradient-to-br from-stone-950/90 to-black/90 rounded-lg sm:rounded-xl p-2 sm:p-5 border border-white/10 shadow-lg"
           >
             <div class="game-date flex justify-between items-center mb-2 sm:mb-3">

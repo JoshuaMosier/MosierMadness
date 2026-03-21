@@ -204,11 +204,6 @@
 
 <div class="scenario-standings-toolbar">
   <p class="scenario-standings-copy">
-    {#if standingsView === 'summary'}
-      Summary view groups finishing ranges so you can scan realistic outcomes quickly. Total scenarios: {totalScenarios.toLocaleString()}
-    {:else}
-      Exact matrix shows every finishing position. Table sorted by best possible finish, then by probability of that finish. Total scenarios: {totalScenarios.toLocaleString()}
-    {/if}
   </p>
 
   <div class="scenario-standings-toolbar-controls">
@@ -247,9 +242,9 @@
 </div>
 
 {#if standingsView === 'summary'}
-  <div class="scenario-summary-wrap">
-    <table class="scenario-summary-table">
-      <thead class="scenario-summary-head">
+  <div class="scenario-summary-wrap mm-data-table-frame mm-data-table-scroll">
+    <table class="scenario-summary-table mm-data-table mm-data-table--compact mm-data-table--centered">
+      <thead class="scenario-summary-head mm-data-table-head-sticky">
         <tr>
           <th scope="col" class="scenario-summary-sticky">Name</th>
           <th scope="col">1st</th>
@@ -261,7 +256,11 @@
       </thead>
       <tbody class="scenario-summary-body">
         {#each summaryRows as user, i}
-          <tr class={getSummaryRowClass(i)} class:is-current-user={isCurrentUserEntry(user)}>
+          <tr
+            class={getSummaryRowClass(i)}
+            class:is-current-user={isCurrentUserEntry(user)}
+            class:mm-data-table-row-highlight={isCurrentUserEntry(user)}
+          >
             <td class={getSummaryNameCellClass(i)}>
               <a href={getEntryHref(user)} class="scenario-summary-namepill mm-pill-link">
                 <span class="scenario-summary-name">
@@ -321,9 +320,9 @@
     </div>
   </div>
 {:else}
-  <div class="scenario-standings-table-wrap">
-    <table class="scenario-standings-table">
-      <thead class="scenario-standings-head">
+  <div class="scenario-standings-table-wrap mm-data-table-frame mm-data-table-scroll">
+    <table class="scenario-standings-table mm-data-table mm-data-table--compact mm-data-table--centered">
+      <thead class="scenario-standings-head mm-data-table-head-sticky">
         <tr>
           <th scope="col" class="scenario-standings-sticky">
             Name
@@ -342,7 +341,11 @@
         {#each sortedUsers as user, i}
           {@const userProbabilities = Object.values(user.positionProbabilities)}
           {@const maxProbability = Math.max(...userProbabilities, 0.1)}
-          <tr class={getRowClass(i)} class:is-current-user={isCurrentUserEntry(user)}>
+          <tr
+            class={getRowClass(i)}
+            class:is-current-user={isCurrentUserEntry(user)}
+            class:mm-data-table-row-highlight={isCurrentUserEntry(user)}
+          >
             <td class={getNameCellClass(i)}>
               {user.displayName || `${user.firstName} ${user.lastName}`.trim()}
             </td>
@@ -442,38 +445,14 @@
 
   .scenario-summary-wrap,
   .scenario-standings-table-wrap {
-    overflow: auto;
     padding-bottom: 1rem;
     max-height: 70vh;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1rem;
-    background: rgba(14, 14, 15, 0.92);
   }
 
   .scenario-summary-table,
   .scenario-standings-table {
     min-width: 100%;
-    border-collapse: collapse;
     white-space: nowrap;
-  }
-
-  .scenario-summary-head,
-  .scenario-standings-head {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: rgba(18, 18, 19, 0.98);
-  }
-
-  .scenario-summary-table th,
-  .scenario-standings-table th {
-    padding: 0.58rem 0.72rem;
-    color: var(--mm-subtle);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.11em;
-    text-transform: uppercase;
-    text-align: center;
   }
 
   .scenario-summary-sticky,
@@ -487,25 +466,6 @@
 
   .scenario-summary-distribution-head {
     min-width: 13rem;
-  }
-
-  .scenario-summary-body {
-    background: rgba(255, 255, 255, 0.015);
-  }
-
-  .scenario-summary-row.is-even {
-    background: rgba(255, 255, 255, 0.025);
-  }
-
-  .scenario-summary-row.is-odd {
-    background: rgba(8, 8, 9, 0.1);
-  }
-
-  .scenario-summary-row.is-current-user,
-  .scenario-summary-row.is-current-user.is-even,
-  .scenario-summary-row.is-current-user.is-odd {
-    background:
-      linear-gradient(90deg, rgba(180, 83, 9, 0.2), rgba(245, 158, 11, 0.06) 38%, rgba(255, 255, 255, 0.016));
   }
 
   .scenario-summary-namecell {
@@ -635,26 +595,6 @@
 
   .scenario-standings-colhead.is-hovered {
     background: rgba(146, 64, 14, 0.42);
-  }
-
-  .scenario-standings-body {
-    background: rgba(255, 255, 255, 0.015);
-  }
-
-  .scenario-standings-row.is-even {
-    background: rgba(255, 255, 255, 0.025);
-  }
-
-  .scenario-standings-row.is-odd {
-    background: rgba(8, 8, 9, 0.1);
-  }
-
-  .scenario-standings-row.is-current-user,
-  .scenario-standings-row.is-current-user.is-even,
-  .scenario-standings-row.is-current-user.is-odd,
-  .scenario-standings-row.is-current-user:hover {
-    background:
-      linear-gradient(90deg, rgba(180, 83, 9, 0.24), rgba(245, 158, 11, 0.08) 40%, rgba(255, 255, 255, 0.018));
   }
 
   .scenario-standings-namecell {

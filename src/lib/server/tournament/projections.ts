@@ -10,13 +10,16 @@ import {
   areEquivalentSelections,
   formatTeamSelection,
   getTeamNameFromSelection,
+  includesEquivalentSelection,
 } from '$lib/utils/bracketUtils';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { getTeamColorSet } from '$lib/server/tournament/teamColors';
+import { getGameScenarioStakesProjection } from '$lib/server/scenarios/gameStakes';
 import type {
   TournamentSnapshot,
   Entry,
   EntryScore,
+  GeneratedScenarioArtifact,
   LiveBracketData,
   LeaderboardProjection,
   ScoreboardGame,
@@ -150,9 +153,15 @@ interface OtherTeamPick {
   seoName: string;
   color: string;
   secondaryColor: string;
+  eliminated: boolean;
 }
 
-export function getGameDetailProjection(game: ScoreboardGame | null, entries: Entry[], snapshot: TournamentSnapshot) {
+export function getGameDetailProjection(
+  game: ScoreboardGame | null,
+  entries: Entry[],
+  snapshot: TournamentSnapshot,
+  generatedScenarioArtifact: GeneratedScenarioArtifact | null = null,
+) {
   if (!game) {
     return null;
   }
@@ -162,6 +171,7 @@ export function getGameDetailProjection(game: ScoreboardGame | null, entries: En
   const homeSelection = formatTeamSelection(game.homeTeam);
   const awaySelection = formatTeamSelection(game.awayTeam);
   const teamSeoMap = buildTeamSeoMap(snapshot);
+  const eliminatedTeams = getEliminatedTeams(getLiveBracketProjection(snapshot));
 
   const home: PickSummary[] = [];
   const away: PickSummary[] = [];
@@ -211,6 +221,7 @@ export function getGameDetailProjection(game: ScoreboardGame | null, entries: En
         seoName,
         color: primaryColor,
         secondaryColor,
+        eliminated: includesEquivalentSelection(eliminatedTeams, team),
       };
     })
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
@@ -218,6 +229,7 @@ export function getGameDetailProjection(game: ScoreboardGame | null, entries: En
   return {
     game,
     bracketIndex,
+    scenarioStakes: getGameScenarioStakesProjection(game, generatedScenarioArtifact),
     teamSelections: {
       home,
       away,

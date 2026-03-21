@@ -161,6 +161,7 @@
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
+    padding-bottom:0.5rem;
   }
 
   .mm-page-title {
@@ -570,6 +571,96 @@
 
   .mm-table-shell {
     border-radius: 26px;
+  }
+
+  .mm-data-table-frame {
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    background: rgba(14, 14, 15, 0.92);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .mm-data-table-scroll {
+    overflow: auto;
+    max-width: 100%;
+  }
+
+  .mm-data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .mm-data-table thead th {
+    padding: 0.9rem 0.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(20, 20, 21, 0.94);
+    color: var(--mm-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .mm-data-table thead.mm-data-table-head-sticky th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .mm-data-table--centered thead th {
+    text-align: center;
+  }
+
+  .mm-data-table--compact thead th {
+    padding: 0.58rem 0.72rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.11em;
+  }
+
+  .mm-data-table tbody tr {
+    transition: background-color 180ms ease;
+  }
+
+  .mm-data-table tbody tr:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.018);
+  }
+
+  .mm-data-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.042);
+  }
+
+  .mm-data-table tbody td {
+    padding: 0.52rem 0.8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    vertical-align: middle;
+  }
+
+  .mm-data-table td:first-child,
+  .mm-data-table th:first-child {
+    padding-left: 1rem;
+  }
+
+  .mm-data-table td:last-child,
+  .mm-data-table th:last-child {
+    padding-right: 1rem;
+  }
+
+  .mm-data-table tbody tr.mm-data-table-row-highlight,
+  .mm-data-table tbody tr.mm-data-table-row-highlight:nth-child(odd),
+  .mm-data-table tbody tr.mm-data-table-row-highlight:hover {
+    background:
+      linear-gradient(90deg, rgba(180, 83, 9, 0.24), rgba(245, 158, 11, 0.08) 40%, rgba(255, 255, 255, 0.018));
+  }
+
+  .mm-data-table-empty {
+    padding: 1.2rem;
+    color: var(--mm-subtle);
+    text-align: center;
   }
 
   .mm-table {

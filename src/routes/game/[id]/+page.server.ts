@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
+import { getGeneratedScenarioArtifact } from '$lib/server/scenarios/generated';
 import { getSubmittedEntries } from '$lib/server/tournament/entries';
 import { getGameDetailProjection, resolveGame } from '$lib/server/tournament/projections';
 import { getTournamentSnapshot } from '$lib/server/tournament/snapshot';
@@ -13,9 +14,10 @@ export const load: PageServerLoad = async ({ params, depends }) => {
     throw redirect(303, '/scores');
   }
 
-  const [snapshot, entries] = await Promise.all([
+  const [snapshot, entries, generatedScenarioArtifact] = await Promise.all([
     getTournamentSnapshot(settings),
     getSubmittedEntries(settings.displaySeasonYear),
+    getGeneratedScenarioArtifact(),
   ]);
 
   const game = resolveGame(snapshot, params.id);
@@ -24,7 +26,7 @@ export const load: PageServerLoad = async ({ params, depends }) => {
   }
 
   return {
-    gameDetail: getGameDetailProjection(game, entries, snapshot),
+    gameDetail: getGameDetailProjection(game, entries, snapshot, generatedScenarioArtifact),
     tournamentSettings: settings,
   };
 };

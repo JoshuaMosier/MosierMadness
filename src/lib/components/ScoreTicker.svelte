@@ -162,7 +162,7 @@
         <!-- Desktop: flex wrap layout -->
         <div class="hidden md:flex md:flex-wrap md:gap-2 md:justify-center">
           {#each sortedGames as game, index}
-            <a href={getGameHref(game)} class="flex-shrink-0 w-[17rem]">
+            <a href={getGameHref(game)} data-sveltekit-preload-data="tap" class="flex-shrink-0 w-[17rem]">
               <div class="game-box ticker-card px-3.5 py-2.5">
                 <div class="game-date ticker-card__meta flex justify-between items-center mb-2">
                   <span class="ticker-clock">{game.statusLabel !== 'FINAL' ? (game.displayClock || '') : ''}</span>
@@ -222,7 +222,7 @@
         <!-- Mobile: horizontal scroll layout -->
         <div class="flex md:hidden overflow-x-auto py-2 px-1 scrollbar-hide">
           {#each sortedGames as game, index}
-            <a href={getGameHref(game)} class="flex-shrink-0 mx-1 w-[17rem]">
+            <a href={getGameHref(game)} data-sveltekit-preload-data="tap" class="flex-shrink-0 mx-1 w-[17rem]">
               <div class="game-box ticker-card px-3.5 py-2.5">
                 <div class="game-date ticker-card__meta flex justify-between items-center mb-2">
                   <span class="ticker-clock">{game.statusLabel !== 'FINAL' ? (game.displayClock || '') : ''}</span>
@@ -303,7 +303,7 @@
           <!-- Mobile view: scrollable container -->
           <div class="md:hidden flex overflow-x-auto py-2 px-1 scrollbar-hide">
             {#each sortedGames as game, index}
-              <a href={getGameHref(game)} class="flex-shrink-0 mx-1 w-[17rem]">
+              <a href={getGameHref(game)} data-sveltekit-preload-data="tap" class="flex-shrink-0 mx-1 w-[17rem]">
                 <div class="game-box ticker-card px-3.5 py-2.5">
                   <div class="game-date ticker-card__meta flex justify-between items-center mb-2">
                     <span class="ticker-clock">{game.statusLabel !== 'FINAL' ? (game.displayClock || '') : ''}</span>
@@ -365,7 +365,7 @@
             <div class="marquee-container">
               <div class="marquee-content" bind:this={marqueeContent}>
                 {#each duplicatedMatches as game, index}
-                  <a href={getGameHref(game)} class="flex-shrink-0 mx-2 w-[17rem] marquee-card">
+                  <a href={getGameHref(game)} data-sveltekit-preload-data="tap" class="flex-shrink-0 mx-2 w-[17rem] marquee-card">
                     <div class="game-box ticker-card px-3.5 py-2.5">
                       <div class="game-date ticker-card__meta flex justify-between items-center mb-2">
                         <span class="ticker-clock">{game.statusLabel !== 'FINAL' ? (game.displayClock || '') : ''}</span>
