@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '$lib/server/supabaseAdmin';
-import { getTodayEtDateString } from '$lib/server/tournament/dates';
+import { getTodayEtDateString, SCOREBOARD_DAY_START_HOUR_ET } from '$lib/server/tournament/dates';
 import type { TournamentStage, TournamentSettings, TickerRound, FirstFourConfig, FirstFourGame } from '$lib/types';
 
 export const TOURNAMENT_STAGES: readonly TournamentStage[] = ['archive', 'bracket-open', 'tournament-live', 'complete'];
@@ -231,7 +231,7 @@ export function getEntryDeadlineAt(entrySeasonYear: number): string {
 export { getTodayEtDateString } from '$lib/server/tournament/dates';
 
 export function getCurrentOrNextTickerRound(settings: TournamentSettings, date: Date = new Date()): TickerRound | null {
-  const today = getTodayEtDateString(date);
+  const today = getTodayEtDateString(date, { dayStartsAtHourEt: SCOREBOARD_DAY_START_HOUR_ET });
   const firstFourDates = settings.firstFourConfig?.dates?.filter(Boolean) || [];
   const rounds: TickerRound[] = [
     ...(firstFourDates.length > 0

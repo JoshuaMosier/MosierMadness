@@ -1,6 +1,7 @@
 import { getDailyNcaaScoreboard } from '$lib/server/tournament/dailyScores';
 import { getScoreboardGamesForDate } from '$lib/server/tournament/snapshot';
 import { getCurrentOrNextTickerRound, getTodayEtDateString, getTournamentSettings } from '$lib/server/tournament/settings';
+import { SCOREBOARD_DAY_START_HOUR_ET } from '$lib/server/tournament/dates';
 import { sortScoreboardGames } from '$lib/utils/scoreboardUtils';
 import { isTournamentLive, isBracketOpen, isArchive, isComplete } from '$lib/utils/stageUtils';
 import { getErrorMessage } from '$lib/server/tournament/constants';
@@ -27,7 +28,7 @@ function getDisplayDatesForRound(roundDates: string[], date: Date = new Date()):
     return sortedDates;
   }
 
-  const today = getTodayEtDateString(date);
+  const today = getTodayEtDateString(date, { dayStartsAtHourEt: SCOREBOARD_DAY_START_HOUR_ET });
   if (sortedDates.includes(today)) {
     return [today];
   }
@@ -61,7 +62,9 @@ export async function getTickerScores(explicitSettings: TournamentSettings | nul
     }
 
     return sortScoreboardGames(
-      await getDailyNcaaScoreboard(new Date()),
+      await getDailyNcaaScoreboard(
+        getTodayEtDateString(new Date(), { dayStartsAtHourEt: SCOREBOARD_DAY_START_HOUR_ET }),
+      ),
     );
   } catch (error: unknown) {
     console.warn(`Falling back to empty ticker scores: ${getErrorMessage(error)}`);
