@@ -325,7 +325,7 @@
             <p class="scenario-kicker mm-eyebrow">Scenarios</p>
             <h2 class="scenario-title mm-page-title">Tournament Outcome Probabilities</h2>
             <p class="scenario-subtitle mm-page-subtitle">
-              Use Standings for title odds, finish ranges, and the full matrix view, and Rooting Guide to see which remaining outcomes help a bracket most. Use the game selector to preview specific paths.
+              Use Standings for title odds, finish ranges, and the full matrix view, and Rooting Guide to see which remaining outcomes help a bracket most. Rooting recommendations are based on the best remaining pool outcome, so they may not match the team originally picked. Use the game selector to preview specific paths.
             </p>
           </div>
         </div>
@@ -365,7 +365,6 @@
                 </div>
                 <FullStandingsTab
                   {positionProbabilities}
-                  {totalScenarios}
                   numEntries={entries.length}
                   bind:displayMode
                   {currentUserEntryId}

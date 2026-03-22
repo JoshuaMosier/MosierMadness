@@ -99,7 +99,7 @@
       <div class="generated-scenarios-copy">
         <h2 class="generated-scenarios-title mm-page-title">Tournament Outcome Probabilities</h2>
         <p class="generated-scenarios-subtitle mm-page-subtitle">
-          Use Standings for title odds, finish ranges, and the full matrix view, and Rooting Guide to see which currently known outcomes help a bracket most.
+          Use Standings for title odds, finish ranges, and the full matrix view, and Rooting Guide to see which currently known outcomes help a bracket most. Rooting recommendations are based on the best remaining pool outcome, so they may not match the team originally picked.
         </p>
       </div>
 
@@ -182,7 +182,6 @@
     {#if selectedTab === 'standings'}
       <FullStandingsTab
         {positionProbabilities}
-        {totalScenarios}
         numEntries={activeEntries.length}
         bind:displayMode
         {currentUserEntryId}

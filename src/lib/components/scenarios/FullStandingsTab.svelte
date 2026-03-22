@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { getRowHeatmapColor, getOrdinalSuffix, getSortedPositionData } from '$lib/utils/scenarioEngine';
+  import { getRowHeatmapColor, getOrdinalSuffix } from '$lib/utils/scenarioEngine';
 
   export let positionProbabilities: any[] = [];
-  export let totalScenarios: number = 0;
   export let numEntries: number = 0;
   export let displayMode: string = 'percent';
   export let currentUserEntryId: string | null = null;
@@ -11,6 +10,8 @@
   let hoveredCol: number | null = null;
   let hoveredCell: string | null = null;
   let standingsView: 'summary' | 'matrix' = 'summary';
+  let summarySortKey: 'name' | 'win' | 'podium' | 'topGroup' | 'expected' = 'win';
+  let summarySortDirection: 'asc' | 'desc' = 'desc';
 
   type SummaryBucket = {
     label: string;
@@ -39,6 +40,10 @@
   function getEntryHref(user: any): string {
     const nameIdentifier = `${user.firstName || ''}|${user.lastName || ''}`;
     return `/entries?selected=${encodeURIComponent(nameIdentifier)}`;
+  }
+
+  function getUserDisplayName(user: any): string {
+    return user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.entryId;
   }
 
   function isCurrentUserEntry(user: any): boolean {
@@ -166,13 +171,38 @@
     return value.toFixed(1).replace(/\.0$/, '');
   }
 
-  $: sortedUsers = getSortedPositionData(positionProbabilities);
+  function toggleSummarySort(key: 'name' | 'win' | 'podium' | 'topGroup' | 'expected'): void {
+    if (summarySortKey === key) {
+      summarySortDirection = summarySortDirection === 'desc' ? 'asc' : 'desc';
+      return;
+    }
+
+    summarySortKey = key;
+    summarySortDirection = key === 'name' || key === 'expected' ? 'asc' : 'desc';
+  }
+
+  function getSummarySortLabel(key: 'name' | 'win' | 'podium' | 'topGroup' | 'expected'): string {
+    if (summarySortKey !== key) {
+      return '';
+    }
+
+    return summarySortDirection === 'desc' ? 'v' : '^';
+  }
+
+  function getSummaryAriaSort(key: 'name' | 'win' | 'podium' | 'topGroup' | 'expected'): 'ascending' | 'descending' | 'none' {
+    if (summarySortKey !== key) {
+      return 'none';
+    }
+
+    return summarySortDirection === 'desc' ? 'descending' : 'ascending';
+  }
+
   $: summaryBuckets = getSummaryBuckets(numEntries);
   $: podiumLimit = Math.min(3, numEntries);
   $: podiumLabel = podiumLimit >= 3 ? 'Podium' : `Top ${podiumLimit}`;
   $: topGroupLimit = Math.max(1, Math.ceil(numEntries / 4));
   $: topGroupLabel = topGroupLimit === 1 ? 'Top 1' : `Top ${topGroupLimit}`;
-  $: summaryRows = sortedUsers.map((user) => {
+  $: summaryRows = positionProbabilities.map((user) => {
     const winCount = sumCounts(user.positions, 1, 1);
     const winProbability = sumProbabilities(user.positionProbabilities, 1, 1);
     const podiumCount = sumCounts(user.positions, 1, podiumLimit);
@@ -194,6 +224,43 @@
       })),
     };
   });
+  $: sortedSummaryRows = [...summaryRows].sort((left, right) => {
+    let comparison = 0;
+    const leftName = getUserDisplayName(left);
+    const rightName = getUserDisplayName(right);
+    const directionMultiplier = summarySortDirection === 'desc' ? -1 : 1;
+
+    if (summarySortKey === 'name') {
+      comparison = leftName.localeCompare(rightName) * directionMultiplier;
+    }
+
+    if (summarySortKey === 'win') {
+      comparison = (left.win.probability - right.win.probability) * directionMultiplier;
+    }
+
+    if (summarySortKey === 'podium') {
+      comparison = (left.podium.probability - right.podium.probability) * directionMultiplier;
+    }
+
+    if (summarySortKey === 'topGroup') {
+      comparison = (left.topGroup.probability - right.topGroup.probability) * directionMultiplier;
+    }
+
+    if (summarySortKey === 'expected') {
+      comparison = (left.expectedFinish - right.expectedFinish) * directionMultiplier;
+    }
+
+    if (comparison === 0) {
+      comparison = right.win.probability - left.win.probability;
+    }
+
+    if (comparison === 0) {
+      comparison = leftName.localeCompare(rightName);
+    }
+
+    return comparison;
+  });
+  $: sortedUsers = sortedSummaryRows;
   $: summaryColumnRanges = {
     win: getValueRange(summaryRows.map((user) => getMetricDisplayValue(user.win))),
     podium: getValueRange(summaryRows.map((user) => getMetricDisplayValue(user.podium))),
@@ -246,16 +313,61 @@
     <table class="scenario-summary-table mm-data-table mm-data-table--compact mm-data-table--centered">
       <thead class="scenario-summary-head mm-data-table-head-sticky">
         <tr>
-          <th scope="col" class="scenario-summary-sticky">Name</th>
-          <th scope="col">1st</th>
-          <th scope="col">{podiumLabel}</th>
-          <th scope="col">{topGroupLabel}</th>
-          <th scope="col">Expected</th>
+          <th scope="col" class="scenario-summary-sticky" aria-sort={getSummaryAriaSort('name')}>
+            <button
+              type="button"
+              class={`scenario-summary-sort ${summarySortKey === 'name' ? 'is-active' : ''}`}
+              on:click={() => toggleSummarySort('name')}
+            >
+              <span>Name</span>
+              <span class="scenario-summary-sort-indicator">{getSummarySortLabel('name')}</span>
+            </button>
+          </th>
+          <th scope="col" aria-sort={getSummaryAriaSort('win')}>
+            <button
+              type="button"
+              class={`scenario-summary-sort ${summarySortKey === 'win' ? 'is-active' : ''}`}
+              on:click={() => toggleSummarySort('win')}
+            >
+              <span>1st</span>
+              <span class="scenario-summary-sort-indicator">{getSummarySortLabel('win')}</span>
+            </button>
+          </th>
+          <th scope="col" aria-sort={getSummaryAriaSort('podium')}>
+            <button
+              type="button"
+              class={`scenario-summary-sort ${summarySortKey === 'podium' ? 'is-active' : ''}`}
+              on:click={() => toggleSummarySort('podium')}
+            >
+              <span>{podiumLabel}</span>
+              <span class="scenario-summary-sort-indicator">{getSummarySortLabel('podium')}</span>
+            </button>
+          </th>
+          <th scope="col" aria-sort={getSummaryAriaSort('topGroup')}>
+            <button
+              type="button"
+              class={`scenario-summary-sort ${summarySortKey === 'topGroup' ? 'is-active' : ''}`}
+              on:click={() => toggleSummarySort('topGroup')}
+            >
+              <span>{topGroupLabel}</span>
+              <span class="scenario-summary-sort-indicator">{getSummarySortLabel('topGroup')}</span>
+            </button>
+          </th>
+          <th scope="col" aria-sort={getSummaryAriaSort('expected')}>
+            <button
+              type="button"
+              class={`scenario-summary-sort ${summarySortKey === 'expected' ? 'is-active' : ''}`}
+              on:click={() => toggleSummarySort('expected')}
+            >
+              <span>Expected</span>
+              <span class="scenario-summary-sort-indicator">{getSummarySortLabel('expected')}</span>
+            </button>
+          </th>
           <th scope="col" class="scenario-summary-distribution-head">Finish Distribution</th>
         </tr>
       </thead>
       <tbody class="scenario-summary-body">
-        {#each summaryRows as user, i}
+        {#each sortedSummaryRows as user, i}
           <tr
             class={getSummaryRowClass(i)}
             class:is-current-user={isCurrentUserEntry(user)}
@@ -466,6 +578,35 @@
 
   .scenario-summary-distribution-head {
     min-width: 13rem;
+  }
+
+  .scenario-summary-sort {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.32rem;
+    width: 100%;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: inherit;
+    cursor: pointer;
+  }
+
+  .scenario-summary-sort.is-active {
+    color: var(--mm-text);
+  }
+
+  .scenario-summary-sort-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0.7rem;
+    color: var(--mm-subtle);
+    font-size: 0.68rem;
+    line-height: 1;
   }
 
   .scenario-summary-namecell {

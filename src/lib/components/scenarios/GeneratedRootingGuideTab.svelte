@@ -30,7 +30,6 @@
   type BranchSnapshot = {
     entryId: string;
     firstPlaceCount: number;
-    firstPlacePct: number;
     placeCounts: number[];
     totalScenarios: number;
   };
@@ -39,8 +38,16 @@
     pct: number;
     count: number;
     place: number;
-    titleAlive: boolean;
   };
+
+  type CardPriority = {
+    label: string;
+    tone: 'need' | 'prefer' | 'edge' | 'neutral';
+    rank: number;
+  };
+
+  const CLEAR_EDGE_RATIO_THRESHOLD = 2;
+  const SMALL_EDGE_RATIO_THRESHOLD = 1.1;
 
   function getDisplayName(entry: GeneratedScenarioEntry): string {
     return entry.displayName || `${entry.firstName ?? ''} ${entry.lastName ?? ''}`.trim() || entry.entryId;
@@ -49,7 +56,7 @@
   function findEntrySnapshot(
     snapshots: GeneratedScenarioEntry[],
     entryId: string | null,
-    totalScenarios: number,
+    totalScenarios: number | null = null,
   ): BranchSnapshot | null {
     if (!entryId) {
       return null;
@@ -63,9 +70,8 @@
     return {
       entryId: snapshot.entryId,
       firstPlaceCount: snapshot.firstPlaceCount,
-      firstPlacePct: snapshot.firstPlacePct,
       placeCounts: snapshot.placeCounts,
-      totalScenarios,
+      totalScenarios: totalScenarios ?? snapshot.placeCounts.reduce((sum, count) => sum + count, 0),
     };
   }
 
@@ -74,27 +80,42 @@
     return bestPlaceIndex === -1 ? placeCounts.length : bestPlaceIndex + 1;
   }
 
-  function buildBranchSummary(snapshot: BranchSnapshot | null): BranchSummary | null {
+  function getOrdinalSuffix(value: number): string {
+    const modTen = value % 10;
+    const modHundred = value % 100;
+
+    if (modTen === 1 && modHundred !== 11) return 'st';
+    if (modTen === 2 && modHundred !== 12) return 'nd';
+    if (modTen === 3 && modHundred !== 13) return 'rd';
+    return 'th';
+  }
+
+  function formatPlaceLabel(place: number): string {
+    return `${place}${getOrdinalSuffix(place)}`;
+  }
+
+  function getCountForPlace(snapshot: BranchSnapshot, place: number): number {
+    if (place <= 1) {
+      return snapshot.firstPlaceCount;
+    }
+
+    return snapshot.placeCounts[place - 1] ?? 0;
+  }
+
+  function buildBranchSummary(snapshot: BranchSnapshot | null, targetPlace: number): BranchSummary | null {
     if (!snapshot) {
       return null;
     }
 
-    if (snapshot.firstPlaceCount > 0) {
-      return {
-        pct: snapshot.firstPlacePct,
-        count: snapshot.firstPlaceCount,
-        place: 1,
-        titleAlive: true,
-      };
-    }
+    const clampedTargetPlace = Math.max(1, targetPlace);
+    const targetCount = getCountForPlace(snapshot, clampedTargetPlace);
+    const displayPlace = targetCount > 0 ? clampedTargetPlace : getBestPlace(snapshot.placeCounts);
+    const displayCount = getCountForPlace(snapshot, displayPlace);
 
-    const bestPlace = getBestPlace(snapshot.placeCounts);
-    const bestPlaceCount = bestPlace > 0 ? snapshot.placeCounts[bestPlace - 1] ?? 0 : 0;
     return {
-      pct: snapshot.totalScenarios > 0 ? (bestPlaceCount / snapshot.totalScenarios) * 100 : 0,
-      count: bestPlaceCount,
-      place: bestPlace,
-      titleAlive: false,
+      pct: snapshot.totalScenarios > 0 ? (displayCount / snapshot.totalScenarios) * 100 : 0,
+      count: displayCount,
+      place: displayPlace,
     };
   }
 
@@ -103,11 +124,7 @@
     if (!left) return -1;
     if (!right) return 1;
 
-    if (left.titleAlive !== right.titleAlive) {
-      return left.titleAlive ? 1 : -1;
-    }
-
-    if (!left.titleAlive && left.place !== right.place) {
+    if (left.place !== right.place) {
       return left.place < right.place ? 1 : -1;
     }
 
@@ -122,12 +139,16 @@
     return 0;
   }
 
-  function formatBranchValue(summary: BranchSummary | null): string {
+  function formatBranchValue(summary: BranchSummary | null, targetPlace: number): string {
     if (!summary) {
       return 'N/A';
     }
 
-    return summary.titleAlive ? `${summary.pct.toFixed(2)}%` : `P${summary.place}`;
+    if (summary.place !== targetPlace) {
+      return formatPlaceLabel(summary.place);
+    }
+
+    return `${summary.pct.toFixed(summary.pct >= 10 ? 1 : 2)}%`;
   }
 
   function getImpactPercent(left: BranchSummary | null, right: BranchSummary | null): number {
@@ -136,6 +157,35 @@
 
   function getImpactPlaceDelta(left: BranchSummary | null, right: BranchSummary | null): number {
     return Math.abs((left?.place ?? 0) - (right?.place ?? 0));
+  }
+
+  function getCardPriority(
+    left: BranchSummary | null,
+    right: BranchSummary | null,
+    targetPlace: number,
+  ): CardPriority {
+    if (!left || !right) {
+      return { label: 'No Real Difference', tone: 'neutral', rank: 0 };
+    }
+
+    const keepsTargetAliveCount = Number(left.place === targetPlace) + Number(right.place === targetPlace);
+    if (keepsTargetAliveCount === 1) {
+      return { label: 'Must-Have', tone: 'need', rank: 3 };
+    }
+
+    const higherCount = Math.max(left.count, right.count);
+    const lowerCount = Math.min(left.count, right.count);
+    const ratio = lowerCount === 0 ? Number.POSITIVE_INFINITY : higherCount / lowerCount;
+
+    if (ratio >= CLEAR_EDGE_RATIO_THRESHOLD) {
+      return { label: 'Clear Edge', tone: 'prefer', rank: 2 };
+    }
+
+    if (ratio > SMALL_EDGE_RATIO_THRESHOLD) {
+      return { label: 'Small Edge', tone: 'edge', rank: 1 };
+    }
+
+    return { label: 'No Real Difference', tone: 'neutral', rank: 0 };
   }
 
   function getTeamLogoContainerStyle(team: GeneratedScenarioTeam): string {
@@ -180,11 +230,15 @@
 
   $: selectedUserValue = selectedUser ?? '';
   $: selectedEntry = entries.find((entry) => entry.entryId === selectedUser) ?? null;
+  $: selectedEntrySnapshot = findEntrySnapshot(entries, selectedUser);
+  $: targetPlace = selectedEntrySnapshot ? getBestPlace(selectedEntrySnapshot.placeCounts) : 1;
+  $: targetPlaceLabel = formatPlaceLabel(targetPlace);
+  $: selectedTargetSummary = buildBranchSummary(selectedEntrySnapshot, targetPlace);
   $: gameSummaries = previewGames.map((game) => {
     const teamASnapshot = findEntrySnapshot(game.outcomeA.entries, selectedUser, game.outcomeA.totalScenarios);
     const teamBSnapshot = findEntrySnapshot(game.outcomeB.entries, selectedUser, game.outcomeB.totalScenarios);
-    const teamASummary = buildBranchSummary(teamASnapshot);
-    const teamBSummary = buildBranchSummary(teamBSnapshot);
+    const teamASummary = buildBranchSummary(teamASnapshot, targetPlace);
+    const teamBSummary = buildBranchSummary(teamBSnapshot, targetPlace);
     const comparison = compareBranchSummaries(teamASummary, teamBSummary);
     const favoredTeam = comparison > 0 ? 'A' : comparison < 0 ? 'B' : null;
     const selectedPickTeamId = selectedEntry?.picks?.[game.gameIndex] ?? null;
@@ -196,6 +250,7 @@
     const counterIntuitive = Boolean(favoredTeam && selectedPickBranch && favoredTeam !== selectedPickBranch);
     const impactPct = getImpactPercent(teamASummary, teamBSummary);
     const impactPlaceDelta = getImpactPlaceDelta(teamASummary, teamBSummary);
+    const priority = getCardPriority(teamASummary, teamBSummary, targetPlace);
 
     return {
       ...game,
@@ -206,14 +261,19 @@
       counterIntuitive,
       impactPct,
       impactPlaceDelta,
+      priority,
     };
   }).sort((left, right) => {
-    if (right.impactPct !== left.impactPct) {
-      return right.impactPct - left.impactPct;
+    if (right.priority.rank !== left.priority.rank) {
+      return right.priority.rank - left.priority.rank;
     }
 
     if (right.impactPlaceDelta !== left.impactPlaceDelta) {
       return right.impactPlaceDelta - left.impactPlaceDelta;
+    }
+
+    if (right.impactPct !== left.impactPct) {
+      return right.impactPct - left.impactPct;
     }
 
     if ((left.favoredTeam !== null) !== (right.favoredTeam !== null)) {
@@ -226,7 +286,7 @@
 
     return left.gameIndex - right.gameIndex;
   });
-  $: counterIntuitiveCount = gameSummaries.filter((game) => game.counterIntuitive).length;
+  $: hasCounterIntuitiveGames = gameSummaries.some((game) => game.counterIntuitive);
 </script>
 
 {@html svgFilter}
@@ -258,11 +318,15 @@
 
       {#if selectedEntry}
         <div class="generated-rooting-baseline mm-inline-stats">
-          <span class="generated-rooting-baseline-label mm-inline-stat-label">1st-place chance</span>
-          <span class="generated-rooting-baseline-pill mm-inline-stat-pill">
-            {selectedEntry.firstPlaceCount.toLocaleString()} scenarios
+          <span class="generated-rooting-baseline-label mm-inline-stat-label">
+            {targetPlace === 1 ? '1st-place chance' : `${targetPlaceLabel}-place chance`}
           </span>
-          <span class="generated-rooting-baseline-value mm-inline-stat-pill is-accent">{selectedEntry.firstPlacePct.toFixed(2)}%</span>
+          <span class="generated-rooting-baseline-pill mm-inline-stat-pill">
+            {selectedTargetSummary ? selectedTargetSummary.count.toLocaleString() : '0'} scenarios
+          </span>
+          <span class="generated-rooting-baseline-value mm-inline-stat-pill is-accent">
+            {selectedTargetSummary ? formatBranchValue(selectedTargetSummary, targetPlace) : '0.00%'}
+          </span>
         </div>
       {/if}
     </div>
@@ -279,24 +343,15 @@
   {:else}
     <div class="generated-rooting-shell mm-control-shell">
       <div class="generated-rooting-summary">
-        {#if counterIntuitiveCount > 0}
-          <span class="generated-rooting-pill is-warning">
-            {counterIntuitiveCount} current game{counterIntuitiveCount === 1 ? '' : 's'} help more if your pick loses
-          </span>
-        {:else}
-          <span class="generated-rooting-pill">
-            No current known games produce an against-your-bracket edge
-          </span>
-        {/if}
+        <div class="generated-rooting-summary-value">Best possible finish: {targetPlaceLabel}</div>
       </div>
 
       <div class="generated-rooting-grid">
         {#each gameSummaries as game}
-          <div class={`generated-rooting-card ${game.counterIntuitive ? 'is-counter' : ''}`}>
-            <div class={`generated-rooting-card-header ${game.counterIntuitive ? 'is-counter' : ''}`}>
-              <span>{game.roundLabel}</span>
-              <span class={`generated-rooting-card-time ${game.counterIntuitive ? 'is-counter' : ''}`}>
-                {formatGameStartLabel(game.startTime)}
+          <div class="generated-rooting-card">
+            <div class={`generated-rooting-card-header is-${game.priority.tone}`}>
+              <span class={`generated-rooting-card-header-label ${game.counterIntuitive ? 'is-counter' : ''}`}>
+                {game.priority.label}
               </span>
             </div>
 
@@ -323,7 +378,7 @@
                 </div>
                 {#if game.teamASummary}
                   <div class={`generated-rooting-team-value ${game.favoredTeam === 'A' ? 'is-favored' : 'is-neutral'}`}>
-                    {formatBranchValue(game.teamASummary)}
+                    {formatBranchValue(game.teamASummary, targetPlace)}
                   </div>
                 {/if}
               </div>
@@ -350,7 +405,7 @@
                 </div>
                 {#if game.teamBSummary}
                   <div class={`generated-rooting-team-value ${game.favoredTeam === 'B' ? 'is-favored' : 'is-neutral'}`}>
-                    {formatBranchValue(game.teamBSummary)}
+                    {formatBranchValue(game.teamBSummary, targetPlace)}
                   </div>
                 {/if}
               </div>
@@ -358,6 +413,13 @@
           </div>
         {/each}
       </div>
+
+      {#if hasCounterIntuitiveGames}
+        <div class="generated-rooting-footnote">
+          <span class="generated-rooting-card-header-label is-counter">Headers</span>
+          mean rooting against your selected pick improves your odds of your best possible finish.
+        </div>
+      {/if}
     </div>
   {/if}
 </div>
@@ -396,22 +458,14 @@
 
   .generated-rooting-summary {
     margin-bottom: 0.9rem;
+    text-align: center;
   }
 
-  .generated-rooting-pill {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 999px;
-    padding: 0.45rem 0.8rem;
-    background: rgba(39, 39, 42, 0.7);
+  .generated-rooting-summary-value {
     color: var(--mm-text);
-    font-size: 0.76rem;
-    font-weight: 600;
-  }
-
-  .generated-rooting-pill.is-warning {
-    background: rgba(127, 29, 29, 0.32);
-    color: #fca5a5;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
   }
 
   .generated-rooting-grid {
@@ -427,36 +481,67 @@
     background: linear-gradient(180deg, rgba(20, 20, 22, 0.96), rgba(10, 10, 11, 0.98));
   }
 
-  .generated-rooting-card.is-counter {
-    border-color: rgba(127, 29, 29, 0.65);
-  }
-
   .generated-rooting-card-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
+    justify-content: center;
     padding: 0.7rem 0.9rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     background: rgba(34, 34, 36, 0.82);
     color: var(--mm-text);
     font-size: 0.84rem;
     font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
-  .generated-rooting-card-header.is-counter {
-    background: rgba(69, 10, 10, 0.4);
-    color: #fecaca;
+  .generated-rooting-card-header-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .generated-rooting-card-time {
+  .generated-rooting-card-header.is-need {
+    background: rgba(120, 53, 15, 0.34);
+    color: #fcd34d;
+  }
+
+  .generated-rooting-card-header.is-prefer,
+  .generated-rooting-card-header.is-edge {
+    background: rgba(63, 63, 70, 0.82);
+    color: #e4e4e7;
+  }
+
+  .generated-rooting-card-header.is-neutral {
     color: var(--mm-subtle);
-    font-size: 0.72rem;
+  }
+
+  .generated-rooting-card-header-label.is-counter {
+    border-radius: 999px;
+    background: rgba(127, 29, 29, 0.32);
+    box-shadow:
+      inset 0 0 0 1px rgba(252, 165, 165, 0.55),
+      0 0 0 1px rgba(0, 0, 0, 0.18);
+    color: #fca5a5;
+    padding: 0 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: inherit;
+    text-transform: uppercase;
     white-space: nowrap;
   }
 
-  .generated-rooting-card-time.is-counter {
-    color: rgba(252, 165, 165, 0.82);
+  .generated-rooting-footnote {
+    margin-top: 0.85rem;
+    color: var(--mm-muted);
+    font-size: 0.82rem;
+    line-height: 1.45;
+    text-align: center;
+  }
+
+  .generated-rooting-footnote .generated-rooting-card-header-label.is-counter {
+    margin-right: 0.35rem;
+    vertical-align: middle;
   }
 
   .generated-rooting-card-body {
@@ -538,8 +623,7 @@
     }
 
     .generated-rooting-kicker,
-    .generated-rooting-baseline-label,
-    .generated-rooting-summary {
+    .generated-rooting-baseline-label {
       display: none;
     }
 
@@ -560,10 +644,6 @@
 
     .generated-rooting-card-header {
       padding: 0.58rem 0.72rem;
-    }
-
-    .generated-rooting-card-time {
-      display: none;
     }
 
     .generated-rooting-card-body {
