@@ -1,6 +1,6 @@
 # Scenario Workflow
 
-Yearly workflow for refreshing the `/scenarios` page from the admin export and the standalone exact engine.
+Yearly workflow for refreshing the `/scenarios` page from the admin export and the standalone scenario engine.
 
 ## Repos
 
@@ -8,7 +8,7 @@ Yearly workflow for refreshing the `/scenarios` page from the admin export and t
 - Standalone engine: `C:\Users\joshr\Documents\Projects\Programming\bracket-scenarios`
 
 The site consumes a generated artifact at `static/generated/scenarios/current.json`.
-The standalone repo owns the exact counting and writes analysis outputs into `data/output/`.
+The standalone repo owns the exact counting and weighted branch model, and writes analysis outputs into `data/output/`.
 
 ## Normal live-tournament workflow
 
@@ -26,7 +26,7 @@ What to expect:
 
 If the file does not appear in `data/input/`, manually move the downloaded `scenario-input-*.json` there.
 
-### 2. Run the standalone exact generation
+### 2. Run the standalone generation
 
 Open PowerShell in:
 
@@ -43,7 +43,8 @@ For the usual live round-one workflow, run:
 That batch file:
 
 - finds the newest `scenario-input-*.json` in `data/input/`
-- runs the exact Rust engine
+- looks for a matching `*_team_results.csv` or `*_team_results.tsv`
+- runs the Rust engine with exact counting plus weighted branch probabilities when ratings are available
 - uses `--assume-higher-seed-through-round 1`
 - writes fresh outputs into `data/output/`
 
@@ -53,6 +54,7 @@ Important outputs:
 - `*-exact-higher-seed-through-round-1.csv`
 - `*-exact-higher-seed-through-round-1.tsv`
 - `*-exact-higher-seed-through-round-1-report.html`
+- `*-exact-higher-seed-through-round-1-weighted-report.html`
 
 Notes:
 
@@ -68,7 +70,7 @@ Preferred path:
 
 That import action:
 
-- finds the latest exact JSON in `..\bracket-scenarios\data\output\`
+- finds the latest generated scenario JSON in `..\bracket-scenarios\data\output\`
 - converts it into the site artifact shape
 - writes:
   - `static/generated/scenarios/current.json`
@@ -101,8 +103,8 @@ npm run build
 
 Generated snapshot mode supports:
 
-- exact `Win Chances`
-- exact `Full Standings`
+- `Title Odds` with exact vs weighted title chances
+- exact and weighted `Full Standings`
 - generated rooting guide
 - single-game preview for currently known games
 
@@ -110,22 +112,24 @@ Sweet 16 and later still fall back to the browser-exact mode for full multi-game
 
 ## Common commands
 
-### Standard exact run
+### Standard weighted-aware run
 
 ```powershell
 .\run-latest-export.bat
 ```
 
-### Exact run with Monte Carlo validation
+If `data/input/2026_team_results.csv` or another `*_team_results.csv` / `*_team_results.tsv` file is present, the batch wrapper will pass it to the generator automatically.
+
+### Weighted-aware run with Monte Carlo validation
 
 ```powershell
 .\run-latest-export.bat --monte-carlo-samples 5000000
 ```
 
-### Manual exact run with a different assumption
+### Manual run with a different assumption
 
 ```powershell
-cargo run --release -- data/input/scenario-input-2026-20260320T171611Z.json --assume-higher-seed-through-round 2
+cargo run --release -- data/input/scenario-input-2026-20260320T171611Z.json --assume-higher-seed-through-round 2 --ratings-file data/input/2026_team_results.csv
 ```
 
 ### Re-import into the site from the terminal
@@ -147,7 +151,7 @@ npm run scenarios:import
 
 ### Admin import or `npm run scenarios:import` does not find a generated output
 
-- Confirm the standalone exact run produced a fresh `*-exact*.json` in:
+- Confirm the standalone run produced a fresh `*-exact*.json` in:
   - `C:\Users\joshr\Documents\Projects\Programming\bracket-scenarios\data\output\`
 
 ### The scenarios page looks stale

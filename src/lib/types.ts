@@ -183,6 +183,12 @@ export interface LeaderboardProjection {
 // ─── Scenario Engine ─────────────────────────────────────────────────────────
 
 export type ScenarioPageMode = 'browser-exact' | 'generated-snapshot' | 'unavailable';
+export type GeneratedScenarioAnalysisMode = 'exact' | 'weighted';
+
+export interface GeneratedScenarioWeighting {
+	summaryLabel: string;
+	sourceNote: string;
+}
 
 export interface GeneratedScenarioEntry {
 	entryId: string;
@@ -194,6 +200,8 @@ export interface GeneratedScenarioEntry {
 	firstPlaceCount: number;
 	firstPlacePct: number;
 	placeCounts: number[];
+	weightedFirstPlacePct?: number;
+	weightedPlacePcts?: number[];
 	picks?: (number | null)[];
 }
 
@@ -209,6 +217,7 @@ export interface GeneratedScenarioTeam {
 export interface GeneratedScenarioOutcome {
 	winnerTeamId: number;
 	totalScenarios: number;
+	weightedProbabilityPct?: number;
 	entries: GeneratedScenarioEntry[];
 }
 
@@ -231,6 +240,7 @@ export interface GeneratedScenarioArtifact {
 	unresolvedGameCount: number;
 	assumptionSummary: string;
 	reportUrl: string | null;
+	weighting?: GeneratedScenarioWeighting | null;
 	entries: GeneratedScenarioEntry[];
 	previewGames?: GeneratedScenarioGamePreview[];
 }

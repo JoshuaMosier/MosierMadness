@@ -5,6 +5,8 @@
   export let numEntries: number = 0;
   export let displayMode: string = 'percent';
   export let currentUserEntryId: string | null = null;
+  export let allowCountDisplay: boolean = true;
+  export let matrixLabel: string = 'Exact Matrix';
 
   let hoveredRow: number | null = null;
   let hoveredCol: number | null = null;
@@ -233,6 +235,9 @@
   }
 
   $: summaryBuckets = getSummaryBuckets(numEntries);
+  $: if (!allowCountDisplay && displayMode !== 'percent') {
+    displayMode = 'percent';
+  }
   $: podiumLimit = Math.min(3, numEntries);
   $: podiumLabel = podiumLimit >= 3 ? 'Podium' : `Top ${podiumLimit}`;
   $: topGroupLimit = Math.max(1, Math.ceil(numEntries / 4));
@@ -335,24 +340,28 @@
         class={`scenario-standings-button mm-toggle-button ${standingsView === 'matrix' ? 'is-active' : ''}`}
         on:click={() => standingsView = 'matrix'}
       >
-        Exact Matrix
+        {matrixLabel}
       </button>
     </div>
 
     <div class="scenario-standings-toggle">
       <span class="scenario-standings-label">Display:</span>
-      <button
-        class={`scenario-standings-button mm-toggle-button ${displayMode === 'count' ? 'is-active' : ''}`}
-        on:click={() => displayMode = 'count'}
-      >
-        Counts
-      </button>
-      <button
-        class={`scenario-standings-button mm-toggle-button ${displayMode === 'percent' ? 'is-active' : ''}`}
-        on:click={() => displayMode = 'percent'}
-      >
-        Percentages
-      </button>
+      {#if allowCountDisplay}
+        <button
+          class={`scenario-standings-button mm-toggle-button ${displayMode === 'count' ? 'is-active' : ''}`}
+          on:click={() => displayMode = 'count'}
+        >
+          Counts
+        </button>
+        <button
+          class={`scenario-standings-button mm-toggle-button ${displayMode === 'percent' ? 'is-active' : ''}`}
+          on:click={() => displayMode = 'percent'}
+        >
+          Percentages
+        </button>
+      {:else}
+        <span class="scenario-standings-fixed-mode">Percentages only</span>
+      {/if}
     </div>
   </div>
 </div>
@@ -634,6 +643,12 @@
 
   .scenario-standings-button {
     flex-shrink: 0;
+  }
+
+  .scenario-standings-fixed-mode {
+    color: var(--mm-muted);
+    font-size: 0.82rem;
+    white-space: nowrap;
   }
 
   .scenario-summary-wrap,

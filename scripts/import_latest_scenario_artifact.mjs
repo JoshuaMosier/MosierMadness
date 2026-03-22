@@ -57,6 +57,10 @@ function normalizeEntry(entry, baseEntry = null) {
     placeCounts: Array.isArray(entry?.placeCounts)
       ? entry.placeCounts.map((value) => Number(value))
       : [],
+    weightedFirstPlacePct: entry?.weightedFirstPlacePct == null ? undefined : Number(entry.weightedFirstPlacePct),
+    weightedPlacePcts: Array.isArray(entry?.weightedPlacePcts)
+      ? entry.weightedPlacePcts.map((value) => Number(value))
+      : undefined,
     picks: Array.isArray(baseEntry?.picks)
       ? baseEntry.picks.map((value) => value == null ? null : Number(value))
       : undefined,
@@ -77,6 +81,7 @@ function normalizeOutcome(outcome, entryById, fallbackWinnerTeamId) {
   return {
     winnerTeamId: Number(outcome?.winnerTeamId ?? fallbackWinnerTeamId ?? 0),
     totalScenarios: Number(outcome?.totalScenarios ?? 0),
+    weightedProbabilityPct: outcome?.weightedProbabilityPct == null ? undefined : Number(outcome.weightedProbabilityPct),
     entries: rawEntries.map((entry) => normalizeEntry(entry, entryById.get(entry?.entryId) ?? null)),
   };
 }
@@ -84,7 +89,7 @@ function normalizeOutcome(outcome, entryById, fallbackWinnerTeamId) {
 async function main() {
   const latestExactJsonPath = await findLatestExactOutput();
   if (!latestExactJsonPath) {
-    throw new Error(`No exact scenario JSON files found in ${standaloneOutputDir}`);
+    throw new Error(`No generated scenario JSON files found in ${standaloneOutputDir}`);
   }
 
   const raw = await fs.readFile(latestExactJsonPath, 'utf8');
@@ -107,13 +112,19 @@ async function main() {
   const entryById = new Map(entries.map((entry) => [entry.entryId, entry]));
 
   const artifact = {
-    schemaVersion: 1,
+    schemaVersion: Number(parsed.schemaVersion ?? 1),
     importedAt: new Date().toISOString(),
     sourceGeneratedAt: parsed.generatedAt,
     totalScenarios: Number(parsed.totalScenarios),
     unresolvedGameCount: Number(parsed.unresolvedGameCount ?? 0),
     assumptionSummary: buildAssumptionSummary(parsed.assumptions),
     reportUrl: null,
+    weighting: parsed.weightingSummaryLabel
+      ? {
+          summaryLabel: parsed.weightingSummaryLabel,
+          sourceNote: parsed.weightingSourceNote ?? '',
+        }
+      : null,
     entries,
     previewGames: (parsed.previewGames ?? []).map((game) => {
       const teamA = normalizeTeam(game?.teamA);
@@ -134,7 +145,10 @@ async function main() {
   const targetJsonPath = path.join(targetDir, 'current.json');
   await fs.writeFile(targetJsonPath, `${JSON.stringify(artifact, null, 2)}\n`, 'utf8');
 
-  console.log(`Imported latest exact scenario artifact: ${latestExactJsonPath}`);
+  console.log(`Imported latest scenario artifact: ${latestExactJsonPath}`);
+  if (artifact.weighting?.summaryLabel) {
+    console.log(`Weighting: ${artifact.weighting.summaryLabel}`);
+  }
   console.log(`Wrote site artifact: ${targetJsonPath}`);
 }
 
