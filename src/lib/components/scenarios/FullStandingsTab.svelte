@@ -10,7 +10,7 @@
   let hoveredCol: number | null = null;
   let hoveredCell: string | null = null;
   let standingsView: 'summary' | 'matrix' = 'summary';
-  let summarySortKey: 'name' | 'win' | 'podium' | 'topGroup' | 'expected' = 'win';
+  let summarySortKey: 'name' | 'win' | 'podium' | 'topGroup' | 'high' | 'low' | 'expected' = 'win';
   let summarySortDirection: 'asc' | 'desc' = 'desc';
 
   type SummaryBucket = {
@@ -167,21 +167,56 @@
     return totalCount > 0 ? weightedTotal / totalCount : numEntries;
   }
 
+  function getBestPossibleFinish(user: any): number {
+    for (let position = 1; position <= numEntries; position += 1) {
+      if ((user.positions[position] || 0) > 0) {
+        return position;
+      }
+    }
+
+    return numEntries;
+  }
+
+  function getWorstPossibleFinish(user: any): number {
+    for (let position = numEntries; position >= 1; position -= 1) {
+      if ((user.positions[position] || 0) > 0) {
+        return position;
+      }
+    }
+
+    return numEntries;
+  }
+
   function formatExpectedFinish(value: number): string {
     return value.toFixed(1).replace(/\.0$/, '');
   }
 
-  function toggleSummarySort(key: 'name' | 'win' | 'podium' | 'topGroup' | 'expected'): void {
+  function formatFinishPlace(value: number): string {
+    return `${value}${getOrdinalSuffix(value)}`;
+  }
+
+  function compareFinishDistribution(left: any, right: any): number {
+    for (let position = 1; position <= numEntries; position += 1) {
+      const diff = (right.positions[position] || 0) - (left.positions[position] || 0);
+      if (diff !== 0) {
+        return diff;
+      }
+    }
+
+    return 0;
+  }
+
+  function toggleSummarySort(key: 'name' | 'win' | 'podium' | 'topGroup' | 'high' | 'low' | 'expected'): void {
     if (summarySortKey === key) {
       summarySortDirection = summarySortDirection === 'desc' ? 'asc' : 'desc';
       return;
     }
 
     summarySortKey = key;
-    summarySortDirection = key === 'name' || key === 'expected' ? 'asc' : 'desc';
+    summarySortDirection = key === 'name' || key === 'high' || key === 'low' || key === 'expected' ? 'asc' : 'desc';
   }
 
-  function getSummarySortLabel(key: 'name' | 'win' | 'podium' | 'topGroup' | 'expected'): string {
+  function getSummarySortLabel(key: 'name' | 'win' | 'podium' | 'topGroup' | 'high' | 'low' | 'expected'): string {
     if (summarySortKey !== key) {
       return '';
     }
@@ -189,7 +224,7 @@
     return summarySortDirection === 'desc' ? 'v' : '^';
   }
 
-  function getSummaryAriaSort(key: 'name' | 'win' | 'podium' | 'topGroup' | 'expected'): 'ascending' | 'descending' | 'none' {
+  function getSummaryAriaSort(key: 'name' | 'win' | 'podium' | 'topGroup' | 'high' | 'low' | 'expected'): 'ascending' | 'descending' | 'none' {
     if (summarySortKey !== key) {
       return 'none';
     }
@@ -209,6 +244,8 @@
     const podiumProbability = sumProbabilities(user.positionProbabilities, 1, podiumLimit);
     const topGroupCount = sumCounts(user.positions, 1, topGroupLimit);
     const topGroupProbability = sumProbabilities(user.positionProbabilities, 1, topGroupLimit);
+    const highestFinish = getBestPossibleFinish(user);
+    const lowestFinish = getWorstPossibleFinish(user);
     const expectedFinish = getExpectedFinish(user);
 
     return {
@@ -216,6 +253,8 @@
       win: { count: winCount, probability: winProbability },
       podium: { count: podiumCount, probability: podiumProbability },
       topGroup: { count: topGroupCount, probability: topGroupProbability },
+      highestFinish,
+      lowestFinish,
       expectedFinish,
       distribution: summaryBuckets.map((bucket) => ({
         ...bucket,
@@ -246,12 +285,20 @@
       comparison = (left.topGroup.probability - right.topGroup.probability) * directionMultiplier;
     }
 
+    if (summarySortKey === 'high') {
+      comparison = (left.highestFinish - right.highestFinish) * directionMultiplier;
+    }
+
+    if (summarySortKey === 'low') {
+      comparison = (left.lowestFinish - right.lowestFinish) * directionMultiplier;
+    }
+
     if (summarySortKey === 'expected') {
       comparison = (left.expectedFinish - right.expectedFinish) * directionMultiplier;
     }
 
     if (comparison === 0) {
-      comparison = right.win.probability - left.win.probability;
+      comparison = compareFinishDistribution(left, right);
     }
 
     if (comparison === 0) {
@@ -265,6 +312,8 @@
     win: getValueRange(summaryRows.map((user) => getMetricDisplayValue(user.win))),
     podium: getValueRange(summaryRows.map((user) => getMetricDisplayValue(user.podium))),
     topGroup: getValueRange(summaryRows.map((user) => getMetricDisplayValue(user.topGroup))),
+    high: getValueRange(summaryRows.map((user) => user.highestFinish)),
+    low: getValueRange(summaryRows.map((user) => user.lowestFinish)),
     expected: getValueRange(summaryRows.map((user) => user.expectedFinish)),
   };
 </script>
@@ -353,10 +402,30 @@
               <span class="scenario-summary-sort-indicator">{getSummarySortLabel('topGroup')}</span>
             </button>
           </th>
+          <th scope="col" class="scenario-summary-finish-head" aria-sort={getSummaryAriaSort('high')}>
+            <button
+              type="button"
+              class={`scenario-summary-sort ${summarySortKey === 'high' ? 'is-active' : ''}`}
+              on:click={() => toggleSummarySort('high')}
+            >
+              <span title="Best possible finish">Best</span>
+              <span class="scenario-summary-sort-indicator">{getSummarySortLabel('high')}</span>
+            </button>
+          </th>
+          <th scope="col" class="scenario-summary-finish-head" aria-sort={getSummaryAriaSort('low')}>
+            <button
+              type="button"
+              class={`scenario-summary-sort ${summarySortKey === 'low' ? 'is-active' : ''}`}
+              on:click={() => toggleSummarySort('low')}
+            >
+              <span title="Worst possible finish">Worst</span>
+              <span class="scenario-summary-sort-indicator">{getSummarySortLabel('low')}</span>
+            </button>
+          </th>
           <th scope="col" aria-sort={getSummaryAriaSort('expected')}>
             <button
               type="button"
-              class={`scenario-summary-sort ${summarySortKey === 'expected' ? 'is-active' : ''}`}
+              class={`scenario-summary-sort scenario-summary-expected-head ${summarySortKey === 'expected' ? 'is-active' : ''}`}
               on:click={() => toggleSummarySort('expected')}
             >
               <span>Expected</span>
@@ -397,6 +466,18 @@
               style={getSummaryCellStyle(getMetricDisplayValue(user.topGroup), summaryColumnRanges.topGroup)}
             >
               {formatScenarioValue(user.topGroup.probability, user.topGroup.count)}
+            </td>
+            <td
+              class="scenario-summary-finish is-heatmap"
+              style={getSummaryCellStyle(user.highestFinish, summaryColumnRanges.high, true)}
+            >
+              {formatFinishPlace(user.highestFinish)}
+            </td>
+            <td
+              class="scenario-summary-finish is-heatmap"
+              style={getSummaryCellStyle(user.lowestFinish, summaryColumnRanges.low, true)}
+            >
+              {formatFinishPlace(user.lowestFinish)}
             </td>
             <td
               class="scenario-summary-expected is-heatmap"
@@ -580,6 +661,10 @@
     min-width: 13rem;
   }
 
+  .scenario-summary-finish-head {
+    min-width: 5.3rem;
+  }
+
   .scenario-summary-sort {
     display: inline-flex;
     align-items: center;
@@ -632,6 +717,7 @@
   }
 
   .scenario-summary-metric,
+  .scenario-summary-finish,
   .scenario-summary-expected,
   .scenario-summary-distribution-cell {
     padding: 0.34rem 0.62rem;
@@ -640,21 +726,28 @@
   }
 
   .scenario-summary-metric,
+  .scenario-summary-finish,
   .scenario-summary-expected {
     font-size: 0.79rem;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
   }
 
   .scenario-summary-metric.is-heatmap,
+  .scenario-summary-finish.is-heatmap,
   .scenario-summary-expected.is-heatmap {
     color: white;
   }
 
   .scenario-summary-namepill {
-    width: min(100%, 13.5rem);
+    width: min(100%, 12rem);
     max-width: 100%;
     padding: 0.22rem 0.72rem;
     text-decoration: none;
+  }
+
+  .scenario-summary-expected-head {
+    min-width: 5.1rem;
   }
 
   .scenario-summary-name {
@@ -847,13 +940,14 @@
 
     .scenario-summary-table th:nth-child(3),
     .scenario-summary-table td:nth-child(3),
-    .scenario-summary-table th:nth-child(6),
-    .scenario-summary-table td:nth-child(6) {
+    .scenario-summary-table th:nth-child(8),
+    .scenario-summary-table td:nth-child(8) {
       display: none;
     }
 
     .scenario-summary-namecell,
     .scenario-summary-metric,
+    .scenario-summary-finish,
     .scenario-summary-expected {
       padding: 0.28rem 0.45rem;
     }
@@ -868,6 +962,7 @@
     }
 
     .scenario-summary-metric,
+    .scenario-summary-finish,
     .scenario-summary-expected {
       font-size: 0.72rem;
     }
