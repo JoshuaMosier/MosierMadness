@@ -234,6 +234,12 @@
   $: targetPlace = selectedEntrySnapshot ? getBestPlace(selectedEntrySnapshot.placeCounts) : 1;
   $: targetPlaceLabel = formatPlaceLabel(targetPlace);
   $: selectedTargetSummary = buildBranchSummary(selectedEntrySnapshot, targetPlace);
+  $: currentPreviewRound = previewGames.length > 0
+    ? previewGames.reduce((lowestRound, game) => Math.min(lowestRound, game.round), previewGames[0].round)
+    : null;
+  $: currentPreviewRoundLabel = currentPreviewRound === null
+    ? null
+    : previewGames.find((game) => game.round === currentPreviewRound)?.roundLabel ?? null;
   $: gameSummaries = previewGames.map((game) => {
     const teamASnapshot = findEntrySnapshot(game.outcomeA.entries, selectedUser, game.outcomeA.totalScenarios);
     const teamBSnapshot = findEntrySnapshot(game.outcomeB.entries, selectedUser, game.outcomeB.totalScenarios);
@@ -286,7 +292,13 @@
 
     return left.gameIndex - right.gameIndex;
   });
-  $: hasCounterIntuitiveGames = gameSummaries.some((game) => game.counterIntuitive);
+  $: visibleGameSummaries = currentPreviewRound === null
+    ? gameSummaries
+    : gameSummaries.filter((game) => game.round === currentPreviewRound);
+  $: hasFutureRoundGames = currentPreviewRound !== null
+    ? previewGames.some((game) => game.round > currentPreviewRound)
+    : false;
+  $: hasCounterIntuitiveGames = visibleGameSummaries.some((game) => game.counterIntuitive);
 </script>
 
 {@html svgFilter}
@@ -344,10 +356,13 @@
     <div class="generated-rooting-shell mm-control-shell">
       <div class="generated-rooting-summary">
         <div class="generated-rooting-summary-value">Best possible finish: {targetPlaceLabel}</div>
+        {#if hasFutureRoundGames && currentPreviewRoundLabel}
+          <div class="generated-rooting-summary-note">Showing {currentPreviewRoundLabel} games only</div>
+        {/if}
       </div>
 
       <div class="generated-rooting-grid">
-        {#each gameSummaries as game}
+        {#each visibleGameSummaries as game}
           <div class="generated-rooting-card">
             <div class={`generated-rooting-card-header is-${game.priority.tone}`}>
               <span class={`generated-rooting-card-header-label ${game.counterIntuitive ? 'is-counter' : ''}`}>
@@ -466,6 +481,13 @@
     font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.01em;
+  }
+
+  .generated-rooting-summary-note {
+    margin-top: 0.2rem;
+    color: var(--mm-muted);
+    font-size: 0.8rem;
+    line-height: 1.35;
   }
 
   .generated-rooting-grid {
