@@ -870,7 +870,7 @@
     <div class="mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-6">
       <h2 class="text-xl font-semibold text-zinc-100 mb-2">Scenario Pipeline</h2>
       <p class="text-zinc-400 text-sm mb-4">
-        Export the live tournament snapshot, run the standalone exact engine in `bracket-scenarios`, then import the latest results back into the site artifact.
+        Export the live tournament snapshot, run the standalone scenario engine in `bracket-scenarios`, then import the latest exact plus weighted results back into the site artifact.
       </p>
 
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -917,13 +917,13 @@
             <div>
               <h3 class="text-base font-semibold text-zinc-100">2. Import Latest Scenario Results</h3>
               <p class="text-sm text-zinc-400 mt-1">
-                Pull the newest exact output from the standalone repo and overwrite the site artifact at `static/generated/scenarios/current.json`.
+                Pull the newest generated output from the standalone repo and overwrite the site artifact at `static/generated/scenarios/current.json`.
               </p>
             </div>
           </div>
 
           <div class="mb-4 rounded-lg border border-zinc-800 bg-zinc-900/60 p-4 text-sm text-zinc-400">
-            Run the standalone generator between steps 1 and 2, usually with `.\run-latest-export.bat`.
+            Run the standalone generator between steps 1 and 2, usually with `.\run-latest-export.bat`. When a `*_team_results.csv` file is present, that wrapper should produce weighted data automatically.
           </div>
 
           <Alert message={scenarioImportError} compact class="mb-4" />
@@ -941,6 +941,10 @@
               <div>Unresolved games: {scenarioImportSummary.unresolvedGameCount}</div>
               <div>Total scenarios: {scenarioImportSummary.totalScenarios?.toLocaleString?.() ?? scenarioImportSummary.totalScenarios}</div>
               <div>Assumptions: {scenarioImportSummary.assumptionSummary}</div>
+              <div>Weighting: {scenarioImportSummary.weightingSummaryLabel ?? 'Unknown'}</div>
+              {#if scenarioImportSummary.weightingSourceNote}
+                <div class="text-zinc-400">{scenarioImportSummary.weightingSourceNote}</div>
+              {/if}
               <div class="break-all text-zinc-400">Source output: {scenarioImportSummary.sourceOutputPath}</div>
               {#if scenarioImportSummary.sourceInputPath}
                 <div class="break-all text-zinc-400">Source input: {scenarioImportSummary.sourceInputPath}</div>

@@ -23,6 +23,8 @@ interface ScenarioImportSummary {
   totalScenarios: number;
   unresolvedGameCount: number;
   assumptionSummary: string;
+  weightingSummaryLabel: string | null;
+  weightingSourceNote: string | null;
 }
 
 export interface ScenarioImportResult {
@@ -40,6 +42,8 @@ interface SourceScenarioEntry {
   firstPlaceCount?: number;
   firstPlacePct?: number;
   placeCounts?: unknown[];
+  weightedFirstPlacePct?: number;
+  weightedPlacePcts?: unknown[];
   picks?: unknown[];
 }
 
@@ -54,6 +58,7 @@ interface SourceScenarioTeam {
 interface SourceScenarioOutcome {
   winnerTeamId?: number;
   totalScenarios?: number;
+  weightedProbabilityPct?: number;
   entries?: SourceScenarioEntry[];
 }
 
@@ -68,10 +73,13 @@ interface SourceScenarioGamePreview {
 }
 
 interface ExactScenarioOutput {
+  schemaVersion?: number;
   inputFile?: string;
   generatedAt?: string;
   totalScenarios?: number;
   unresolvedGameCount?: number;
+  weightingSummaryLabel?: string;
+  weightingSourceNote?: string;
   assumptions?: { round?: number }[];
   entries?: SourceScenarioEntry[];
   previewGames?: SourceScenarioGamePreview[];
@@ -127,6 +135,32 @@ function buildAssumptionSummary(assumptions: { round?: number }[] | undefined): 
   return `${assumptions.length} assumed games through round ${highestRound}`;
 }
 
+function normalizeWeightingSummaryLabel(label: string | undefined): string | null {
+  const trimmed = label?.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (trimmed.toLowerCase().includes('barthag')) {
+    return 'Team strength ratings';
+  }
+
+  return trimmed;
+}
+
+function normalizeWeightingSourceNote(note: string | undefined): string {
+  const trimmed = note?.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  if (trimmed.toLowerCase().includes('barthag')) {
+    return 'Likely Paths weights each remaining game using team strength ratings so more realistic outcomes count more.';
+  }
+
+  return trimmed;
+}
+
 function normalizeEntry(
   entry: SourceScenarioEntry | undefined,
   baseEntry: SourceScenarioEntry | null = null,
@@ -143,6 +177,10 @@ function normalizeEntry(
     placeCounts: Array.isArray(entry?.placeCounts)
       ? entry.placeCounts.map((value) => Number(value))
       : [],
+    weightedFirstPlacePct: entry?.weightedFirstPlacePct == null ? undefined : Number(entry.weightedFirstPlacePct),
+    weightedPlacePcts: Array.isArray(entry?.weightedPlacePcts)
+      ? entry.weightedPlacePcts.map((value) => Number(value))
+      : undefined,
     picks: Array.isArray(baseEntry?.picks)
       ? baseEntry.picks.map((value) => value == null ? null : Number(value))
       : undefined,
@@ -168,6 +206,7 @@ function normalizeOutcome(
   return {
     winnerTeamId: Number(outcome?.winnerTeamId ?? fallbackWinnerTeamId ?? 0),
     totalScenarios: Number(outcome?.totalScenarios ?? 0),
+    weightedProbabilityPct: outcome?.weightedProbabilityPct == null ? undefined : Number(outcome.weightedProbabilityPct),
     entries: rawEntries.map((entry) => normalizeEntry(entry, entryById.get(entry?.entryId ?? '') ?? null)),
   };
 }
@@ -231,7 +270,7 @@ export async function importLatestScenarioArtifact(): Promise<ScenarioImportResu
   }
 
   if (!latestExactOutputPath) {
-    throw new Error(`No exact scenario JSON files found in ${outputDir}`);
+    throw new Error(`No generated scenario JSON files found in ${outputDir}`);
   }
 
   const raw = await readFile(latestExactOutputPath, 'utf8');
@@ -242,13 +281,19 @@ export async function importLatestScenarioArtifact(): Promise<ScenarioImportResu
   const previewGames = normalizePreviewGames(parsed.previewGames, entryById);
 
   const artifact: GeneratedScenarioArtifact = {
-    schemaVersion: 1,
+    schemaVersion: Number(parsed.schemaVersion ?? 1),
     importedAt: new Date().toISOString(),
     sourceGeneratedAt: parsed.generatedAt ?? '',
     totalScenarios: Number(parsed.totalScenarios ?? 0),
     unresolvedGameCount: Number(parsed.unresolvedGameCount ?? 0),
     assumptionSummary: buildAssumptionSummary(parsed.assumptions),
     reportUrl: null,
+    weighting: normalizeWeightingSummaryLabel(parsed.weightingSummaryLabel)
+      ? {
+          summaryLabel: normalizeWeightingSummaryLabel(parsed.weightingSummaryLabel) ?? '',
+          sourceNote: normalizeWeightingSourceNote(parsed.weightingSourceNote),
+        }
+      : null,
     entries,
     previewGames,
   };
@@ -274,6 +319,8 @@ export async function importLatestScenarioArtifact(): Promise<ScenarioImportResu
       totalScenarios: artifact.totalScenarios,
       unresolvedGameCount: artifact.unresolvedGameCount,
       assumptionSummary: artifact.assumptionSummary,
+      weightingSummaryLabel: artifact.weighting?.summaryLabel ?? null,
+      weightingSourceNote: artifact.weighting?.sourceNote ?? null,
     },
   };
 }
