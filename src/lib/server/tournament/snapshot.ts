@@ -640,6 +640,10 @@ export async function getScoreboardGamesForDate(
       .map((game: any) => normalizeScoreboardGame(game, snapshot.canonicalByNcaaName, {
         allowNonTournament: options.allowNonTournament,
       }))
-      .filter(Boolean),
+      .filter((game): game is ScoreboardGame => game != null)
+      .map(game => ({
+        ...game,
+        gameDate: dateStr,
+      })),
   );
 }

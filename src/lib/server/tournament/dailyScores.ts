@@ -114,7 +114,13 @@ export async function getDailyNcaaScoreboard(dateValue: Date | string = new Date
   await loadTeamColors();
   const url = buildContestsUrl(dateValue);
   const payload = await fetchJsonWithCache(url);
-  return (payload?.data?.contests || [])
+  const gameDate = formatContestDate(dateValue);
+
+  return ((payload?.data?.contests || [])
     .map(normalizeContest)
-    .filter(Boolean) as ScoreboardGame[];
+    .filter(Boolean) as ScoreboardGame[])
+    .map(game => ({
+      ...game,
+      gameDate,
+    }));
 }

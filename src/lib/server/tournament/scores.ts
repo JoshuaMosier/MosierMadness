@@ -5,10 +5,32 @@ import { SCOREBOARD_DAY_START_HOUR_ET } from '$lib/server/tournament/dates';
 import { sortScoreboardGames } from '$lib/utils/scoreboardUtils';
 import { isTournamentLive, isBracketOpen, isArchive, isComplete } from '$lib/utils/stageUtils';
 import { getErrorMessage } from '$lib/server/tournament/constants';
-import type { TournamentSettings, ScoreboardGame } from '$lib/types';
+import type { TournamentSettings, ScoreboardGame, TickerRound } from '$lib/types';
 
 function dedupeGames(games: ScoreboardGame[]): ScoreboardGame[] {
   return Array.from(new Map(games.map(game => [game.gameId, game])).values());
+}
+
+function isSweetSixteenRound(round: Pick<TickerRound, 'key' | 'label'>): boolean {
+  return round.key === 'sweet-16' || /sweet\s*(16|sixteen)/i.test(round.label);
+}
+
+function isSweetSixteenOrLaterRound(settings: TournamentSettings, round: TickerRound): boolean {
+  const configuredRounds = settings.tickerRounds || [];
+  const sweetSixteenIndex = configuredRounds.findIndex(isSweetSixteenRound);
+  const roundIndex = configuredRounds.findIndex(candidate => candidate.key === round.key);
+
+  if (sweetSixteenIndex !== -1 && roundIndex !== -1) {
+    return roundIndex >= sweetSixteenIndex;
+  }
+
+  return (
+    isSweetSixteenRound(round)
+    || round.key === 'elite-8'
+    || round.key === 'final-four'
+    || round.key === 'championship'
+    || /elite\s*8|final\s*four|championship/i.test(round.label)
+  );
 }
 
 async function getGamesForDates(
@@ -22,8 +44,8 @@ async function getGamesForDates(
   return dedupeGames(gamesByDate.flat());
 }
 
-function getDisplayDatesForRound(roundDates: string[], date: Date = new Date()): string[] {
-  const sortedDates = [...roundDates].sort();
+function getDisplayDatesForRound(settings: TournamentSettings, round: TickerRound, date: Date = new Date()): string[] {
+  const sortedDates = [...round.dates].sort();
   if (sortedDates.length <= 1) {
     return sortedDates;
   }
@@ -37,6 +59,11 @@ function getDisplayDatesForRound(roundDates: string[], date: Date = new Date()):
     return [sortedDates[sortedDates.length - 1]];
   }
 
+  // Sweet Sixteen and later should only show the next slate of games, not both round days at once.
+  if (isSweetSixteenOrLaterRound(settings, round)) {
+    return [sortedDates.find(roundDate => roundDate >= today) || sortedDates[0]];
+  }
+
   return sortedDates;
 }
 
@@ -47,7 +74,7 @@ async function getCurrentRoundGames(settings: TournamentSettings, date: Date = n
   }
 
   const isFirstFour = round.key === 'first-four';
-  const displayDates = getDisplayDatesForRound(round.dates, date);
+  const displayDates = getDisplayDatesForRound(settings, round, date);
   return sortScoreboardGames(
     await getGamesForDates(displayDates, { settings, allowNonTournament: isFirstFour }),
   );

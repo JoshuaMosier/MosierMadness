@@ -80,6 +80,7 @@ export interface ScoreboardGame {
 	period: string;
 	clock: string;
 	startTime: string;
+	gameDate?: string;
 	awayTeam: ScoreboardTeam;
 	homeTeam: ScoreboardTeam;
 	matchup: string;

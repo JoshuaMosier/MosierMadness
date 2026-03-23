@@ -31,6 +31,7 @@
   let marqueeContent: HTMLDivElement | null = null;
   let rafId: number | null = null;
   const MARQUEE_DURATION_S = 200;
+  let viewerTimeZone: string | null = null;
 
   $: tournamentStage = tournamentSettings?.stage || 'archive';
   $: viewAllLabel = tournamentStage === 'tournament-live' || tournamentStage === 'bracket-open' ? 'Tournament Scores' : 'Today\'s Scores';
@@ -58,6 +59,188 @@
   // Helper function to get appropriate team name based on length
   function getDisplayName(team: any): string {
     return team?.displayName || team?.name || '';
+  }
+
+  function getDisplayTimeZone(): string {
+    return viewerTimeZone || 'America/New_York';
+  }
+
+  function getTickerDateFormatter(): Intl.DateTimeFormat {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'numeric',
+      day: 'numeric',
+      timeZone: getDisplayTimeZone(),
+    });
+  }
+
+  function getTickerDateTimeFormatter(): Intl.DateTimeFormat {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: getDisplayTimeZone(),
+      timeZoneName: 'short',
+    });
+  }
+
+  function getTimeZoneShortLabel(referenceDate: Date = new Date()): string {
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: getDisplayTimeZone(),
+      timeZoneName: 'short',
+    }).formatToParts(referenceDate).find(part => part.type === 'timeZoneName')?.value || '';
+  }
+
+  function padTimePart(value: string): string {
+    return value.padStart(2, '0');
+  }
+
+  function parseGameDateParts(value: string): { year: number; month: number; day: number } | null {
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) {
+      return null;
+    }
+
+    return {
+      year: Number.parseInt(match[1], 10),
+      month: Number.parseInt(match[2], 10),
+      day: Number.parseInt(match[3], 10),
+    };
+  }
+
+  function getNthSundayOfMonth(year: number, monthIndex: number, occurrence: number): number {
+    const firstOfMonth = new Date(Date.UTC(year, monthIndex, 1));
+    const firstSunday = 1 + ((7 - firstOfMonth.getUTCDay()) % 7);
+    return firstSunday + ((occurrence - 1) * 7);
+  }
+
+  function getEasternUtcOffsetForDate(dateValue: string): string {
+    const parts = parseGameDateParts(dateValue);
+    if (!parts) {
+      return '-04:00';
+    }
+
+    const dateKey = (parts.year * 10_000) + (parts.month * 100) + parts.day;
+    const dstStartKey = (parts.year * 10_000) + 300 + getNthSundayOfMonth(parts.year, 2, 2);
+    const dstEndKey = (parts.year * 10_000) + 1100 + getNthSundayOfMonth(parts.year, 10, 1);
+    return dateKey >= dstStartKey && dateKey < dstEndKey ? '-04:00' : '-05:00';
+  }
+
+  function parseScheduledStart(game: ScoreboardGame): Date | null {
+    const rawStartTime = String(game?.startTime || '').trim();
+    const rawScheduledTime = rawStartTime || String(game?.displayClock || '').trim();
+    const rawGameDate = String(game?.gameDate || '').trim();
+
+    if (!rawScheduledTime) {
+      return null;
+    }
+
+    if (/[zZ]|[+-]\d{2}:\d{2}$/.test(rawScheduledTime)) {
+      const parsedDate = new Date(rawScheduledTime);
+      if (!Number.isNaN(parsedDate.getTime())) {
+        return parsedDate;
+      }
+    }
+
+    const dateTimeMatch = rawScheduledTime.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (dateTimeMatch) {
+      const dateValue = dateTimeMatch[1];
+      const easternTimestamp = `${dateValue}T${padTimePart(dateTimeMatch[2])}:${dateTimeMatch[3]}:${dateTimeMatch[4] || '00'}${getEasternUtcOffsetForDate(dateValue)}`;
+      const parsedDate = new Date(easternTimestamp);
+      if (!Number.isNaN(parsedDate.getTime())) {
+        return parsedDate;
+      }
+    }
+
+    const timeOnlyMatch = rawScheduledTime.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (timeOnlyMatch && rawGameDate) {
+      const easternTimestamp = `${rawGameDate}T${padTimePart(timeOnlyMatch[1])}:${timeOnlyMatch[2]}:${timeOnlyMatch[3] || '00'}${getEasternUtcOffsetForDate(rawGameDate)}`;
+      const parsedDate = new Date(easternTimestamp);
+      if (!Number.isNaN(parsedDate.getTime())) {
+        return parsedDate;
+      }
+    }
+
+    const fallbackParsedDate = new Date(rawScheduledTime);
+    return Number.isNaN(fallbackParsedDate.getTime()) ? null : fallbackParsedDate;
+  }
+
+  function formatMilitaryTime(value: string | null | undefined): string {
+    const rawValue = String(value || '').trim();
+    const match = rawValue.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+
+    if (!match) {
+      return rawValue;
+    }
+
+    const hour24 = Number.parseInt(match[1], 10);
+    if (!Number.isFinite(hour24)) {
+      return rawValue;
+    }
+
+    const hour12 = hour24 % 12 || 12;
+    return `${hour12}:${match[2]} ${hour24 >= 12 ? 'PM' : 'AM'}`;
+  }
+
+  function formatGameDate(game: ScoreboardGame): string {
+    const rawDate = String(game?.gameDate || '').trim();
+    if (!rawDate) {
+      return '';
+    }
+
+    const parsedDate = new Date(`${rawDate}T12:00:00-04:00`);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return rawDate;
+    }
+
+    return getTickerDateFormatter().format(parsedDate);
+  }
+
+  function formatScheduledStart(game: ScoreboardGame): string {
+    const parsedDate = parseScheduledStart(game);
+    if (parsedDate) {
+      const parts = getTickerDateTimeFormatter().formatToParts(parsedDate);
+      const month = parts.find(part => part.type === 'month')?.value || '';
+      const day = parts.find(part => part.type === 'day')?.value || '';
+      const hour = parts.find(part => part.type === 'hour')?.value || '';
+      const minute = parts.find(part => part.type === 'minute')?.value || '';
+      const dayPeriod = parts.find(part => part.type === 'dayPeriod')?.value || '';
+      const timeZoneName = parts.find(part => part.type === 'timeZoneName')?.value || '';
+      const dateLabel = month && day ? `${month}/${day}` : '';
+      const timeLabel = hour && minute ? `${hour}:${minute}${dayPeriod ? ` ${dayPeriod}` : ''}` : '';
+
+      return [dateLabel, timeLabel, timeZoneName].filter(Boolean).join(' ');
+    }
+
+    const rawStartTime = String(game?.startTime || '').trim();
+    const rawScheduledTime = rawStartTime || String(game?.displayClock || '').trim();
+    const gameDateLabel = formatGameDate(game);
+    const timeLabel = formatMilitaryTime(rawScheduledTime);
+    const timeZoneLabel = getTimeZoneShortLabel();
+
+    if (gameDateLabel && timeLabel && timeZoneLabel) {
+      return `${gameDateLabel}, ${timeLabel} ${timeZoneLabel}`;
+    }
+
+    if (gameDateLabel && timeLabel) {
+      return `${gameDateLabel}, ${timeLabel}`;
+    }
+
+    return gameDateLabel || timeLabel || rawStartTime;
+  }
+
+  function getGameClockLabel(game: ScoreboardGame): string {
+    const status = (game?.statusLabel || game?.status || '').toUpperCase();
+
+    if (status === 'FINAL') {
+      return '';
+    }
+
+    if (status === 'PRE') {
+      return formatScheduledStart(game);
+    }
+
+    return game?.displayClock || '';
   }
 
   function getGameHref(game: any): string {
@@ -131,6 +314,8 @@
   }
 
   onMount(() => {
+    viewerTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+
     if (displayMode === 'scroll' && marqueeContent) {
       const startTime = Date.now();
       rafId = requestAnimationFrame(() => tick(startTime));
@@ -158,125 +343,141 @@
   <div class="w-full ticker-shell">
     <!-- Featured mode for 1-4 games - show in a static layout -->
     {#if displayMode === 'featured'}
-      <div class="p-2">
-        <!-- Desktop: flex wrap layout -->
-        <div class="hidden md:flex md:flex-wrap md:gap-2 md:justify-center">
-          {#each sortedGames as game, index}
-            <a href={getGameHref(game)} data-sveltekit-preload-data="tap" class="flex-shrink-0 w-[17rem]">
-              <div class="game-box ticker-card px-3.5 py-2.5">
-                <div class="game-date ticker-card__meta flex justify-between items-center mb-2">
-                  <span class="ticker-clock">{game.statusLabel !== 'FINAL' ? (game.displayClock || '') : ''}</span>
-                  <span class={getStatusClass(game.statusLabel)}>{game.statusLabel}</span>
-                </div>
-                
-                <div class="game-teams ticker-team-stack">
-                  <!-- Away Team -->
-                  <div class="game-team ticker-team-row {isWinner(game.awayTeam) ? 'font-bold' : ''} group">
-                    <div class="ticker-team-main">
-                      <div class="relative w-6 h-6 flex-shrink-0">
-                        <img class="ticker-logo w-full h-full object-contain transition-transform" 
-                             alt="{game.awayTeam.name} logo" 
-                             src="/images/team-logos/{game.awayTeam.seoName}.svg"
-                             on:error={handleImageError}>
-                      </div>
-                      {#if game.awayTeam.seed}
-                        <span class={getSeedClass(game.awayTeam)}>#{game.awayTeam.seed}</span>
-                      {/if}
-                      <span class="{getTeamNameClass(game.awayTeam, game.homeTeam)} whitespace-nowrap overflow-hidden text-ellipsis flex-shrink"
-                            style={getTeamStyle(game.awayTeam)}>
-                        {getDisplayName(game.awayTeam)}
-                      </span>
-                    </div>
-                    <div class="ticker-score-slot">
-                      <span class={getScoreClass(game.awayTeam)}>{game.awayTeam.scoreText}</span>
-                    </div>
-                  </div>
-                  
-                  <!-- Home Team -->
-                  <div class="game-team ticker-team-row {isWinner(game.homeTeam) ? 'font-bold' : ''} group">
-                    <div class="ticker-team-main">
-                      <div class="relative w-6 h-6 flex-shrink-0">
-                        <img class="ticker-logo w-full h-full object-contain transition-transform" 
-                             alt="{game.homeTeam.name} logo" 
-                             src="/images/team-logos/{game.homeTeam.seoName}.svg"
-                             on:error={handleImageError}>
-                      </div>
-                      {#if game.homeTeam.seed}
-                        <span class={getSeedClass(game.homeTeam)}>#{game.homeTeam.seed}</span>
-                      {/if}
-                      <span class="{getTeamNameClass(game.homeTeam, game.awayTeam)} whitespace-nowrap overflow-hidden text-ellipsis flex-shrink"
-                            style={getTeamStyle(game.homeTeam)}>
-                        {getDisplayName(game.homeTeam)}
-                      </span>
-                    </div>
-                    <div class="ticker-score-slot">
-                      <span class={getScoreClass(game.homeTeam)}>{game.homeTeam.scoreText}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </a>
-          {/each}
+      <div class="relative">
+        <div class="absolute -top-10 right-0 hidden md:block">
+          <a href="/scores" class="bg-black/40 hover:bg-black/60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border border-white/10 hover:border-white/30 shadow-lg hover:shadow-xl hover:transform hover:scale-[1.02]">
+            <span>{viewAllLabel}</span>
+          </a>
         </div>
-        
-        <!-- Mobile: horizontal scroll layout -->
-        <div class="flex md:hidden overflow-x-auto py-2 px-1 scrollbar-hide">
-          {#each sortedGames as game, index}
-            <a href={getGameHref(game)} data-sveltekit-preload-data="tap" class="flex-shrink-0 mx-1 w-[17rem]">
-              <div class="game-box ticker-card px-3.5 py-2.5">
-                <div class="game-date ticker-card__meta flex justify-between items-center mb-2">
-                  <span class="ticker-clock">{game.statusLabel !== 'FINAL' ? (game.displayClock || '') : ''}</span>
-                  <span class={getStatusClass(game.statusLabel)}>{game.statusLabel}</span>
-                </div>
-                
-                <div class="game-teams ticker-team-stack">
-                  <!-- Away Team -->
-                  <div class="game-team ticker-team-row {isWinner(game.awayTeam) ? 'font-bold' : ''} group">
-                    <div class="ticker-team-main">
-                      <div class="relative w-6 h-6 flex-shrink-0">
-                        <img class="ticker-logo w-full h-full object-contain transition-transform" 
-                             alt="{game.awayTeam.name} logo" 
-                             src="/images/team-logos/{game.awayTeam.seoName}.svg"
-                             on:error={handleImageError}>
-                      </div>
-                      {#if game.awayTeam.seed}
-                        <span class={getSeedClass(game.awayTeam)}>#{game.awayTeam.seed}</span>
-                      {/if}
-                      <span class="{getTeamNameClass(game.awayTeam, game.homeTeam)} whitespace-nowrap overflow-hidden text-ellipsis flex-shrink"
-                            style={getTeamStyle(game.awayTeam)}>
-                        {getDisplayName(game.awayTeam)}
-                      </span>
-                    </div>
-                    <div class="ticker-score-slot">
-                      <span class={getScoreClass(game.awayTeam)}>{game.awayTeam.scoreText}</span>
-                    </div>
+
+        <div class="mb-3 flex justify-center md:hidden px-2 pt-2">
+          <a href="/scores"
+             on:click|preventDefault={() => { window.location.href = '/scores'; }}
+             class="bg-black/40 hover:bg-black/60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border border-white/10 hover:border-white/30 shadow-lg active:bg-black/70 touch-manipulation">
+            <span>{viewAllLabel}</span>
+          </a>
+        </div>
+
+        <div class="p-2 pt-3 md:pt-2">
+          <!-- Desktop: flex wrap layout -->
+          <div class="hidden md:flex md:flex-wrap md:gap-2 md:justify-center">
+            {#each sortedGames as game, index}
+              <a href={getGameHref(game)} data-sveltekit-preload-data="tap" class="flex-shrink-0 w-[17rem]">
+                <div class="game-box ticker-card px-3.5 py-2.5">
+                  <div class="game-date ticker-card__meta flex justify-between items-center mb-2">
+                    <span class="ticker-clock">{getGameClockLabel(game)}</span>
+                    <span class={getStatusClass(game.statusLabel)}>{game.statusLabel}</span>
                   </div>
                   
-                  <!-- Home Team -->
-                  <div class="game-team ticker-team-row {isWinner(game.homeTeam) ? 'font-bold' : ''} group">
-                    <div class="ticker-team-main">
-                      <div class="relative w-6 h-6 flex-shrink-0">
-                        <img class="ticker-logo w-full h-full object-contain transition-transform" 
-                             alt="{game.homeTeam.name} logo" 
-                             src="/images/team-logos/{game.homeTeam.seoName}.svg"
-                             on:error={handleImageError}>
+                  <div class="game-teams ticker-team-stack">
+                    <!-- Away Team -->
+                    <div class="game-team ticker-team-row {isWinner(game.awayTeam) ? 'font-bold' : ''} group">
+                      <div class="ticker-team-main">
+                        <div class="relative w-6 h-6 flex-shrink-0">
+                          <img class="ticker-logo w-full h-full object-contain transition-transform" 
+                               alt="{game.awayTeam.name} logo" 
+                               src="/images/team-logos/{game.awayTeam.seoName}.svg"
+                               on:error={handleImageError}>
+                        </div>
+                        {#if game.awayTeam.seed}
+                          <span class={getSeedClass(game.awayTeam)}>#{game.awayTeam.seed}</span>
+                        {/if}
+                        <span class="{getTeamNameClass(game.awayTeam, game.homeTeam)} whitespace-nowrap overflow-hidden text-ellipsis flex-shrink"
+                              style={getTeamStyle(game.awayTeam)}>
+                          {getDisplayName(game.awayTeam)}
+                        </span>
                       </div>
-                      {#if game.homeTeam.seed}
-                        <span class={getSeedClass(game.homeTeam)}>#{game.homeTeam.seed}</span>
-                      {/if}
-                      <span class="{getTeamNameClass(game.homeTeam, game.awayTeam)} whitespace-nowrap overflow-hidden text-ellipsis flex-shrink"
-                            style={getTeamStyle(game.homeTeam)}>
-                        {getDisplayName(game.homeTeam)}
-                      </span>
+                      <div class="ticker-score-slot">
+                        <span class={getScoreClass(game.awayTeam)}>{game.awayTeam.scoreText}</span>
+                      </div>
                     </div>
-                    <div class="ticker-score-slot">
-                      <span class={getScoreClass(game.homeTeam)}>{game.homeTeam.scoreText}</span>
+                    
+                    <!-- Home Team -->
+                    <div class="game-team ticker-team-row {isWinner(game.homeTeam) ? 'font-bold' : ''} group">
+                      <div class="ticker-team-main">
+                        <div class="relative w-6 h-6 flex-shrink-0">
+                          <img class="ticker-logo w-full h-full object-contain transition-transform" 
+                               alt="{game.homeTeam.name} logo" 
+                               src="/images/team-logos/{game.homeTeam.seoName}.svg"
+                               on:error={handleImageError}>
+                        </div>
+                        {#if game.homeTeam.seed}
+                          <span class={getSeedClass(game.homeTeam)}>#{game.homeTeam.seed}</span>
+                        {/if}
+                        <span class="{getTeamNameClass(game.homeTeam, game.awayTeam)} whitespace-nowrap overflow-hidden text-ellipsis flex-shrink"
+                              style={getTeamStyle(game.homeTeam)}>
+                          {getDisplayName(game.homeTeam)}
+                        </span>
+                      </div>
+                      <div class="ticker-score-slot">
+                        <span class={getScoreClass(game.homeTeam)}>{game.homeTeam.scoreText}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </a>
-          {/each}
+              </a>
+            {/each}
+          </div>
+          
+          <!-- Mobile: horizontal scroll layout -->
+          <div class="flex md:hidden overflow-x-auto py-2 px-1 scrollbar-hide">
+            {#each sortedGames as game, index}
+              <a href={getGameHref(game)} data-sveltekit-preload-data="tap" class="flex-shrink-0 mx-1 w-[17rem]">
+                <div class="game-box ticker-card px-3.5 py-2.5">
+                  <div class="game-date ticker-card__meta flex justify-between items-center mb-2">
+                    <span class="ticker-clock">{getGameClockLabel(game)}</span>
+                    <span class={getStatusClass(game.statusLabel)}>{game.statusLabel}</span>
+                  </div>
+                  
+                  <div class="game-teams ticker-team-stack">
+                    <!-- Away Team -->
+                    <div class="game-team ticker-team-row {isWinner(game.awayTeam) ? 'font-bold' : ''} group">
+                      <div class="ticker-team-main">
+                        <div class="relative w-6 h-6 flex-shrink-0">
+                          <img class="ticker-logo w-full h-full object-contain transition-transform" 
+                               alt="{game.awayTeam.name} logo" 
+                               src="/images/team-logos/{game.awayTeam.seoName}.svg"
+                               on:error={handleImageError}>
+                        </div>
+                        {#if game.awayTeam.seed}
+                          <span class={getSeedClass(game.awayTeam)}>#{game.awayTeam.seed}</span>
+                        {/if}
+                        <span class="{getTeamNameClass(game.awayTeam, game.homeTeam)} whitespace-nowrap overflow-hidden text-ellipsis flex-shrink"
+                              style={getTeamStyle(game.awayTeam)}>
+                          {getDisplayName(game.awayTeam)}
+                        </span>
+                      </div>
+                      <div class="ticker-score-slot">
+                        <span class={getScoreClass(game.awayTeam)}>{game.awayTeam.scoreText}</span>
+                      </div>
+                    </div>
+                    
+                    <!-- Home Team -->
+                    <div class="game-team ticker-team-row {isWinner(game.homeTeam) ? 'font-bold' : ''} group">
+                      <div class="ticker-team-main">
+                        <div class="relative w-6 h-6 flex-shrink-0">
+                          <img class="ticker-logo w-full h-full object-contain transition-transform" 
+                               alt="{game.homeTeam.name} logo" 
+                               src="/images/team-logos/{game.homeTeam.seoName}.svg"
+                               on:error={handleImageError}>
+                        </div>
+                        {#if game.homeTeam.seed}
+                          <span class={getSeedClass(game.homeTeam)}>#{game.homeTeam.seed}</span>
+                        {/if}
+                        <span class="{getTeamNameClass(game.homeTeam, game.awayTeam)} whitespace-nowrap overflow-hidden text-ellipsis flex-shrink"
+                              style={getTeamStyle(game.homeTeam)}>
+                          {getDisplayName(game.homeTeam)}
+                        </span>
+                      </div>
+                      <div class="ticker-score-slot">
+                        <span class={getScoreClass(game.homeTeam)}>{game.homeTeam.scoreText}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            {/each}
+          </div>
         </div>
       </div>
     
@@ -306,7 +507,7 @@
               <a href={getGameHref(game)} data-sveltekit-preload-data="tap" class="flex-shrink-0 mx-1 w-[17rem]">
                 <div class="game-box ticker-card px-3.5 py-2.5">
                   <div class="game-date ticker-card__meta flex justify-between items-center mb-2">
-                    <span class="ticker-clock">{game.statusLabel !== 'FINAL' ? (game.displayClock || '') : ''}</span>
+                    <span class="ticker-clock">{getGameClockLabel(game)}</span>
                     <span class={getStatusClass(game.statusLabel)}>{game.statusLabel}</span>
                   </div>
                   
@@ -368,7 +569,7 @@
                   <a href={getGameHref(game)} data-sveltekit-preload-data="tap" class="flex-shrink-0 mx-2 w-[17rem] marquee-card">
                     <div class="game-box ticker-card px-3.5 py-2.5">
                       <div class="game-date ticker-card__meta flex justify-between items-center mb-2">
-                        <span class="ticker-clock">{game.statusLabel !== 'FINAL' ? (game.displayClock || '') : ''}</span>
+                        <span class="ticker-clock">{getGameClockLabel(game)}</span>
                         <span class={getStatusClass(game.statusLabel)}>{game.statusLabel}</span>
                       </div>
                       
@@ -471,6 +672,9 @@
   }
 
   .ticker-card__meta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     min-height: 1.4rem;
     gap: 0.6rem;
   }
@@ -481,11 +685,16 @@
   }
 
   .ticker-clock {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     color: var(--mm-subtle);
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
   }
 
   .ticker-status {
