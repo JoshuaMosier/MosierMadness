@@ -913,7 +913,7 @@
 
   .scenario-standings-colhead {
     width: 3.8rem;
-    padding: 0.3rem 0.2rem;
+    padding: 0.18rem 0.2rem;
     font-size: 0.68rem;
     transition: background-color 150ms ease;
   }
@@ -926,10 +926,11 @@
     position: sticky;
     left: 0;
     z-index: 10;
-    padding: 0.28rem 0.5rem;
+    padding: 0.18rem 0.5rem;
     color: var(--mm-text);
     font-size: 0.78rem;
     font-weight: 600;
+    line-height: 1.2;
     transition: background-color 150ms ease;
   }
 
@@ -954,7 +955,7 @@
 
   .scenario-standings-cell {
     min-width: 2rem;
-    padding: 0.2rem 0;
+    padding: 0.12rem 0;
     white-space: nowrap;
     text-align: center;
     box-shadow: inset 0 0 0 1px rgba(10, 10, 11, 0.18);
@@ -1080,7 +1081,7 @@
     z-index: 50;
     display: flex;
     flex-direction: column;
-    padding: 1rem 1.5rem 1.5rem;
+    padding: 0;
     background: rgba(12, 12, 14, 0.98);
     overflow: hidden;
   }
@@ -1091,13 +1092,15 @@
     overflow: auto;
   }
 
+  :global(.scenario-standings-matrix-container.is-fullscreen .scenario-standings-legend) {
+    display: none;
+  }
+
   :global(.scenario-standings-fullscreen-header) {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 0.75rem;
-    margin-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: absolute;
+    top: 0.5rem;
+    right: 0.6rem;
+    z-index: 60;
   }
 
   :global(.scenario-standings-fullscreen-header.is-hidden) {
@@ -1105,9 +1108,7 @@
   }
 
   :global(.scenario-standings-fullscreen-title) {
-    color: var(--mm-text);
-    font-size: 1rem;
-    font-weight: 600;
+    display: none;
   }
 
   :global(.scenario-standings-fullscreen-close) {
@@ -1115,12 +1116,13 @@
     align-items: center;
     gap: 0.35rem;
     padding: 0.3rem 0.6rem;
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 0.5rem;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(18, 18, 20, 0.85);
     color: var(--mm-text);
     cursor: pointer;
+    backdrop-filter: blur(6px);
   }
 
   :global(.scenario-standings-fullscreen-close:hover) {
