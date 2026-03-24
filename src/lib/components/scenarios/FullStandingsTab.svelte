@@ -14,6 +14,36 @@
   let standingsView: 'summary' | 'matrix' = 'summary';
   let summarySortKey: 'name' | 'win' | 'podium' | 'topGroup' | 'high' | 'low' | 'expected' = 'win';
   let summarySortDirection: 'asc' | 'desc' = 'desc';
+  let isFullscreen: boolean = false;
+  let matrixContainerEl: HTMLDivElement;
+  let originalParent: HTMLElement | null = null;
+  let originalNextSibling: Node | null = null;
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && isFullscreen) {
+      exitFullscreen();
+    }
+  }
+
+  function enterFullscreen() {
+    if (!matrixContainerEl) return;
+    originalParent = matrixContainerEl.parentElement;
+    originalNextSibling = matrixContainerEl.nextSibling;
+    document.body.appendChild(matrixContainerEl);
+    isFullscreen = true;
+  }
+
+  function exitFullscreen() {
+    if (!matrixContainerEl || !originalParent) return;
+    isFullscreen = false;
+    if (originalNextSibling) {
+      originalParent.insertBefore(matrixContainerEl, originalNextSibling);
+    } else {
+      originalParent.appendChild(matrixContainerEl);
+    }
+    originalParent = null;
+    originalNextSibling = null;
+  }
 
   type SummaryBucket = {
     label: string;
@@ -323,6 +353,8 @@
   };
 </script>
 
+<svelte:window on:keydown={handleKeydown} />
+
 <div class="scenario-standings-toolbar">
   <p class="scenario-standings-copy">
   </p>
@@ -363,6 +395,20 @@
         <span class="scenario-standings-fixed-mode">Percentages only</span>
       {/if}
     </div>
+
+    {#if standingsView === 'matrix'}
+      <button
+        class="scenario-standings-fullscreen-btn mm-toggle-button"
+        on:click={() => isFullscreen ? exitFullscreen() : enterFullscreen()}
+        title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen matrix'}
+      >
+        {#if isFullscreen}
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        {:else}
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        {/if}
+      </button>
+    {/if}
   </div>
 </div>
 
@@ -522,85 +568,98 @@
     </div>
   </div>
 {:else}
-  <div class="scenario-standings-table-wrap mm-data-table-frame mm-data-table-scroll">
-    <table class="scenario-standings-table mm-data-table mm-data-table--compact mm-data-table--centered">
-      <thead class="scenario-standings-head mm-data-table-head-sticky">
-        <tr>
-          <th scope="col" class="scenario-standings-sticky">
-            Name
-          </th>
-          {#each Array(numEntries) as _, i}
-            <th
-              scope="col"
-              class={`scenario-standings-colhead ${hoveredCol === i ? 'is-hovered' : ''}`}
-            >
-              {i + 1}{getOrdinalSuffix(i + 1)}
+  <div class="scenario-standings-matrix-container" class:is-fullscreen={isFullscreen} bind:this={matrixContainerEl}>
+    <div class="scenario-standings-fullscreen-header" class:is-hidden={!isFullscreen}>
+      <span class="scenario-standings-fullscreen-title">{matrixLabel}</span>
+      <button
+        class="scenario-standings-fullscreen-close mm-toggle-button"
+        on:click={() => exitFullscreen()}
+        title="Exit fullscreen (Esc)"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <span>Esc</span>
+      </button>
+    </div>
+    <div class="scenario-standings-table-wrap mm-data-table-frame mm-data-table-scroll">
+      <table class="scenario-standings-table mm-data-table mm-data-table--compact mm-data-table--centered">
+        <thead class="scenario-standings-head mm-data-table-head-sticky">
+          <tr>
+            <th scope="col" class="scenario-standings-sticky">
+              Name
             </th>
-          {/each}
-        </tr>
-      </thead>
-      <tbody class="scenario-standings-body">
-        {#each sortedUsers as user, i}
-          {@const userProbabilities = Object.values(user.positionProbabilities)}
-          {@const maxProbability = Math.max(...userProbabilities, 0.1)}
-          <tr
-            class={getRowClass(i)}
-            class:is-current-user={isCurrentUserEntry(user)}
-            class:mm-data-table-row-highlight={isCurrentUserEntry(user)}
-          >
-            <td class={getNameCellClass(i)}>
-              {user.displayName || `${user.firstName} ${user.lastName}`.trim()}
-            </td>
-            {#each Array(numEntries) as _, j}
-              {@const position = j + 1}
-              {@const count = user.positions[position] || 0}
-              {@const probability = user.positionProbabilities[position] || 0}
-              <td
-                class={`scenario-standings-cell ${hoveredCell === `${i}-${j}` ? 'is-hovered' : ''}`}
-                style="background-color: {getRowHeatmapColor(probability, maxProbability)}"
-                on:mouseenter={() => {
-                  hoveredRow = i;
-                  hoveredCol = j;
-                  hoveredCell = `${i}-${j}`;
-                }}
-                on:mouseleave={() => {
-                  hoveredRow = null;
-                  hoveredCol = null;
-                  hoveredCell = null;
-                }}
+            {#each Array(numEntries) as _, i}
+              <th
+                scope="col"
+                class={`scenario-standings-colhead ${hoveredCol === i ? 'is-hovered' : ''}`}
               >
-                <span class={`scenario-standings-value ${count === 0 ? 'is-empty' : 'is-filled'}`}>
-                  {#if displayMode === 'count'}
-                    {count === 0 ? '-' : count.toLocaleString()}
-                  {:else}
-                    {probability === 0 ? '-' : probability.toFixed(1) + '%'}
-                  {/if}
-                </span>
-              </td>
+                {i + 1}{getOrdinalSuffix(i + 1)}
+              </th>
             {/each}
           </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody class="scenario-standings-body">
+          {#each sortedUsers as user, i}
+            {@const userProbabilities = Object.values(user.positionProbabilities)}
+            {@const maxProbability = Math.max(...userProbabilities, 0.1)}
+            <tr
+              class={getRowClass(i)}
+              class:is-current-user={isCurrentUserEntry(user)}
+              class:mm-data-table-row-highlight={isCurrentUserEntry(user)}
+            >
+              <td class={getNameCellClass(i)}>
+                {user.displayName || `${user.firstName} ${user.lastName}`.trim()}
+              </td>
+              {#each Array(numEntries) as _, j}
+                {@const position = j + 1}
+                {@const count = user.positions[position] || 0}
+                {@const probability = user.positionProbabilities[position] || 0}
+                <td
+                  class={`scenario-standings-cell ${hoveredCell === `${i}-${j}` ? 'is-hovered' : ''}`}
+                  style="background-color: {getRowHeatmapColor(probability, maxProbability)}"
+                  on:mouseenter={() => {
+                    hoveredRow = i;
+                    hoveredCol = j;
+                    hoveredCell = `${i}-${j}`;
+                  }}
+                  on:mouseleave={() => {
+                    hoveredRow = null;
+                    hoveredCol = null;
+                    hoveredCell = null;
+                  }}
+                >
+                  <span class={`scenario-standings-value ${count === 0 ? 'is-empty' : 'is-filled'}`}>
+                    {#if displayMode === 'count'}
+                      {count === 0 ? '-' : count.toLocaleString()}
+                    {:else}
+                      {probability === 0 ? '-' : probability.toFixed(1) + '%'}
+                    {/if}
+                  </span>
+                </td>
+              {/each}
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
 
-  <div class="scenario-standings-legend">
-    <div class="scenario-standings-legend-row">
-      <div class="scenario-standings-legend-item">
-        <div class="scenario-standings-legend-swatch" style="background-color: hsla(120, 65%, 45%, 0.8)"></div>
-        <span>Most common position</span>
-      </div>
-      <div class="scenario-standings-legend-item">
-        <div class="scenario-standings-legend-swatch" style="background-color: hsla(60, 65%, 45%, 0.6)"></div>
-        <span>Medium frequency</span>
-      </div>
-      <div class="scenario-standings-legend-item">
-        <div class="scenario-standings-legend-swatch" style="background-color: hsla(0, 65%, 45%, 0.4)"></div>
-        <span>Less common position</span>
-      </div>
-      <div class="scenario-standings-legend-item">
-        <div class="scenario-standings-legend-swatch" style="background-color: rgba(50, 50, 50, 0.2)"></div>
-        <span>0 scenarios</span>
+    <div class="scenario-standings-legend">
+      <div class="scenario-standings-legend-row">
+        <div class="scenario-standings-legend-item">
+          <div class="scenario-standings-legend-swatch" style="background-color: hsla(120, 65%, 45%, 0.8)"></div>
+          <span>Most common position</span>
+        </div>
+        <div class="scenario-standings-legend-item">
+          <div class="scenario-standings-legend-swatch" style="background-color: hsla(60, 65%, 45%, 0.6)"></div>
+          <span>Medium frequency</span>
+        </div>
+        <div class="scenario-standings-legend-item">
+          <div class="scenario-standings-legend-swatch" style="background-color: hsla(0, 65%, 45%, 0.4)"></div>
+          <span>Less common position</span>
+        </div>
+        <div class="scenario-standings-legend-item">
+          <div class="scenario-standings-legend-swatch" style="background-color: rgba(50, 50, 50, 0.2)"></div>
+          <span>0 scenarios</span>
+        </div>
       </div>
     </div>
   </div>
@@ -837,8 +896,25 @@
     border-radius: 0.28rem;
   }
 
+  /* Fullscreen toggle button — desktop only */
+  .scenario-standings-fullscreen-btn {
+    display: none;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+    padding: 0.28rem 0.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .scenario-standings-fullscreen-btn {
+      display: inline-flex;
+    }
+  }
+
   .scenario-standings-colhead {
-    width: 5rem;
+    width: 3.8rem;
+    padding: 0.3rem 0.2rem;
+    font-size: 0.68rem;
     transition: background-color 150ms ease;
   }
 
@@ -850,9 +926,9 @@
     position: sticky;
     left: 0;
     z-index: 10;
-    padding: 0.44rem 0.68rem;
+    padding: 0.28rem 0.5rem;
     color: var(--mm-text);
-    font-size: 0.88rem;
+    font-size: 0.78rem;
     font-weight: 600;
     transition: background-color 150ms ease;
   }
@@ -877,8 +953,8 @@
   }
 
   .scenario-standings-cell {
-    min-width: 2.5rem;
-    padding: 0.34rem 0;
+    min-width: 2rem;
+    padding: 0.2rem 0;
     white-space: nowrap;
     text-align: center;
     box-shadow: inset 0 0 0 1px rgba(10, 10, 11, 0.18);
@@ -890,7 +966,7 @@
   }
 
   .scenario-standings-value {
-    font-size: 0.75rem;
+    font-size: 0.68rem;
   }
 
   .scenario-standings-value.is-filled {
@@ -995,5 +1071,59 @@
     .scenario-standings-value {
       font-size: 0.69rem;
     }
+  }
+
+  /* Fullscreen overlay — :global because the element is portaled to document.body */
+  :global(.scenario-standings-matrix-container.is-fullscreen) {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 1.5rem 1.5rem;
+    background: rgba(12, 12, 14, 0.98);
+    overflow: hidden;
+  }
+
+  :global(.scenario-standings-matrix-container.is-fullscreen .scenario-standings-table-wrap) {
+    flex: 1 1 0;
+    max-height: none;
+    overflow: auto;
+  }
+
+  :global(.scenario-standings-fullscreen-header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  :global(.scenario-standings-fullscreen-header.is-hidden) {
+    display: none;
+  }
+
+  :global(.scenario-standings-fullscreen-title) {
+    color: var(--mm-text);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  :global(.scenario-standings-fullscreen-close) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.76rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--mm-text);
+    cursor: pointer;
+  }
+
+  :global(.scenario-standings-fullscreen-close:hover) {
+    background: rgba(255, 255, 255, 0.12);
   }
 </style>
