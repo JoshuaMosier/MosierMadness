@@ -1090,10 +1090,32 @@
     flex: 1 1 0;
     max-height: none;
     overflow: auto;
+    padding-bottom: 0;
   }
 
   :global(.scenario-standings-matrix-container.is-fullscreen .scenario-standings-legend) {
     display: none;
+  }
+
+  :global(.scenario-standings-matrix-container.is-fullscreen .scenario-standings-colhead) {
+    width: auto;
+    padding: 0.1rem 0.15rem;
+    font-size: 0.6rem;
+  }
+
+  :global(.scenario-standings-matrix-container.is-fullscreen .scenario-standings-namecell) {
+    padding: 0.08rem 0.4rem;
+    font-size: 0.68rem;
+  }
+
+  :global(.scenario-standings-matrix-container.is-fullscreen .scenario-standings-cell) {
+    min-width: 1.6rem;
+    padding: 0.05rem 0;
+    box-shadow: none;
+  }
+
+  :global(.scenario-standings-matrix-container.is-fullscreen .scenario-standings-value) {
+    font-size: 0.58rem;
   }
 
   :global(.scenario-standings-fullscreen-header) {
