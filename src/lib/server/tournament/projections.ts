@@ -238,7 +238,11 @@ export function getGameDetailProjection(
   };
 }
 
-export function getScenarioSeedData(entries: Entry[], snapshot: TournamentSnapshot) {
+export function getScenarioSeedData(
+  entries: Entry[],
+  snapshot: TournamentSnapshot,
+  weighting: import('$lib/types').ScenarioWeightingModel | null = null,
+) {
   const liveBracketData = getLiveBracketProjection(snapshot);
   const leaderboard = getLeaderboardProjection(entries, snapshot);
   const positionLookup = assignPositions(leaderboard.rows, { presorted: true });
@@ -250,5 +254,6 @@ export function getScenarioSeedData(entries: Entry[], snapshot: TournamentSnapsh
     scoreboardGames: snapshot.scoreboardGames,
     currentPositions: Object.fromEntries(positionLookup),
     teamSeoMap: buildTeamSeoMap(snapshot),
+    weighting,
   };
 }

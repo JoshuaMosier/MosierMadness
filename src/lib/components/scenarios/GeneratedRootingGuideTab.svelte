@@ -14,7 +14,6 @@
   export let selectedUser: string | null = null;
   export let analysisMode: GeneratedScenarioAnalysisMode = 'exact';
   export let supportsWeighted = false;
-  let selectedUserValue = '';
   const teamLogoClass = 'w-full h-full object-contain p-0.5 opacity-90';
   const teamLogoContainerClass = 'w-10 h-10 rounded-lg p-1 overflow-hidden shadow-inner relative';
   const svgFilter = `
@@ -269,11 +268,6 @@
     return `${formatPlaceLabel(targetPlace)}-place`;
   }
 
-  function getAnalysisModeNote(mode: GeneratedScenarioAnalysisMode): string {
-    return mode === 'weighted'
-      ? 'More likely outcomes count more.'
-      : 'Every remaining path counts the same.';
-  }
 
   function getCardActionLabel(game: GameSummary): string {
     const recommendedBranch = getRecommendedBranch(game);
@@ -347,13 +341,6 @@
     return startTime;
   }
 
-  $: sortedEntries = [...entries].sort((left, right) => {
-    const leftName = getDisplayName(left).toLowerCase();
-    const rightName = getDisplayName(right).toLowerCase();
-    return leftName.localeCompare(rightName);
-  });
-
-  $: selectedUserValue = selectedUser ?? '';
   $: selectedEntry = entries.find((entry) => entry.entryId === selectedUser) ?? null;
   $: selectedEntrySnapshot = findEntrySnapshot(entries, selectedUser);
   $: targetPlace = selectedEntrySnapshot
@@ -444,55 +431,7 @@
 {@html svgFilter}
 
 <div class="generated-rooting">
-  <div class="generated-rooting-toolbar mm-control-shell">
-    <div class="generated-rooting-toolbar-row mm-control-row">
-      <label for="generatedUserSelect" class="generated-rooting-kicker mm-compact-eyebrow">
-        {#if currentUserId && selectedEntry?.userId === currentUserId}
-          Your Bracket
-        {:else}
-          Bracket Focus
-        {/if}
-      </label>
-
-      <select
-        id="generatedUserSelect"
-        class="generated-rooting-select mm-select"
-        bind:value={selectedUserValue}
-        on:change={() => selectedUser = selectedUserValue || null}
-      >
-        <option value="" disabled selected={!selectedUser}>Select a bracket...</option>
-        {#each sortedEntries as entry}
-          <option value={entry.entryId}>
-            {getDisplayName(entry)}{entry.userId === currentUserId ? ' (You)' : ''}
-          </option>
-        {/each}
-      </select>
-
-      {#if supportsWeighted}
-        <div class="generated-rooting-mode">
-          <div class="generated-rooting-mode-copy">
-            <div class="generated-rooting-mode-label mm-compact-eyebrow">Analysis Mode</div>
-            <div class="generated-rooting-mode-note">{getAnalysisModeNote(analysisMode)}</div>
-          </div>
-
-          <div class="generated-rooting-mode-toggle">
-            <button
-              class={`generated-rooting-mode-button mm-toggle-button ${analysisMode === 'exact' ? 'is-active' : ''}`}
-              on:click={() => analysisMode = 'exact'}
-            >
-              Exact
-            </button>
-            <button
-              class={`generated-rooting-mode-button mm-toggle-button ${analysisMode === 'weighted' ? 'is-active' : ''}`}
-              on:click={() => analysisMode = 'weighted'}
-            >
-              Weighted
-            </button>
-          </div>
-        </div>
-      {/if}
-    </div>
-  </div>
+  <slot name="post-focus-controls" />
 
   {#if !selectedUser}
     <div class="generated-rooting-state">
@@ -613,47 +552,6 @@
 <style>
   .generated-rooting {
     margin-bottom: 1.5rem;
-  }
-
-  .generated-rooting-toolbar {
-    margin-bottom: 1rem;
-  }
-
-  .generated-rooting-toolbar-row {
-    align-items: center;
-  }
-
-  .generated-rooting-select {
-    min-width: 18rem;
-    flex: 1 1 22rem;
-  }
-
-  .generated-rooting-mode {
-    display: grid;
-    gap: 0.35rem;
-    min-width: 17rem;
-    margin-left: auto;
-  }
-
-  .generated-rooting-mode-copy {
-    min-width: 0;
-  }
-
-  .generated-rooting-mode-label {
-    display: block;
-  }
-
-  .generated-rooting-mode-note {
-    margin-top: 0.25rem;
-    color: var(--mm-muted);
-    font-size: 0.8rem;
-    line-height: 1.35;
-  }
-
-  .generated-rooting-mode-toggle {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
   }
 
   .generated-rooting-state {
@@ -835,12 +733,14 @@
   }
 
   .generated-rooting-team {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.75rem;
     padding: 0.65rem 0.75rem;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 0.9rem;
+    min-width: 0;
   }
 
   .generated-rooting-team.is-favored {
@@ -857,16 +757,22 @@
   .generated-rooting-team-main {
     display: flex;
     min-width: 0;
-    flex: 1 1 auto;
+    width: 100%;
+    flex: 1 1 0;
     align-items: center;
     gap: 0.75rem;
+    overflow: hidden;
   }
 
   .generated-rooting-team-copy {
     min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
   }
 
   .generated-rooting-team-name {
+    display: block;
+    min-width: 0;
     overflow: hidden;
     color: var(--mm-text);
     font-weight: 600;
@@ -903,34 +809,6 @@
   }
 
   @media (max-width: 767px) {
-    .generated-rooting-toolbar-row {
-      align-items: stretch;
-    }
-
-    .generated-rooting-kicker {
-      display: none;
-    }
-
-    .generated-rooting-select,
-    .generated-rooting-mode {
-      min-width: 0;
-      width: 100%;
-      flex-basis: 100%;
-    }
-
-    .generated-rooting-mode {
-      margin-left: 0;
-    }
-
-    .generated-rooting-mode-toggle {
-      width: 100%;
-    }
-
-    .generated-rooting-mode-button {
-      flex: 1 1 calc(50% - 0.3rem);
-      justify-content: center;
-    }
-
     .generated-rooting-shell {
       padding: 0.9rem;
     }

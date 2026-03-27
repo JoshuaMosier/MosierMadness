@@ -337,19 +337,33 @@ export interface NcaaBasketballBoxscore {
 	teams: NcaaBasketballBoxscoreTeam[];
 }
 
+export interface ScenarioWeightingModel {
+	kind: 'equal' | 'log5' | 'logistic';
+	scale?: number;
+	ratingsBySeoName: Record<string, number>;
+	summaryLabel?: string;
+	sourceNote?: string;
+}
+
 export interface SimulationConfig {
 	masterBracket: string[];
 	entries: Entry[];
 	filteredRemainingGames: number[];
 	selectedWinners: Record<number, string>;
 	liveBracketData: LiveBracketData;
+	teamSeoMap?: Record<string, string>;
+	weighting?: ScenarioWeightingModel | null;
 }
 
 export interface SimulationResult {
 	totalScenarios: number;
-	winCounts: Map<string, number>;
-	positionCounts: Map<string, Record<number, number>>;
+	totalWeight: number;
+	winCounts: Int32Array;
+	weightedWinCounts: Float64Array;
+	positionCounts: Int32Array;
+	weightedPositionCounts: Float64Array;
 	scenarioPositions: Uint8Array;
+	scenarioProbabilityMasses: Float64Array;
 }
 
 export interface RootForConfig {
@@ -359,7 +373,31 @@ export interface RootForConfig {
 	totalScenarios: number;
 	entryIndex: number;
 	targetPosition: number;
+	scenarioProbabilityMasses?: Float64Array;
+	totalWeight?: number;
 }
+
+export interface ScenarioSimulationWorkerRequest {
+	requestId: number;
+	config: SimulationConfig;
+}
+
+export interface ScenarioSimulationWorkerResultMessage {
+	type: 'result';
+	requestId: number;
+	result: SimulationResult;
+	durationMs: number;
+}
+
+export interface ScenarioSimulationWorkerErrorMessage {
+	type: 'error';
+	requestId: number;
+	message: string;
+}
+
+export type ScenarioSimulationWorkerMessage =
+	| ScenarioSimulationWorkerResultMessage
+	| ScenarioSimulationWorkerErrorMessage;
 
 // ─── History ─────────────────────────────────────────────────────────────────
 

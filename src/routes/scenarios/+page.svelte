@@ -1,302 +1,237 @@
 <script lang="ts">
   import { fade } from 'svelte/transition';
-  import { FADE_QUICK, FADE_DELAYED } from '$lib/constants/transitions';
-  import Alert from '$lib/components/Alert.svelte';
   import { onMount } from 'svelte';
-  import { supabase } from '$lib/supabase';
-  import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
-  import { getTeamNameFromSelection } from '$lib/utils/bracketUtils';
-  import { getTeamsForGame, runSimulation, aggregateRootFor } from '$lib/utils/scenarioEngine';
-  import MatchSelector from '$lib/components/scenarios/MatchSelector.svelte';
-  import FullStandingsTab from '$lib/components/scenarios/FullStandingsTab.svelte';
+  import { FADE_DELAYED, FADE_QUICK } from '$lib/constants/transitions';
+  import Alert from '$lib/components/Alert.svelte';
   import GeneratedScenariosPage from '$lib/components/scenarios/GeneratedScenariosPage.svelte';
-  import RootingGuideTab from '$lib/components/scenarios/RootingGuideTab.svelte';
-  import type { LiveBracketData, Entry, SimulationResult } from '$lib/types';
+  import MatchSelector from '$lib/components/scenarios/MatchSelector.svelte';
+  import type {
+    Entry,
+    GeneratedScenarioArtifact,
+    LiveBracketData,
+    ScenarioWeightingModel,
+    SimulationConfig,
+  } from '$lib/types';
+  import { areEquivalentSelections, getTeamNameFromSelection } from '$lib/utils/bracketUtils';
+  import { buildBrowserScenarioArtifact } from '$lib/utils/browserScenarioArtifact';
+  import { getTeamsForGame, runSimulation } from '$lib/utils/scenarioEngine';
+  import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 
   export let data: any;
 
   const scenarioMode = data.mode ?? 'browser-exact';
   const browserExactMode = scenarioMode === 'browser-exact';
-  let entries: Entry[] = data.scenario?.entries || [];
-  let loading = true;
-  let error: string | null = null;
+  const browserExactSimulationReady: boolean = data.browserExactSimulationReady ?? browserExactMode;
+  const scenarioPreviewAssumption: string | null = data.scenarioPreviewAssumption ?? null;
+  const scenarioPreviewDate: string | null = data.scenarioPreviewDate ?? null;
   const scenariosAvailable: boolean = data.scenariosAvailable ?? false;
+
+  let entries: Entry[] = data.scenario?.entries || [];
   let liveBracketData: LiveBracketData = data.scenario?.liveBracketData || { matches: {}, champion: null };
   let masterBracket: string[] = data.scenario?.masterBracket || [];
   let teamSeoMap: Record<string, string> = data.scenario?.teamSeoMap || {};
-  let remainingGames: number[] = [];
-  let simulationInProgress = false;
+  let scenarioWeighting: ScenarioWeightingModel | null = data.scenario?.weighting ?? null;
+  let browserExactArtifact: GeneratedScenarioArtifact | null = null;
+  let loading = true;
+  let error: string | null = null;
   let scenariosCalculated = false;
-  let totalScenarios = 0;
-  let selectedTab = 'standings';
-  let displayMode = 'percent';
-  let currentUser: any = null;
-
-  // Match selections
   let selectedWinners: Record<number, string> = {};
-  let matchSimulationDetails: any[] = [];
-  let hasSelections = false;
+  let effectiveMasterBracket: string[] = [...masterBracket];
+  let filteredRemainingGames: number[] = [];
+  let matchSimulationDetails: Array<{
+    name: string;
+    games: Array<{
+      gameId: number;
+      teamA: string | null;
+      teamB: string | null;
+      teamASeoName: string;
+      teamBSeoName: string;
+      selected: string | null;
+    }>;
+  }> = [];
 
-  // Results tracking
-  let userWinCounts: any[] = [];
-  let positionProbabilities: any[] = [];
+  const SCENARIO_GAME_START = 48;
+  const SCENARIO_GAME_END = 62;
+  const SCENARIO_ROUND_ORDER = ['Sweet 16', 'Elite 8', 'Final Four', 'Championship'] as const;
 
-  // Root For tab
-  let selectedUser: string | null = null;
-  let teamWinContributions: Record<number, any> = {};
-  let targetPosition = 1;
-  let bestPossibleFinish = 1;
-  let currentUserEntryId: string | null = null;
-
-  // Engine state for Root For aggregation
-  let storedScenarioPositions: Uint8Array | null = null;
-  let storedFilteredGames: number[] = [];
-  let entryIdToIndex: Map<string, number> = new Map();
-
-  onMount(async () => {
+  onMount(() => {
     try {
-      if (!browserExactMode || !scenariosAvailable) return;
-
-      for (let i = 0; i < entries.length; i++) {
-        entryIdToIndex.set(entries[i].entryId, i);
+      if (!browserExactMode || !scenariosAvailable || !browserExactSimulationReady) {
+        return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      currentUser = user;
+      syncScenarioSelections(selectedWinners);
 
-      initializeScenarioState();
-
-      if (!scenariosCalculated && entries.length > 0) {
+      if (entries.length > 0) {
         calculateAllScenarios();
-      }
-
-      if (currentUser) {
-        const userEntry = entries.find(entry => entry.user_id === currentUser.id);
-        if (userEntry) {
-          currentUserEntryId = userEntry.entryId;
-          selectedUser = userEntry.entryId;
-          calculateTeamContributions(selectedUser);
-          selectedTab = 'root';
-        }
+      } else {
+        scenariosCalculated = true;
       }
     } catch (err) {
-      error = err.message;
+      error = err instanceof Error ? err.message : String(err);
     } finally {
       loading = false;
     }
   });
 
-  function initializeScenarioState() {
-    remainingGames = [];
-    for (let i = 48; i < 63; i++) {
-      if (!masterBracket[i]) remainingGames.push(i);
+  function getRoundLabel(gameId: number): (typeof SCENARIO_ROUND_ORDER)[number] | null {
+    if (gameId >= 48 && gameId < 56) {
+      return 'Sweet 16';
     }
 
-    prepareMatchDetails();
+    if (gameId >= 56 && gameId < 60) {
+      return 'Elite 8';
+    }
 
-    userWinCounts = entries.map(entry => ({
-      entryId: entry.entryId,
-      firstName: entry.firstName,
-      lastName: entry.lastName,
-      winCount: 0,
-      winProbability: 0
-    }));
+    if (gameId >= 60 && gameId < 62) {
+      return 'Final Four';
+    }
 
-    positionProbabilities = entries.map(entry => {
-      const positions = {};
-      for (let i = 1; i <= entries.length; i++) positions[i] = 0;
-      return {
-        entryId: entry.entryId,
-        firstName: entry.firstName,
-        lastName: entry.lastName,
-        positions,
-        positionProbabilities: {}
-      };
-    });
+    if (gameId === 62) {
+      return 'Championship';
+    }
+
+    return null;
   }
 
-  function prepareMatchDetails() {
-    matchSimulationDetails = [];
+  function buildScenarioSelectionState(rawSelectedWinners: Record<number, string>) {
+    const nextMasterBracket = [...masterBracket];
+    const sanitizedSelectedWinners: Record<number, string> = {};
+    const unresolvedGames: number[] = [];
+    const rounds = Object.fromEntries(
+      SCENARIO_ROUND_ORDER.map((roundName) => [roundName, []]),
+    ) as Record<(typeof SCENARIO_ROUND_ORDER)[number], typeof matchSimulationDetails[number]['games']>;
 
-    const rounds = {
-      "Sweet 16": [],
-      "Elite 8": [],
-      "Final Four": [],
-      "Championship": []
-    };
+    for (let gameId = SCENARIO_GAME_START; gameId <= SCENARIO_GAME_END; gameId += 1) {
+      if (masterBracket[gameId]) {
+        continue;
+      }
 
-    const bracketWithSelections = [...masterBracket];
-    for (const [gId, winner] of Object.entries(selectedWinners)) {
-      bracketWithSelections[parseInt(gId)] = winner;
-    }
+      unresolvedGames.push(gameId);
+      const roundLabel = getRoundLabel(gameId);
+      if (!roundLabel) {
+        continue;
+      }
 
-    for (const gameId of remainingGames) {
-      let round;
-      if (gameId >= 48 && gameId < 56) round = "Sweet 16";
-      else if (gameId >= 56 && gameId < 60) round = "Elite 8";
-      else if (gameId >= 60 && gameId < 62) round = "Final Four";
-      else if (gameId === 62) round = "Championship";
-      if (!round) continue;
+      const teams = getTeamsForGame(gameId, nextMasterBracket, liveBracketData);
+      const teamA = teams.teamA ?? null;
+      const teamB = teams.teamB ?? null;
+      if (!teamA && !teamB) {
+        continue;
+      }
 
-      const teams = getTeamsForGame(gameId, bracketWithSelections, liveBracketData);
-      if (!teams.teamA && !teams.teamB) continue;
+      const requestedSelection = rawSelectedWinners[gameId];
+      let appliedSelection: string | null = null;
 
-      const teamAName = teams.teamA ? getTeamNameFromSelection(teams.teamA) : null;
-      const teamBName = teams.teamB ? getTeamNameFromSelection(teams.teamB) : null;
+      if (requestedSelection) {
+        if (teamA && areEquivalentSelections(requestedSelection, teamA)) {
+          appliedSelection = teamA;
+        } else if (teamB && areEquivalentSelections(requestedSelection, teamB)) {
+          appliedSelection = teamB;
+        }
+      }
 
-      rounds[round].push({
+      if (appliedSelection) {
+        sanitizedSelectedWinners[gameId] = appliedSelection;
+        nextMasterBracket[gameId] = appliedSelection;
+      }
+
+      const teamAName = getTeamNameFromSelection(teamA);
+      const teamBName = getTeamNameFromSelection(teamB);
+
+      rounds[roundLabel].push({
         gameId,
-        teamA: teams.teamA,
-        teamB: teams.teamB,
+        teamA,
+        teamB,
         teamASeoName: teamAName ? resolveTeamSeoName(teamAName, teamSeoMap[teamAName]) : '',
         teamBSeoName: teamBName ? resolveTeamSeoName(teamBName, teamSeoMap[teamBName]) : '',
-        selected: selectedWinners[gameId] || null
+        selected: appliedSelection,
       });
     }
 
-    for (const [roundName, games] of Object.entries(rounds)) {
-      if (games.length > 0) {
-        matchSimulationDetails.push({ name: roundName, games });
-      }
-    }
+    return {
+      effectiveMasterBracket: nextMasterBracket,
+      filteredRemainingGames: unresolvedGames.filter((gameId) => !sanitizedSelectedWinners[gameId]),
+      matchSimulationDetails: SCENARIO_ROUND_ORDER
+        .map((roundName) => ({
+          name: roundName,
+          games: rounds[roundName],
+        }))
+        .filter((round) => round.games.length > 0),
+      sanitizedSelectedWinners,
+    };
   }
 
-  function selectWinner(gameId: number, team: string): void {
-    if (selectedWinners[gameId] === team) {
-      delete selectedWinners[gameId];
-    } else {
-      selectedWinners[gameId] = team;
-    }
-
-    selectedWinners = {...selectedWinners};
-    hasSelections = Object.keys(selectedWinners).length > 0;
-    prepareMatchDetails();
-
-    if (scenariosCalculated) calculateAllScenarios();
+  function syncScenarioSelections(nextSelectedWinners: Record<number, string>): void {
+    const selectionState = buildScenarioSelectionState(nextSelectedWinners);
+    selectedWinners = selectionState.sanitizedSelectedWinners;
+    effectiveMasterBracket = selectionState.effectiveMasterBracket;
+    filteredRemainingGames = selectionState.filteredRemainingGames;
+    matchSimulationDetails = selectionState.matchSimulationDetails;
   }
 
-  function resetSelections() {
-    selectedWinners = {};
-    hasSelections = false;
-    prepareMatchDetails();
-    if (scenariosCalculated) calculateAllScenarios();
-  }
-
-  function calculateAllScenarios() {
-    simulationInProgress = true;
-    scenariosCalculated = false;
-
-    const filteredGames = remainingGames.filter(
-      gameId => !selectedWinners.hasOwnProperty(gameId)
-    );
-
-    const result = runSimulation({
-      masterBracket,
+  function handleSimulationResult(result: import('$lib/types').SimulationResult): void {
+    browserExactArtifact = buildBrowserScenarioArtifact({
       entries,
-      filteredRemainingGames: filteredGames,
-      selectedWinners,
-      liveBracketData
+      liveBracketData,
+      masterBracket: effectiveMasterBracket,
+      result,
+      teamSeoMap,
+      weighting: scenarioWeighting,
     });
-
-    totalScenarios = result.totalScenarios;
-    storedScenarioPositions = result.scenarioPositions;
-    storedFilteredGames = filteredGames;
-
-    userWinCounts = entries.map(entry => {
-      const winCount = result.winCounts.get(entry.entryId) || 0;
-      return {
-        entryId: entry.entryId,
-        firstName: entry.firstName,
-        lastName: entry.lastName,
-        winCount,
-        winProbability: (winCount / totalScenarios) * 100
-      };
-    });
-    userWinCounts.sort((a, b) => b.winProbability - a.winProbability);
-
-    positionProbabilities = entries.map(entry => {
-      const positions = result.positionCounts.get(entry.entryId) || {};
-      const positionPercentages = {};
-      for (const [position, count] of Object.entries(positions)) {
-        positionPercentages[position] = (count / totalScenarios) * 100;
-      }
-      return {
-        entryId: entry.entryId,
-        firstName: entry.firstName,
-        lastName: entry.lastName,
-        positions,
-        positionProbabilities: positionPercentages
-      };
-    });
-
-    if (selectedUser) calculateTeamContributions(selectedUser);
-
-    simulationInProgress = false;
     scenariosCalculated = true;
   }
 
-  function calculateTeamContributions(userId: string): void {
-    if (!scenariosCalculated || !userId || !storedScenarioPositions) return;
+  function calculateAllScenarios(): void {
+    const config: SimulationConfig = {
+      masterBracket,
+      entries,
+      filteredRemainingGames,
+      selectedWinners,
+      liveBracketData,
+      teamSeoMap,
+      weighting: scenarioWeighting,
+    };
 
-    teamWinContributions = {};
-
-    const userPositionData = positionProbabilities.find(p => p.entryId === userId);
-    if (!userPositionData) return;
-
-    bestPossibleFinish = 1;
-    if (!(userPositionData.positionProbabilities[1] > 0)) {
-      for (let i = 2; i <= entries.length; i++) {
-        if (userPositionData.positionProbabilities[i] > 0) {
-          bestPossibleFinish = i;
-          break;
-        }
-      }
-    }
-    targetPosition = bestPossibleFinish;
-
-    const eIdx = entryIdToIndex.get(userId);
-    if (eIdx === undefined) return;
-
-    const rootForResults = aggregateRootFor({
-      filteredRemainingGames: storedFilteredGames,
-      scenarioPositions: storedScenarioPositions,
-      numEntries: entries.length,
-      totalScenarios,
-      entryIndex: eIdx,
-      targetPosition
-    });
-
-    for (const round of matchSimulationDetails) {
-      for (const game of round.games) {
-        if (selectedWinners[game.gameId]) continue;
-
-        const agg = rootForResults.get(game.gameId);
-        if (!agg) continue;
-
-        const pctWithA = agg.totalA > 0 ? (agg.countIfA / agg.totalA) * 100 : 0;
-        const pctWithB = agg.totalB > 0 ? (agg.countIfB / agg.totalB) * 100 : 0;
-        const delta = pctWithA - pctWithB;
-
-        teamWinContributions[game.gameId] = {
-          teamA: { team: game.teamA, wins: agg.countIfA, winPct: pctWithA, totalScenarios: agg.totalA },
-          teamB: { team: game.teamB, wins: agg.countIfB, winPct: pctWithB, totalScenarios: agg.totalB },
-          delta,
-          favoredTeam: delta > 0 ? 'A' : delta < 0 ? 'B' : null,
-          deltaText: `${delta >= 0 ? agg.countIfA : agg.countIfB}`
-        };
-      }
+    try {
+      handleSimulationResult(runSimulation(config));
+    } catch (err) {
+      error = err instanceof Error ? err.message : String(err);
     }
   }
 
   function handleSelectWinner({ gameId, team }: { gameId: number; team: string }): void {
-    selectWinner(gameId, team);
+    const nextSelectedWinners = { ...selectedWinners };
+
+    if (areEquivalentSelections(nextSelectedWinners[gameId], team)) {
+      delete nextSelectedWinners[gameId];
+    } else {
+      nextSelectedWinners[gameId] = team;
+    }
+
+    syncScenarioSelections(nextSelectedWinners);
+
+    if (entries.length > 0) {
+      calculateAllScenarios();
+    }
   }
 
-  function handleUserChange(userId: string): void {
-    selectedUser = userId;
-    calculateTeamContributions(userId);
+  function resetSelections(): void {
+    syncScenarioSelections({});
+
+    if (entries.length > 0) {
+      calculateAllScenarios();
+    }
   }
 </script>
+
+<svelte:head>
+  <title>Mosier Madness - Scenarios</title>
+  <meta
+    name="description"
+    content="Explore rooting guide, title odds, and standings scenarios for Mosier Madness."
+  />
+</svelte:head>
 
 <div class="mm-page scenario-page">
   {#if loading}
@@ -316,83 +251,59 @@
       <Alert message={error} center class="mb-4" />
     </div>
   {:else}
+    {#if browserExactMode && scenarioPreviewDate}
+      <div class="scenario-preview-note mm-control-shell">
+        Local preview date override active for {scenarioPreviewDate}.
+        {#if scenarioPreviewAssumption === 'higher-seed'}
+          Unfinished Round of 32 games are being previewed as higher-seed wins.
+        {/if}
+        Remove
+        <code>?scenarioDate={scenarioPreviewDate}{scenarioPreviewAssumption === 'higher-seed' ? '&scenarioAssumeRound2=higher-seed' : ''}</code>
+        to return to the live tournament gate.
+      </div>
+    {/if}
+
     {#if scenarioMode === 'generated-snapshot'}
       <GeneratedScenariosPage artifact={data.generatedScenario} />
+    {:else if !browserExactSimulationReady}
+      <div class="scenario-state scenario-empty mm-shell">
+        <h2 class="scenario-empty-title">Exact browser scenarios are almost ready</h2>
+        <p class="scenario-empty-copy">
+          The round-of-32 scenarios view stays active until every Sweet Sixteen matchup is set. Exact client-side
+          scenarios will take over as soon as the live field is fully known.
+        </p>
+      </div>
+    {:else if browserExactArtifact}
+      <GeneratedScenariosPage artifact={browserExactArtifact}>
+        <svelte:fragment slot="post-toolbar">
+          {#if matchSimulationDetails.length > 0}
+            <div class="scenario-filter-block hidden md:block mm-control-shell">
+              <MatchSelector
+                {matchSimulationDetails}
+                onSelectWinner={handleSelectWinner}
+                onReset={resetSelections}
+              />
+            </div>
+          {/if}
+        </svelte:fragment>
+        <svelte:fragment slot="rooting-post-toolbar">
+          {#if matchSimulationDetails.length > 0}
+            <div class="scenario-filter-block hidden md:block mm-control-shell">
+              <MatchSelector
+                {matchSimulationDetails}
+                onSelectWinner={handleSelectWinner}
+                onReset={resetSelections}
+              />
+            </div>
+          {/if}
+        </svelte:fragment>
+      </GeneratedScenariosPage>
     {:else}
-      <div class="scenario-shell mm-shell">
-        <div class="scenario-shell-header">
-          <div class="scenario-shell-copy">
-            <p class="scenario-kicker mm-eyebrow">Scenarios</p>
-            <h2 class="scenario-title mm-page-title">Tournament Outcome Probabilities</h2>
-            <p class="scenario-subtitle mm-page-subtitle">
-              Use Standings for title odds, finish ranges, and the full matrix view, and Rooting Guide to see which remaining outcomes help a bracket most. Rooting recommendations are based on the best remaining pool outcome, so they may not match the team originally picked. Use the game selector to preview specific paths.
-            </p>
-          </div>
-        </div>
-
-        <div class="scenario-shell-body">
-          {#if remainingGames.length > 12}
-            <div class="scenario-warning">
-              Warning: There are {remainingGames.length} games remaining, which means {Math.pow(2, remainingGames.length).toLocaleString()} possible scenarios.
-              Calculation may take a long time or crash your browser.
-            </div>
-          {/if}
-
-          {#if scenariosCalculated}
-            <div class="scenario-tab-row mm-tab-row">
-              <button
-                class={`scenario-tab mm-tab ${selectedTab === 'standings' ? 'is-active' : ''}`}
-                on:click={() => selectedTab = 'standings'}
-              >
-                Standings
-              </button>
-              <button
-                class={`scenario-tab mm-tab ${selectedTab === 'root' ? 'is-active' : ''}`}
-                on:click={() => selectedTab = 'root'}
-              >
-                Rooting Guide
-              </button>
-            </div>
-
-            <div class="scenario-panel">
-              {#if selectedTab === 'standings'}
-                <div class="scenario-filter-block">
-                  <MatchSelector
-                    {matchSimulationDetails}
-                    onSelectWinner={handleSelectWinner}
-                    onReset={resetSelections}
-                  />
-                </div>
-                <FullStandingsTab
-                  {positionProbabilities}
-                  numEntries={entries.length}
-                  bind:displayMode
-                  {currentUserEntryId}
-                />
-              {:else if selectedTab === 'root'}
-                <RootingGuideTab
-                  {entries}
-                  {currentUser}
-                  bind:selectedUser
-                  {selectedWinners}
-                  {matchSimulationDetails}
-                  {teamWinContributions}
-                  {positionProbabilities}
-                  {userWinCounts}
-                  {totalScenarios}
-                  {targetPosition}
-                  {scenariosCalculated}
-                  onUserChange={handleUserChange}
-                />
-              {/if}
-            </div>
-          {:else}
-            <div class="scenario-state scenario-calculating">
-              <div class="scenario-spinner"></div>
-              <p class="scenario-calculating-copy">Calculating tournament scenarios automatically...</p>
-            </div>
-          {/if}
-        </div>
+      <div class="scenario-state scenario-empty mm-shell">
+        <h2 class="scenario-empty-title">No exact scenario tree is available</h2>
+        <p class="scenario-empty-copy">
+          The browser simulation finished without producing a scenario artifact for this bracket state.
+        </p>
       </div>
     {/if}
   {/if}
@@ -400,17 +311,11 @@
 
 <style>
   .scenario-page {
-    max-width: 88rem;
+    display: grid;
+    gap: 1rem;
   }
 
-  .scenario-state,
-  .scenario-shell {
-    width: min(100%, 84rem);
-    margin: 0 auto;
-  }
-
-  .scenario-loading,
-  .scenario-calculating {
+  .scenario-state {
     min-height: 24rem;
     display: grid;
     place-items: center;
@@ -418,9 +323,13 @@
     text-align: center;
   }
 
+  .scenario-loading {
+    width: min(100%, 84rem);
+    margin: 0 auto;
+  }
+
   .scenario-empty {
     padding: 2.2rem 1.5rem;
-    text-align: center;
   }
 
   .scenario-spinner {
@@ -432,8 +341,7 @@
     animation: scenario-spin 0.8s linear infinite;
   }
 
-  .scenario-loading-copy,
-  .scenario-calculating-copy {
+  .scenario-loading-copy {
     color: #d97706;
     font-weight: 600;
   }
@@ -449,6 +357,7 @@
     margin: 0.75rem auto 0;
     max-width: 34rem;
     color: var(--mm-muted);
+    line-height: 1.6;
   }
 
   .scenario-alert {
@@ -456,53 +365,18 @@
     margin: 0 auto;
   }
 
-  .scenario-shell {
-    overflow: hidden;
-    background: rgba(10, 10, 11, 0.96);
-  }
-
-  .scenario-shell-header {
-    padding: 1.5rem 1.5rem 1.15rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    background: rgba(14, 14, 15, 0.92);
-  }
-
-  .scenario-title {
-    margin-top: 0.38rem;
-    font-size: clamp(1.7rem, 3.3vw, 2.35rem);
-    line-height: 1.02;
-  }
-
-  .scenario-subtitle {
-    margin-top: 0.5rem;
-    font-size: 0.96rem;
-  }
-
-  .scenario-shell-body {
-    padding: 1.3rem 1.5rem 1.5rem;
-  }
-
-  .scenario-warning {
-    margin-bottom: 1rem;
-    padding: 0.9rem 1rem;
-    border: 1px solid rgba(180, 83, 9, 0.4);
-    border-radius: 1rem;
-    background: rgba(120, 53, 15, 0.16);
-    color: #fbbf24;
-    font-size: 0.92rem;
-  }
-
   .scenario-filter-block {
-    margin-bottom: 1.15rem;
+    width: min(100%, 84rem);
+    margin: 0 auto;
   }
 
-  .scenario-tab-row {
-    margin-bottom: 1rem;
-    padding-bottom: 0.15rem;
+  .scenario-preview-note {
+    color: var(--mm-muted);
+    line-height: 1.55;
   }
 
-  .scenario-panel {
-    min-width: 0;
+  .scenario-preview-note code {
+    font-size: 0.84em;
   }
 
   @keyframes scenario-spin {
@@ -513,30 +387,5 @@
     to {
       transform: rotate(360deg);
     }
-  }
-
-  @media (max-width: 767px) {
-    .scenario-shell-header {
-      padding: 1.2rem 1rem 1rem;
-    }
-
-    .scenario-kicker,
-    .scenario-subtitle {
-      display: none;
-    }
-
-    .scenario-title {
-      margin-top: 0;
-      font-size: 1.55rem;
-    }
-
-    .scenario-shell-body {
-      padding: 1rem;
-    }
-
-    .scenario-empty {
-      padding: 1.8rem 1rem;
-    }
-
   }
 </style>

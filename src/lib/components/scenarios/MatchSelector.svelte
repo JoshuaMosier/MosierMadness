@@ -8,7 +8,7 @@
 
 <div class="scenario-selector hidden md:block">
   <div class="scenario-selector-header">
-    <h3 class="scenario-selector-title">Select Match Winners to Filter Scenarios</h3>
+    <h3 class="scenario-selector-title">Projected Match Winners</h3>
     <button
       class="scenario-selector-reset mm-toggle-button"
       on:click={onReset}

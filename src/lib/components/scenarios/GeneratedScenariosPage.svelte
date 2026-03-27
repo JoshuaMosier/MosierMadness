@@ -4,6 +4,7 @@
   import FullStandingsTab from '$lib/components/scenarios/FullStandingsTab.svelte';
   import GeneratedRootingGuideTab from '$lib/components/scenarios/GeneratedRootingGuideTab.svelte';
   import GeneratedTitleOddsTab from '$lib/components/scenarios/GeneratedTitleOddsTab.svelte';
+  import ExactTitleOddsTab from '$lib/components/scenarios/ExactTitleOddsTab.svelte';
   import type {
     GeneratedScenarioAnalysisMode,
     GeneratedScenarioArtifact,
@@ -19,22 +20,18 @@
   let currentUserId: string | null = null;
   let currentUserEntryId: string | null = null;
   let selectedUser: string | null = null;
-  let selectedPreviewGameValue = '';
-  let selectedPreviewWinner: 'A' | 'B' | null = null;
+  let selectedUserValue = '';
   let entries: GeneratedScenarioEntry[] = [];
   let previewGames: GeneratedScenarioGamePreview[] = [];
-  let selectedPreviewGameIndex: number | null = null;
-  let selectedPreviewGame: GeneratedScenarioGamePreview | null = null;
-  let previewModeActive = true;
-  let selectedPreviewOutcome: GeneratedScenarioGamePreview['outcomeA'] | GeneratedScenarioGamePreview['outcomeB'] | null = null;
-  let effectivePreviewOutcome: GeneratedScenarioGamePreview['outcomeA'] | GeneratedScenarioGamePreview['outcomeB'] | null = null;
-  let showScenarioPreviewControls = false;
-  let showStandingsModeControl = false;
-  let showStandingsContext = false;
-  let showScenarioToolbar = false;
   let supportsWeighted = false;
   let totalScenarios = 0;
   let activeEntries: GeneratedScenarioEntry[] = [];
+  let titleOddsEntries: Array<{
+    entryId: string;
+    displayName: string;
+    firstPlacePct: number;
+    firstPlaceCount: number;
+  }> = [];
   let positionProbabilities: {
     entryId: string;
     displayName: string;
@@ -88,55 +85,35 @@
     return { positionProbabilities };
   }
 
-  function resetPreview() {
-    selectedPreviewGameValue = '';
-    selectedPreviewWinner = null;
-  }
-
-  function selectPreviewWinner(branch: 'A' | 'B') {
-    selectedPreviewWinner = selectedPreviewWinner === branch ? null : branch;
-  }
-
-  function getAnalysisModeNote(mode: GeneratedScenarioAnalysisMode): string {
-    return mode === 'weighted'
-      ? 'More likely outcomes count more.'
-      : 'Every remaining path counts the same.';
-  }
-
   $: entries = artifact?.entries ?? [];
   $: previewGames = artifact?.previewGames ?? [];
   $: if (selectedTab === 'root' && previewGames.length === 0) {
     selectedTab = 'title-odds';
   }
-  $: selectedPreviewGameIndex = selectedPreviewGameValue === '' ? null : Number(selectedPreviewGameValue);
-  $: selectedPreviewGame = previewGames.find((game) => game.gameIndex === selectedPreviewGameIndex) ?? null;
-  $: previewModeActive = selectedTab !== 'root';
-  $: showStandingsContext = selectedTab === 'standings';
-  $: showScenarioPreviewControls = previewGames.length > 0 && (selectedTab === 'title-odds' || selectedTab === 'standings');
-  $: showStandingsModeControl = supportsWeighted && showStandingsContext;
-  $: showScenarioToolbar = showScenarioPreviewControls || selectedTab === 'title-odds' || showStandingsModeControl;
-  $: selectedPreviewOutcome = selectedPreviewGame && selectedPreviewWinner
-    ? selectedPreviewWinner === 'A'
-      ? selectedPreviewGame.outcomeA
-      : selectedPreviewGame.outcomeB
-    : null;
-  $: effectivePreviewOutcome = previewModeActive ? selectedPreviewOutcome : null;
   $: supportsWeighted = Boolean(artifact?.weighting) && entries.every((entry) => hasWeightedPlaceData(entry));
+  $: sortedEntries = [...entries].sort((left, right) => {
+    return getDisplayName(left).toLowerCase().localeCompare(getDisplayName(right).toLowerCase());
+  });
+  $: selectedUserValue = selectedUser ?? '';
   $: if (!supportsWeighted && analysisMode === 'weighted') {
     analysisMode = 'exact';
   }
   $: if (analysisMode === 'weighted' && displayMode !== 'percent') {
     displayMode = 'percent';
   }
-  $: totalScenarios = effectivePreviewOutcome?.totalScenarios ?? artifact?.totalScenarios ?? 0;
-  $: activeEntries = effectivePreviewOutcome?.entries ?? entries;
+  $: totalScenarios = artifact?.totalScenarios ?? 0;
+  $: activeEntries = entries;
   $: liveTitleEntries = activeEntries.filter((entry) => entry.firstPlacePct > 0 || (entry.weightedFirstPlacePct ?? 0) > 0).length;
+  $: titleOddsEntries = activeEntries.map((entry) => ({
+    entryId: entry.entryId,
+    displayName: getDisplayName(entry),
+    firstPlacePct: totalScenarios > 0 ? (entry.firstPlaceCount / totalScenarios) * 100 : 0,
+    firstPlaceCount: entry.firstPlaceCount,
+  }));
   $: ({ positionProbabilities } = getActiveEntries(activeEntries, totalScenarios, analysisMode));
   $: summaryLabel = selectedTab === 'title-odds'
     ? 'Live Brackets'
-    : analysisMode === 'weighted'
-      ? 'Weighted Model'
-      : 'Scenarios';
+    : 'Scenarios';
   $: summaryValueText = selectedTab === 'title-odds'
     ? liveTitleEntries.toLocaleString()
     : totalScenarios.toLocaleString();
@@ -169,7 +146,7 @@
           </div>
           <div class="generated-scenarios-subtitle-line">
             <span class="generated-scenarios-subtitle-label">Title Odds</span>
-            <span class="generated-scenarios-subtitle-text">See who can still win your pool, and how realistic each bracket’s title chance really is.</span>
+            <span class="generated-scenarios-subtitle-text">See who can still win your pool, and how realistic each bracket's title chance really is.</span>
           </div>
           <div class="generated-scenarios-subtitle-line">
             <span class="generated-scenarios-subtitle-label">Standings</span>
@@ -178,137 +155,108 @@
         </div>
       </div>
 
-      <div class="generated-scenarios-summary mm-control-shell">
-        <div class="generated-scenarios-summary-label mm-compact-eyebrow">{summaryLabel}</div>
-        <div class="generated-scenarios-summary-value">{summaryValueText}</div>
+      <div class="generated-scenarios-header-controls">
+        <div class="generated-scenarios-summary mm-control-shell">
+          <div class="generated-scenarios-summary-label mm-compact-eyebrow">{summaryLabel}</div>
+          <div class="generated-scenarios-summary-value">{summaryValueText}</div>
+        </div>
+
+        {#if supportsWeighted}
+          <div class="generated-scenarios-mode mm-control-shell">
+            <div class="generated-scenarios-mode-kicker mm-compact-eyebrow">Analysis Mode</div>
+            <div class="generated-scenarios-mode-toggle">
+              <button
+                class={`generated-scenarios-mode-button mm-toggle-button ${analysisMode === 'exact' ? 'is-active' : ''}`}
+                on:click={() => analysisMode = 'exact'}
+              >
+                Exact
+              </button>
+              <button
+                class={`generated-scenarios-mode-button mm-toggle-button ${analysisMode === 'weighted' ? 'is-active' : ''}`}
+                on:click={() => analysisMode = 'weighted'}
+              >
+                Weighted
+              </button>
+            </div>
+          </div>
+        {/if}
       </div>
     </div>
   </div>
 
   <div class="generated-scenarios-body">
-    <div class="generated-scenarios-tabs mm-tab-row">
-      {#if previewGames.length > 0}
+    <div class="generated-scenarios-nav">
+      <div class="generated-scenarios-tabs mm-tab-row">
+        {#if previewGames.length > 0}
+          <button
+            class={`generated-scenarios-tab mm-tab ${selectedTab === 'root' ? 'is-active' : ''}`}
+            on:click={() => selectedTab = 'root'}
+          >
+            Rooting Guide
+          </button>
+        {/if}
         <button
-          class={`generated-scenarios-tab mm-tab ${selectedTab === 'root' ? 'is-active' : ''}`}
-          on:click={() => selectedTab = 'root'}
+          class={`generated-scenarios-tab mm-tab ${selectedTab === 'standings' ? 'is-active' : ''}`}
+          on:click={() => selectedTab = 'standings'}
         >
-          Rooting Guide
+          Standings
         </button>
+        <button
+          class={`generated-scenarios-tab mm-tab ${selectedTab === 'title-odds' ? 'is-active' : ''}`}
+          on:click={() => selectedTab = 'title-odds'}
+        >
+          Title Odds
+        </button>
+      </div>
+
+      {#if entries.length > 0}
+        <div class="generated-scenarios-focus" class:is-hidden={selectedTab !== 'root'}>
+          <label for="scenariosBracketFocus" class="generated-scenarios-focus-label mm-compact-eyebrow">
+            {#if currentUserId && entries.find((e) => e.entryId === selectedUser)?.userId === currentUserId}
+              Your Bracket
+            {:else}
+              Bracket Focus
+            {/if}
+          </label>
+          <select
+            id="scenariosBracketFocus"
+            class="generated-scenarios-focus-select mm-select"
+            bind:value={selectedUserValue}
+            on:change={() => selectedUser = selectedUserValue || null}
+          >
+            <option value="" disabled selected={!selectedUser}>Select a bracket...</option>
+            {#each sortedEntries as entry}
+              <option value={entry.entryId}>
+                {getDisplayName(entry)}{entry.userId === currentUserId ? ' (You)' : ''}
+              </option>
+            {/each}
+          </select>
+        </div>
       {/if}
-      <button
-        class={`generated-scenarios-tab mm-tab ${selectedTab === 'standings' ? 'is-active' : ''}`}
-        on:click={() => selectedTab = 'standings'}
-      >
-        Standings
-      </button>
-      <button
-        class={`generated-scenarios-tab mm-tab ${selectedTab === 'title-odds' ? 'is-active' : ''}`}
-        on:click={() => selectedTab = 'title-odds'}
-      >
-        Title Odds
-      </button>
     </div>
 
-    {#if showScenarioToolbar}
-      <div class="generated-scenarios-standings-toolbar mm-control-shell">
-        <div class="generated-scenarios-standings-toolbar-row mm-control-row">
-          {#if showScenarioPreviewControls}
-            <label for="generatedPreviewSelect" class="generated-scenarios-preview-kicker mm-compact-eyebrow">
-              Single-Game Preview
-            </label>
-
-            <select
-              id="generatedPreviewSelect"
-              class="generated-scenarios-select mm-select"
-              bind:value={selectedPreviewGameValue}
-              on:change={() => selectedPreviewWinner = null}
-            >
-              <option value="">Choose game...</option>
-              {#each previewGames as game}
-                <option value={String(game.gameIndex)}>
-                  {game.roundLabel}: {game.teamA.seed} {game.teamA.name} vs {game.teamB.seed} {game.teamB.name}
-                </option>
-              {/each}
-            </select>
-
-            <div class="generated-scenarios-preview-actions">
-              {#if selectedPreviewGame}
-                <div class="generated-scenarios-preview-buttons">
-                  <button
-                    class={`generated-scenarios-preview-button mm-chip-button ${selectedPreviewWinner === 'A' ? 'is-active' : ''}`}
-                    on:click={() => selectPreviewWinner('A')}
-                  >
-                    {selectedPreviewGame.teamA.seed} {selectedPreviewGame.teamA.name}
-                  </button>
-                  <button
-                    class={`generated-scenarios-preview-button mm-chip-button ${selectedPreviewWinner === 'B' ? 'is-active' : ''}`}
-                    on:click={() => selectPreviewWinner('B')}
-                  >
-                    {selectedPreviewGame.teamB.seed} {selectedPreviewGame.teamB.name}
-                  </button>
-                  <button
-                    class="generated-scenarios-preview-button mm-chip-button is-reset"
-                    on:click={resetPreview}
-                  >
-                    Reset
-                  </button>
-                </div>
-              {:else}
-                <div class="generated-scenarios-preview-placeholder">
-                  Pick a winner to preview that branch.
-                </div>
-              {/if}
-            </div>
-          {/if}
-
-          {#if selectedTab === 'title-odds'}
-            <div class="generated-scenarios-mode is-placeholder" aria-hidden="true">
-              <div class="generated-scenarios-mode-copy">
-                <div class="generated-scenarios-mode-kicker mm-compact-eyebrow">Analysis Mode</div>
-                <div class="generated-scenarios-mode-note">More likely outcomes count more.</div>
-              </div>
-
-              <div class="generated-scenarios-mode-toggle">
-                <button class="generated-scenarios-mode-button mm-toggle-button">Exact</button>
-                <button class="generated-scenarios-mode-button mm-toggle-button">Weighted</button>
-              </div>
-            </div>
-          {:else if showStandingsModeControl}
-            <div class="generated-scenarios-mode">
-              <div class="generated-scenarios-mode-copy">
-                <div class="generated-scenarios-mode-kicker mm-compact-eyebrow">Analysis Mode</div>
-                <div class="generated-scenarios-mode-note">{getAnalysisModeNote(analysisMode)}</div>
-              </div>
-
-              <div class="generated-scenarios-mode-toggle">
-                <button
-                  class={`generated-scenarios-mode-button mm-toggle-button ${analysisMode === 'exact' ? 'is-active' : ''}`}
-                  on:click={() => analysisMode = 'exact'}
-                >
-                  Exact
-                </button>
-                <button
-                  class={`generated-scenarios-mode-button mm-toggle-button ${analysisMode === 'weighted' ? 'is-active' : ''}`}
-                  on:click={() => analysisMode = 'weighted'}
-                >
-                  Weighted
-                </button>
-              </div>
-            </div>
-          {/if}
-        </div>
-      </div>
+    {#if selectedTab !== 'root'}
+      <slot name="post-toolbar" />
     {/if}
 
     {#if selectedTab === 'title-odds'}
-      {#key `title-odds:${selectedPreviewGameValue}:${selectedPreviewWinner ?? 'none'}`}
-        <GeneratedTitleOddsTab
-          entries={activeEntries}
-          {currentUserEntryId}
-        />
+      {#key `title-odds:${analysisMode}`}
+        {#if analysisMode === 'weighted' && supportsWeighted}
+          <GeneratedTitleOddsTab
+            entries={activeEntries}
+            {currentUserEntryId}
+          />
+        {:else}
+          <ExactTitleOddsTab
+            entries={titleOddsEntries}
+            {totalScenarios}
+            {currentUserEntryId}
+            analysisLabel="Exact scenario tree"
+          />
+        {/if}
       {/key}
     {:else if selectedTab === 'standings'}
-      {#key `standings:${analysisMode}:${selectedPreviewGameValue}:${selectedPreviewWinner ?? 'none'}`}
+      {#key `standings:${analysisMode}`}
         <FullStandingsTab
           {positionProbabilities}
           numEntries={activeEntries.length}
@@ -327,7 +275,9 @@
           bind:analysisMode
           {supportsWeighted}
           bind:selectedUser
-        />
+        >
+          <slot name="rooting-post-toolbar" slot="post-focus-controls" />
+        </GeneratedRootingGuideTab>
       {/key}
     {/if}
   </div>
@@ -389,10 +339,16 @@
     flex: 1 1 28rem;
   }
 
+  .generated-scenarios-header-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+
   .generated-scenarios-summary {
-    min-width: 12.5rem;
-    max-width: 13.5rem;
-    flex: 0 0 13.5rem;
+    min-width: 0;
+    flex: 0 0 auto;
   }
 
   .generated-scenarios-summary-label {
@@ -407,51 +363,15 @@
     line-height: 1;
   }
 
-  .generated-scenarios-body {
-    padding: 1.3rem 1.5rem 1.5rem;
-  }
-
-  .generated-scenarios-tabs {
-    margin-bottom: 1rem;
-  }
-
-  .generated-scenarios-standings-toolbar {
-    margin-bottom: 1rem;
-  }
-
-  .generated-scenarios-standings-toolbar-row {
-    align-items: center;
-  }
-
-  .generated-scenarios-preview-kicker {
-    display: block;
-  }
-
   .generated-scenarios-mode {
     display: grid;
-    gap: 0.35rem;
-    min-width: 17rem;
-    margin-left: auto;
-  }
-
-  .generated-scenarios-mode.is-placeholder {
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  .generated-scenarios-mode-copy {
+    gap: 0.3rem;
     min-width: 0;
+    flex: 0 0 auto;
   }
 
   .generated-scenarios-mode-kicker {
     display: block;
-  }
-
-  .generated-scenarios-mode-note {
-    margin-top: 0.25rem;
-    color: var(--mm-muted);
-    font-size: 0.8rem;
-    line-height: 1.35;
   }
 
   .generated-scenarios-mode-toggle {
@@ -460,40 +380,43 @@
     gap: 0.45rem;
   }
 
-  .generated-scenarios-select {
-    min-width: 16rem;
-    flex: 1 1 20rem;
+  .generated-scenarios-body {
+    padding: 1.3rem 1.5rem 1.5rem;
   }
 
-  .generated-scenarios-preview-actions {
-    display: flex;
-    align-items: center;
-    min-height: 2.5rem;
-    min-width: 14rem;
-    flex: 1 1 18rem;
-  }
-
-  .generated-scenarios-preview-buttons {
+  .generated-scenarios-nav {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.55rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
   }
 
-  .generated-scenarios-preview-placeholder {
+  .generated-scenarios-tabs {
+    margin-bottom: 0;
+  }
+
+  .generated-scenarios-focus {
     display: flex;
     align-items: center;
-    color: var(--mm-subtle);
-    font-size: 0.8rem;
+    gap: 0.55rem;
+    margin-left: auto;
+  }
+
+  .generated-scenarios-focus.is-hidden {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .generated-scenarios-focus-label {
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
-  .generated-scenarios-preview-button {
-    min-width: 0;
-    text-align: center;
-  }
-
-  .generated-scenarios-preview-button.is-reset {
-    color: var(--mm-muted);
+  .generated-scenarios-focus-select {
+    min-width: 14rem;
+    max-width: 22rem;
   }
 
   @media (max-width: 767px) {
@@ -511,9 +434,12 @@
       font-size: 1.55rem;
     }
 
-    .generated-scenarios-summary {
-      min-width: 0;
+    .generated-scenarios-header-controls {
       width: 100%;
+    }
+
+    .generated-scenarios-summary {
+      flex: 1 1 auto;
       padding: 0.85rem 0.9rem;
     }
 
@@ -522,44 +448,32 @@
       font-size: 1.55rem;
     }
 
-    .generated-scenarios-standings-toolbar-row {
-      align-items: stretch;
-    }
-
-    .generated-scenarios-preview-actions,
-    .generated-scenarios-mode,
-    .generated-scenarios-select {
-      min-width: 0;
-      width: 100%;
-      flex-basis: 100%;
-    }
-
     .generated-scenarios-mode {
-      margin-left: 0;
-      gap: 0.35rem;
+      flex: 1 1 auto;
+      padding: 0.85rem 0.9rem;
     }
 
     .generated-scenarios-mode-toggle {
       width: 100%;
     }
 
-    .generated-scenarios-preview-buttons {
+    .generated-scenarios-nav {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .generated-scenarios-focus {
+      margin-left: 0;
+    }
+
+    .generated-scenarios-focus-label {
+      display: none;
+    }
+
+    .generated-scenarios-focus-select {
+      min-width: 0;
+      max-width: none;
       width: 100%;
-    }
-
-    .generated-scenarios-preview-button {
-      flex: 1 1 calc(50% - 0.3rem);
-      justify-content: center;
-      text-align: center;
-    }
-
-    .generated-scenarios-preview-button.is-reset {
-      flex-basis: 100%;
-    }
-
-    .generated-scenarios-preview-actions,
-    .generated-scenarios-preview-placeholder {
-      justify-content: flex-start;
     }
   }
 </style>
