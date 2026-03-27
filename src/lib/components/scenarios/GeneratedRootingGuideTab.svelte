@@ -261,7 +261,7 @@
   }
 
   function formatPointDelta(value: number): string {
-    return `${value >= 10 ? value.toFixed(1) : value.toFixed(2)} pts`;
+    return `${value >= 10 ? value.toFixed(1) : value.toFixed(2)}%`;
   }
 
   function formatTargetOddsLabel(targetPlace: number): string {
