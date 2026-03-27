@@ -4,6 +4,7 @@
   import Navbar from '$lib/components/Navbar.svelte';
   import ScoreTicker from '$lib/components/ScoreTicker.svelte';
   import { injectAnalytics } from '@vercel/analytics/sveltekit';
+  import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
   import { invalidate, beforeNavigate, afterNavigate, disableScrollHandling } from '$app/navigation';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
@@ -13,6 +14,7 @@
 
   export let data: any;
   injectAnalytics({ mode: dev ? 'development' : 'production' });
+  injectSpeedInsights();
 
   // Define routes where ScoreTicker should be hidden
   const hideScoreTickerRoutes: string[] = [
