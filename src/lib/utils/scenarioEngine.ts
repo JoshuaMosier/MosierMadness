@@ -4,6 +4,8 @@ import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 
 const BRACKET_SELECTION_COUNT = 63;
 const MAX_TOTAL_SCORE = 192;
+const ROUND_OF_32_START_GAME = 32;
+const ROUND_OF_32_END_GAME = 48;
 const SWEET_SIXTEEN_START_GAME = 48;
 const SWEET_SIXTEEN_END_GAME = 56;
 
@@ -61,7 +63,7 @@ export function getSortedPositionData(positionProbabilities: PositionProbability
 }
 
 export function getTeamsForGame(gameId: number, bracket: string[], liveBracketData: LiveBracketData): { teamA: string | null; teamB: string | null } {
-  if (gameId >= 48 && gameId < 56) {
+  if (gameId >= ROUND_OF_32_START_GAME && gameId < SWEET_SIXTEEN_END_GAME) {
     const match = liveBracketData.matches[gameId + 1];
     return {
       teamA: match?.teamA ? `${match.teamA.seed} ${match.teamA.name}` : null,
@@ -79,6 +81,10 @@ export function getTeamsForGame(gameId: number, bracket: string[], liveBracketDa
 }
 
 function getPreviousGameIds(gameId: number): { game1: number; game2: number } | null {
+  if (gameId >= SWEET_SIXTEEN_START_GAME && gameId < SWEET_SIXTEEN_END_GAME) {
+    const game1 = ROUND_OF_32_START_GAME + (gameId - SWEET_SIXTEEN_START_GAME) * 2;
+    return { game1, game2: game1 + 1 };
+  }
   if (gameId >= 56 && gameId < 60) {
     const game1 = 48 + (gameId - 56) * 2;
     return { game1, game2: game1 + 1 };
@@ -204,7 +210,7 @@ function buildCompactSimulationState({
     unresolvedMask[gameId] = 1;
   }
 
-  for (let gameId = SWEET_SIXTEEN_START_GAME; gameId < SWEET_SIXTEEN_END_GAME; gameId += 1) {
+  for (let gameId = ROUND_OF_32_START_GAME; gameId < SWEET_SIXTEEN_END_GAME; gameId += 1) {
     const match = liveBracketData.matches[gameId + 1];
     liveMatchTeamAIds[gameId] = resolver.getTeamId(match?.teamA?.seed, match?.teamA?.name, match?.teamA?.seoName);
     liveMatchTeamBIds[gameId] = resolver.getTeamId(match?.teamB?.seed, match?.teamB?.name, match?.teamB?.seoName);
@@ -381,7 +387,7 @@ function getCompactTeamsForGame(
   liveMatchTeamAIds: Uint16Array,
   liveMatchTeamBIds: Uint16Array,
 ): { teamAId: number; teamBId: number } {
-  if (gameId >= SWEET_SIXTEEN_START_GAME && gameId < SWEET_SIXTEEN_END_GAME) {
+  if (gameId >= ROUND_OF_32_START_GAME && gameId < SWEET_SIXTEEN_END_GAME) {
     return {
       teamAId: liveMatchTeamAIds[gameId],
       teamBId: liveMatchTeamBIds[gameId],

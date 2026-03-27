@@ -14,12 +14,10 @@ import {
 } from '$lib/utils/bracketUtils';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 import { getTeamColorSet } from '$lib/server/tournament/teamColors';
-import { getGameScenarioStakesProjection } from '$lib/server/scenarios/gameStakes';
 import type {
   TournamentSnapshot,
   Entry,
   EntryScore,
-  GeneratedScenarioArtifact,
   LiveBracketData,
   LeaderboardProjection,
   ScoreboardGame,
@@ -160,7 +158,6 @@ export function getGameDetailProjection(
   game: ScoreboardGame | null,
   entries: Entry[],
   snapshot: TournamentSnapshot,
-  generatedScenarioArtifact: GeneratedScenarioArtifact | null = null,
 ) {
   if (!game) {
     return null;
@@ -229,7 +226,6 @@ export function getGameDetailProjection(
   return {
     game,
     bracketIndex,
-    scenarioStakes: getGameScenarioStakesProjection(game, generatedScenarioArtifact),
     teamSelections: {
       home,
       away,

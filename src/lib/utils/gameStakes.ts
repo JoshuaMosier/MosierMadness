@@ -174,7 +174,7 @@ function buildBranchStakeSummary(
 		totalScenarios: branchOutcome.totalScenarios,
 		titleAliveCount: titleAliveEntries.length,
 		mustHaveCount: mustHaveEntries.length,
-		mustHaveEntries: mustHaveEntries.slice(0, HIGHLIGHT_LIMIT).map(stripRankedEntry),
+		mustHaveEntries: mustHaveEntries.map(stripRankedEntry),
 		biggestSwingEntries: biggestSwingEntries.slice(0, HIGHLIGHT_LIMIT).map(stripRankedEntry),
 		biggestDropEntries: biggestDropEntries.slice(0, HIGHLIGHT_LIMIT).map(stripRankedEntry),
 		favoriteEntry: favoriteEntry ? stripRankedEntry(favoriteEntry) : null,

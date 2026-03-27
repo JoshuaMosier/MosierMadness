@@ -42,10 +42,10 @@ export function getScenarioPreviewAssumption(url: URL): ScenarioPreviewAssumptio
     : null;
 }
 
-export function isSweetSixteenFieldReady(
+export function isRoundOf32FieldReady(
   snapshot: Pick<TournamentSnapshot, 'bracketMatches'>,
 ): boolean {
-  for (let bracketIndex = SWEET_SIXTEEN_START_INDEX; bracketIndex <= SWEET_SIXTEEN_END_INDEX; bracketIndex += 1) {
+  for (let bracketIndex = ROUND_OF_32_START_INDEX; bracketIndex <= ROUND_OF_32_END_INDEX; bracketIndex += 1) {
     const match = snapshot.bracketMatches[bracketIndex];
     if (!match?.teamA || !match?.teamB) {
       return false;
@@ -54,6 +54,7 @@ export function isSweetSixteenFieldReady(
 
   return true;
 }
+
 
 function cloneTeam(team: TeamInfo | null): TeamInfo | null {
   return team ? { ...team } : null;

@@ -3,7 +3,7 @@ import {
   applyScenarioPreviewAssumption,
   getScenarioPreviewAssumption,
   getScenarioPreviewDate,
-  isSweetSixteenFieldReady,
+  isRoundOf32FieldReady,
 } from '$lib/server/scenarios/browserExact';
 import { getGeneratedScenarioArtifact } from '$lib/server/scenarios/generated';
 import { getScenarioWeightingModel } from '$lib/server/scenarios/weighting';
@@ -49,7 +49,7 @@ export const load: PageServerLoad = async ({ depends, parent, fetch, url }) => {
 
     const readinessSnapshot = snapshot ?? await getTournamentSnapshot(tournamentSettings);
     snapshot = readinessSnapshot;
-    browserExactSimulationReady = isSweetSixteenFieldReady(readinessSnapshot);
+    browserExactSimulationReady = isRoundOf32FieldReady(readinessSnapshot);
   }
 
   const useBrowserExact = browserExactPreviewActive || browserExactSimulationReady;

@@ -14,19 +14,19 @@ export const canSubmitBracket = (stage: TournamentStage): boolean => stage === '
 /** Entries are visible once brackets have opened */
 export const canViewEntries = (stage: TournamentStage): boolean => stage !== 'archive';
 
-function getSweetSixteenStartDate(settings: Pick<TournamentSettings, 'tickerRounds'>): string | null {
-  const sweetSixteenRound = (settings.tickerRounds || []).find(round =>
-    round.key === 'sweet-16' || /sweet\s*(16|sixteen)/i.test(round.label)
+function getRoundStartDate(settings: Pick<TournamentSettings, 'tickerRounds'>, key: string, labelPattern: RegExp): string | null {
+  const round = (settings.tickerRounds || []).find(r =>
+    r.key === key || labelPattern.test(r.label)
   );
 
-  if (!sweetSixteenRound?.dates?.length) {
+  if (!round?.dates?.length) {
     return null;
   }
 
-  return [...sweetSixteenRound.dates].sort()[0];
+  return [...round.dates].sort()[0];
 }
 
-/** Scenarios open once the live tournament reaches the Sweet Sixteen window. */
+/** Scenarios open once the live tournament reaches the Second Round (Round of 32) window. */
 export const canViewScenarios = (
   settings: Pick<TournamentSettings, 'stage' | 'tickerRounds'>,
   todayEt: string,
@@ -35,8 +35,8 @@ export const canViewScenarios = (
     return false;
   }
 
-  const sweetSixteenStartDate = getSweetSixteenStartDate(settings);
-  return sweetSixteenStartDate ? todayEt >= sweetSixteenStartDate : false;
+  const roundOf32StartDate = getRoundStartDate(settings, 'round-2', /second\s*round|round\s*(of\s*)?32/i);
+  return roundOf32StartDate ? todayEt >= roundOf32StartDate : false;
 };
 
 /** Game detail pages stay hidden while brackets are open but games have not started */

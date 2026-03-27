@@ -12,7 +12,7 @@ import { areEquivalentSelections, parseTeamSelection } from '$lib/utils/bracketU
 import { getTeamsForGame } from '$lib/utils/scenarioEngine';
 import { resolveTeamSeoName } from '$lib/utils/teamColorUtils';
 
-const SWEET_SIXTEEN_START_GAME = 48;
+const ROUND_OF_32_START_GAME = 32;
 const CHAMPIONSHIP_GAME = 62;
 const GENERATED_ARTIFACT_SCHEMA_VERSION = 1;
 
@@ -57,6 +57,10 @@ type BrowserExactArtifactConfig = {
 };
 
 function getPreviewRoundInfo(gameId: number): PreviewRoundInfo | null {
+  if (gameId >= 32 && gameId < 48) {
+    return { round: 2, label: 'Round of 32' };
+  }
+
   if (gameId >= 48 && gameId < 56) {
     return { round: 3, label: 'Sweet 16' };
   }
@@ -79,7 +83,7 @@ function getPreviewRoundInfo(gameId: number): PreviewRoundInfo | null {
 function getRemainingGames(masterBracket: string[]): number[] {
   const remainingGames: number[] = [];
 
-  for (let gameId = SWEET_SIXTEEN_START_GAME; gameId <= CHAMPIONSHIP_GAME; gameId += 1) {
+  for (let gameId = ROUND_OF_32_START_GAME; gameId <= CHAMPIONSHIP_GAME; gameId += 1) {
     if (!masterBracket[gameId]) {
       remainingGames.push(gameId);
     }

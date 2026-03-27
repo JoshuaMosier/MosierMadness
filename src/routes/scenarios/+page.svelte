@@ -50,9 +50,9 @@
     }>;
   }> = [];
 
-  const SCENARIO_GAME_START = 48;
+  const SCENARIO_GAME_START = 32;
   const SCENARIO_GAME_END = 62;
-  const SCENARIO_ROUND_ORDER = ['Sweet 16', 'Elite 8', 'Final Four', 'Championship'] as const;
+  const SCENARIO_ROUND_ORDER = ['Round of 32', 'Sweet 16', 'Elite 8', 'Final Four', 'Championship'] as const;
 
   onMount(() => {
     try {
@@ -75,6 +75,10 @@
   });
 
   function getRoundLabel(gameId: number): (typeof SCENARIO_ROUND_ORDER)[number] | null {
+    if (gameId >= 32 && gameId < 48) {
+      return 'Round of 32';
+    }
+
     if (gameId >= 48 && gameId < 56) {
       return 'Sweet 16';
     }
@@ -243,7 +247,7 @@
     <div class="scenario-state scenario-empty mm-shell">
       <h2 class="scenario-empty-title">Scenarios are not active yet</h2>
       <p class="scenario-empty-copy">
-        Scenario analysis becomes available once the live tournament reaches the Sweet Sixteen.
+        Scenario analysis becomes available once the Second Round (Round of 32) begins.
       </p>
     </div>
   {:else if error}
@@ -269,8 +273,7 @@
       <div class="scenario-state scenario-empty mm-shell">
         <h2 class="scenario-empty-title">Exact browser scenarios are almost ready</h2>
         <p class="scenario-empty-copy">
-          The round-of-32 scenarios view stays active until every Sweet Sixteen matchup is set. Exact client-side
-          scenarios will take over as soon as the live field is fully known.
+          Scenarios will activate once all Round of 32 matchups are set.
         </p>
       </div>
     {:else if browserExactArtifact}

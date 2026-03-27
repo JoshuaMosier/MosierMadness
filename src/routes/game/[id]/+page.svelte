@@ -1,13 +1,18 @@
 <script lang="ts">
   import type {
     GameScenarioStakeBranch,
+    GeneratedScenarioArtifact,
     NcaaBasketballBoxscore,
     NcaaBasketballBoxscoreTeam,
     NcaaBasketballTeamStats,
+    SimulationConfig,
   } from '$lib/types';
   import { supabase } from '$lib/supabase';
   import { onMount } from 'svelte';
+  import { buildBrowserScenarioArtifact } from '$lib/utils/browserScenarioArtifact';
+  import { getGameScenarioStakesProjection } from '$lib/utils/gameStakes';
   import { handleImageError } from '$lib/utils/imageUtils';
+  import { runSimulation } from '$lib/utils/scenarioEngine';
   import { hexToRgb } from '$lib/utils/teamColorUtils';
 
   export let data: any;
@@ -76,9 +81,6 @@
     label: string;
     awayValue: string;
     homeValue: string;
-    awayMetric: number | null;
-    homeMetric: number | null;
-    lowerIsBetter?: boolean;
   };
 
   type PostgameStatSection = {
@@ -152,7 +154,6 @@
   $: gameData = data.gameDetail?.game || null;
   $: pageError = gameData ? null : 'No games available at this time';
   $: teamSelections = data.gameDetail?.teamSelections || { home: [], away: [], other: [] };
-  $: scenarioStakes = data.gameDetail?.scenarioStakes || null;
   $: postgameStats = data.postgameStats || null;
   $: tournamentStage = data.tournamentSettings?.stage || 'archive';
   $: primaryGroups = gameData
@@ -283,6 +284,60 @@
       currentUserId = user.id;
     }
   });
+
+  let cachedSeedData: any = null;
+  let cachedArtifact: GeneratedScenarioArtifact | null = null;
+
+  function getScenarioArtifact(seedData: any): GeneratedScenarioArtifact | null {
+    if (!seedData) {
+      return null;
+    }
+
+    if (seedData === cachedSeedData && cachedArtifact) {
+      return cachedArtifact;
+    }
+
+    try {
+      const { entries, liveBracketData, masterBracket, teamSeoMap, weighting } = seedData;
+      const SCENARIO_GAME_START = 32;
+      const SCENARIO_GAME_END = 62;
+      const filteredRemainingGames: number[] = [];
+      for (let g = SCENARIO_GAME_START; g <= SCENARIO_GAME_END; g++) {
+        if (!masterBracket[g]) {
+          filteredRemainingGames.push(g);
+        }
+      }
+
+      const result = runSimulation({
+        masterBracket,
+        entries,
+        filteredRemainingGames,
+        selectedWinners: {},
+        liveBracketData,
+        teamSeoMap,
+        weighting,
+      });
+
+      cachedSeedData = seedData;
+      cachedArtifact = buildBrowserScenarioArtifact({
+        entries,
+        liveBracketData,
+        masterBracket,
+        result,
+        teamSeoMap,
+        weighting,
+      });
+
+      return cachedArtifact;
+    } catch (err) {
+      console.warn('Failed to compute scenario artifact:', err);
+      return null;
+    }
+  }
+
+  $: scenarioStakes = gameData
+    ? getGameScenarioStakesProjection(gameData, getScenarioArtifact(data.scenarioSeedData) ?? data.generatedScenarioArtifact)
+    : null;
 
   function isCurrentUser(entry: PickEntry): boolean {
     return isCurrentUserId(entry.user_id);
@@ -431,11 +486,6 @@
     return `${made}-${attempted} (${percentage || '--'})`;
   }
 
-  function toPostgameMetric(value: string | number | null | undefined): number | null {
-    const parsedValue = Number.parseFloat(String(value ?? '').replace(/[^\d.-]/g, ''));
-    return Number.isFinite(parsedValue) ? parsedValue : null;
-  }
-
   function buildPostgameStatRows(
     awayStats: NcaaBasketballTeamStats,
     homeStats: NcaaBasketballTeamStats,
@@ -446,82 +496,60 @@
         label: 'FG',
         awayValue: formatTeamStatLine(awayStats.fieldGoalsMade, awayStats.fieldGoalsAttempted, awayStats.fieldGoalPercentage),
         homeValue: formatTeamStatLine(homeStats.fieldGoalsMade, homeStats.fieldGoalsAttempted, homeStats.fieldGoalPercentage),
-        awayMetric: toPostgameMetric(awayStats.fieldGoalPercentage),
-        homeMetric: toPostgameMetric(homeStats.fieldGoalPercentage),
       },
       {
         key: '3pt',
         label: '3PT',
         awayValue: formatTeamStatLine(awayStats.threePointsMade, awayStats.threePointsAttempted, awayStats.threePointPercentage),
         homeValue: formatTeamStatLine(homeStats.threePointsMade, homeStats.threePointsAttempted, homeStats.threePointPercentage),
-        awayMetric: toPostgameMetric(awayStats.threePointPercentage),
-        homeMetric: toPostgameMetric(homeStats.threePointPercentage),
       },
       {
         key: 'ft',
         label: 'FT',
         awayValue: formatTeamStatLine(awayStats.freeThrowsMade, awayStats.freeThrowsAttempted, awayStats.freeThrowPercentage),
         homeValue: formatTeamStatLine(homeStats.freeThrowsMade, homeStats.freeThrowsAttempted, homeStats.freeThrowPercentage),
-        awayMetric: toPostgameMetric(awayStats.freeThrowPercentage),
-        homeMetric: toPostgameMetric(homeStats.freeThrowPercentage),
       },
       {
         key: 'reb',
         label: 'Rebounds',
         awayValue: awayStats.totalRebounds,
         homeValue: homeStats.totalRebounds,
-        awayMetric: toPostgameMetric(awayStats.totalRebounds),
-        homeMetric: toPostgameMetric(homeStats.totalRebounds),
       },
       {
         key: 'oreb',
         label: 'Off Reb',
         awayValue: awayStats.offensiveRebounds,
         homeValue: homeStats.offensiveRebounds,
-        awayMetric: toPostgameMetric(awayStats.offensiveRebounds),
-        homeMetric: toPostgameMetric(homeStats.offensiveRebounds),
       },
       {
         key: 'ast',
         label: 'Assists',
         awayValue: awayStats.assists,
         homeValue: homeStats.assists,
-        awayMetric: toPostgameMetric(awayStats.assists),
-        homeMetric: toPostgameMetric(homeStats.assists),
       },
       {
         key: 'to',
         label: 'Turnovers',
         awayValue: awayStats.turnovers,
         homeValue: homeStats.turnovers,
-        awayMetric: toPostgameMetric(awayStats.turnovers),
-        homeMetric: toPostgameMetric(homeStats.turnovers),
-        lowerIsBetter: true,
       },
       {
         key: 'stl',
         label: 'Steals',
         awayValue: awayStats.steals,
         homeValue: homeStats.steals,
-        awayMetric: toPostgameMetric(awayStats.steals),
-        homeMetric: toPostgameMetric(homeStats.steals),
       },
       {
         key: 'blk',
         label: 'Blocks',
         awayValue: awayStats.blockedShots,
         homeValue: homeStats.blockedShots,
-        awayMetric: toPostgameMetric(awayStats.blockedShots),
-        homeMetric: toPostgameMetric(homeStats.blockedShots),
       },
       {
         key: 'pf',
         label: 'Fouls',
         awayValue: awayStats.personalFouls,
         homeValue: homeStats.personalFouls,
-        awayMetric: toPostgameMetric(awayStats.personalFouls),
-        homeMetric: toPostgameMetric(homeStats.personalFouls),
-        lowerIsBetter: true,
       },
     ];
   }
@@ -548,17 +576,6 @@
     return isWinner(getPostgameFallbackTeam(team));
   }
 
-  function getPostgameStatTone(row: PostgameStatRow, team: NcaaBasketballBoxscoreTeam): string {
-    const currentMetric = team.isHome ? row.homeMetric : row.awayMetric;
-    const opposingMetric = team.isHome ? row.awayMetric : row.homeMetric;
-
-    if (currentMetric === null || opposingMetric === null || currentMetric === opposingMetric) {
-      return 'is-even';
-    }
-
-    const isLeading = row.lowerIsBetter ? currentMetric < opposingMetric : currentMetric > opposingMetric;
-    return isLeading ? 'is-leading' : 'is-trailing';
-  }
 
   function getPostgameTeamStyle(team: NcaaBasketballBoxscoreTeam): string {
     const fallbackTeam = team.isHome ? gameData?.homeTeam : gameData?.awayTeam;
@@ -795,7 +812,7 @@
 
                           <div class="postgame-stat-list">
                             {#each section.rows as row (row.key)}
-                              <div class={`postgame-stat-item ${getPostgameStatTone(row, team)}`}>
+                              <div class="postgame-stat-item">
                                 <span class="postgame-stat-item-label">{row.label}</span>
                                 <strong class="postgame-stat-item-value">{team.isHome ? row.homeValue : row.awayValue}</strong>
                               </div>
@@ -1598,13 +1615,6 @@
   }
 
   .postgame-stat-item-value {
-    display: inline-flex;
-    align-items: center;
-    min-height: 1.6rem;
-    padding: 0.14rem 0.52rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
     color: var(--mm-text);
     font-size: 0.81rem;
     font-weight: 800;
@@ -1614,19 +1624,6 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .postgame-stat-item.is-leading .postgame-stat-item-value {
-    border-color: rgba(var(--team-rgb), 0.3);
-    background: rgba(var(--team-rgb), 0.16);
-  }
-
-  .postgame-stat-item.is-trailing .postgame-stat-item-value {
-    color: var(--mm-muted);
-    background: rgba(255, 255, 255, 0.03);
-  }
-
-  .postgame-stat-item.is-even .postgame-stat-item-value {
-    background: rgba(255, 255, 255, 0.06);
-  }
 
   .pick-share-track {
     display: flex;
@@ -1933,11 +1930,6 @@
 
     .postgame-section + .postgame-section {
       padding-top: 0.72rem;
-    }
-
-    .postgame-stat-item-value {
-      min-height: 1.5rem;
-      padding-inline: 0.48rem;
     }
 
     .postgame-stat-item-label,
